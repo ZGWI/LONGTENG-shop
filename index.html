@@ -42,15 +42,6 @@ body{
   flex:1;text-align:center;font-size:17px;margin:0;font-weight:600;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-/* 同步状态小圆点 */
-#syncDot{
-  display:inline-block;width:8px;height:8px;border-radius:50%;
-  margin-right:4px;vertical-align:middle;background:#9AA0A6;
-}
-#syncDot.ok{background:#66BB6A;}
-#syncDot.syncing{background:#FFA726;animation:pulse 1s infinite;}
-#syncDot.err{background:#EF5350;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 #main{flex:1;position:relative;overflow:hidden;}
 .view{
   position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -283,14 +274,6 @@ body{
   cursor:pointer;margin-bottom:10px;
 }
 .tpl-btn:active{background:#E1EFFF;}
-/* 同步状态条 */
-#syncBar{
-  position:absolute;top:56px;left:0;right:0;height:0;overflow:hidden;
-  background:#FFF3E0;color:#E65100;font-size:12px;text-align:center;
-  transition:height .2s;z-index:8;
-}
-#syncBar.show{height:26px;line-height:26px;}
-#syncBar.err{background:#FFEBEE;color:#C62828;}
 </style>
 </head>
 <body>
@@ -298,11 +281,9 @@ body{
 
   <header id="topbar">
     <button class="tb-btn hidden" id="btnBack">←</button>
-    <h1 id="tbTitle"><span id="syncDot"></span>龙腾手机库存</h1>
-    <button class="tb-btn" id="btnSyncNow" title="立即同步">⟳</button>
+    <h1 id="tbTitle">龙腾手机库存</h1>
+    <button class="tb-btn hidden" id="tbRight">⋯</button>
   </header>
-
-  <div id="syncBar"></div>
 
   <main id="main">
 
@@ -395,14 +376,6 @@ body{
 </div>
 
 <script>
-/* ==================== 云同步配置 ==================== */
-// ⚠️ 把下面两个值替换成你自己的
-const GIST_ID = '1b73363e8b92c9e6892439426a291b33';
-const GITHUB_TOKEN = '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';
-
-const SYNC_POLL_MS = 20000;   // 每 20 秒轮询一次
-const SYNC_DEBOUNCE_MS = 1200; // 本地修改后 1.2 秒推送到云端
-
 /* ==================== 工具 ==================== */
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
@@ -426,41 +399,16 @@ function toast(msg){
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2200);
 }
 
-/* ==================== 云同步状态 ==================== */
-let syncState = 'idle'; // idle | syncing | ok | err
-function setSyncState(state, msg){
-  syncState = state;
-  const dot = $('#syncDot');
-  dot.className = '';
-  if(state === 'ok') dot.classList.add('ok');
-  else if(state === 'syncing') dot.classList.add('syncing');
-  else if(state === 'err') dot.classList.add('err');
-
-  const bar = $('#syncBar');
-  if(msg){
-    bar.textContent = msg;
-    bar.classList.add('show');
-    bar.classList.toggle('err', state === 'err');
-    if(state === 'ok'){
-      setTimeout(()=>bar.classList.remove('show'), 1500);
-    }
-  }
-}
-
 /* ==================== 数据层 ==================== */
 let products = [];
 let records = [];
-let lastCloudUpdatedAt = 0;
 
-function loadLocal(){
+function loadData(){
   try{ products = JSON.parse(localStorage.getItem('ss_products') || '[]'); }catch(e){ products = []; }
   try{ records  = JSON.parse(localStorage.getItem('ss_records')  || '[]'); }catch(e){ records  = []; }
-  lastCloudUpdatedAt = parseInt(localStorage.getItem('ss_cloud_time') || '0');
 }
-function saveLocal(){
-  localStorage.setItem('ss_products', JSON.stringify(products));
-  localStorage.setItem('ss_records',  JSON.stringify(records));
-}
+function saveProducts(){ localStorage.setItem('ss_products', JSON.stringify(products)); }
+function saveRecords(){ localStorage.setItem('ss_records',  JSON.stringify(records)); }
 
 function findProduct(id){ return products.find(p => p.id === id); }
 function findByBarcode(code){ return products.find(p => p.barcode === code); }
@@ -486,118 +434,10 @@ function changeStock(productId, delta, remark = ''){
     time: Date.now()
   });
 
-  saveLocal();
-  schedulePush();
+  saveProducts();
+  saveRecords();
   return { ok:true, stock:newStock };
 }
-
-/* ==================== GitHub Gist 云同步 ==================== */
-let pushTimer = null;
-let pollTimer = null;
-let pushing = false;
-
-function schedulePush(){
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(cloudPush, SYNC_DEBOUNCE_MS);
-}
-
-async function cloudPull(){
-  const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`, {
-    headers: {
-      'Authorization': `token ${GITHUB_TOKEN}`,
-      'Accept': 'application/vnd.github.v3+json'
-    }
-  });
-  if(!res.ok){
-    const t = await res.text();
-    throw new Error(`拉取失败 ${res.status}: ${t.slice(0,100)}`);
-  }
-  const json = await res.json();
-  const file = json.files['data.json'];
-  if(!file || !file.content) throw new Error('云端数据文件缺失');
-  return JSON.parse(file.content);
-}
-
-async function cloudPush(){
-  if(pushing) return;
-  pushing = true;
-  setSyncState('syncing', '正在同步到云端...');
-  try{
-    const payload = {
-      products,
-      records,
-      updatedAt: Date.now()
-    };
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        files: {
-          'data.json': {
-            content: JSON.stringify(payload, null, 2)
-          }
-        }
-      })
-    });
-    if(!res.ok){
-      const t = await res.text();
-      throw new Error(`推送失败 ${res.status}`);
-    }
-    lastCloudUpdatedAt = payload.updatedAt;
-    localStorage.setItem('ss_cloud_time', String(lastCloudUpdatedAt));
-    setSyncState('ok', '已同步到云端');
-  }catch(e){
-    console.error('云推送失败', e);
-    setSyncState('err', '云端同步失败，数据已存本地');
-  }finally{
-    pushing = false;
-  }
-}
-
-async function pullAndMerge(){
-  if(pushing) return; // 推送中不拉
-  try{
-    const remote = await cloudPull();
-    const remoteTime = remote.updatedAt || 0;
-    if(remoteTime > lastCloudUpdatedAt){
-      // 云端有更新，覆盖本地
-      products = remote.products || [];
-      records  = remote.records  || [];
-      lastCloudUpdatedAt = remoteTime;
-      saveLocal();
-      localStorage.setItem('ss_cloud_time', String(remoteTime));
-      // 刷新界面
-      if(currentView === 'list') renderProductList();
-      if(currentView === 'records') renderRecords();
-      if(currentView === 'detail' && currentProductId){
-        const p = findProduct(currentProductId);
-        if(p) renderDetail(p);
-        else showView('list');
-      }
-      setSyncState('ok', '已从云端更新');
-    }
-  }catch(e){
-    console.error('云拉取失败', e);
-    setSyncState('err', '云端连接失败，请检查网络');
-  }
-}
-
-function startPolling(){
-  clearInterval(pollTimer);
-  pollTimer = setInterval(()=>{
-    if(document.hidden) return;
-    pullAndMerge();
-  }, SYNC_POLL_MS);
-}
-
-// 页面重新可见时立即拉一次
-document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden) pullAndMerge();
-});
 
 /* ==================== 配置行工具 ==================== */
 function buildConfigLine(p){
@@ -627,7 +467,7 @@ function showView(name){
   const el = $('#view-' + name);
   if(el) el.classList.add('active');
 
-  $('#tbTitle').innerHTML = `<span id="syncDot"></span>` + (TITLES[name] || '龙腾手机库存');
+  $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
 
   const isRoot = (name === 'list' || name === 'scan' || name === 'records');
   $('#btnBack').classList.toggle('hidden', isRoot);
@@ -636,10 +476,6 @@ function showView(name){
 
   $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
 
-  // 重建 dot 引用
-  const dot = $('#syncDot');
-  dot.className = syncState === 'ok' ? 'ok' : syncState === 'syncing' ? 'syncing' : syncState === 'err' ? 'err' : '';
-
   if(name === 'list') renderProductList();
   if(name === 'records') renderRecords();
   if(name === 'scan') startScan();
@@ -647,11 +483,6 @@ function showView(name){
 
 $('#btnBack').addEventListener('click', ()=>{
   showView('list');
-});
-$('#btnSyncNow').addEventListener('click', async ()=>{
-  toast('正在从云端拉取...');
-  await pullAndMerge();
-  toast('已同步');
 });
 
 /* ==================== 商品列表 ==================== */
@@ -804,8 +635,7 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
   if(editingId){
     const p = findProduct(editingId);
     Object.assign(p, data, { updatedAt: Date.now() });
-    saveLocal();
-    schedulePush();
+    saveProducts();
     toast('已保存');
   }else{
     const stock = parseInt($('#fStock').value) || 0;
@@ -817,9 +647,8 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
       updatedAt: Date.now()
     };
     products.push(p);
-    saveLocal();
+    saveProducts();
     if(stock > 0) changeStock(p.id, stock, '新建商品初始入库');
-    else schedulePush();
     toast('已添加');
   }
   showView('list');
@@ -938,8 +767,7 @@ function confirmDelete(p){
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     products = products.filter(x => x.id !== p.id);
-    saveLocal();
-    schedulePush();
+    saveProducts();
     close();
     toast('已删除');
     showView('list');
@@ -1143,8 +971,7 @@ $('#importFile').addEventListener('change', e => {
       mask.querySelector('[data-act="ok"]').onclick = () => {
         products = data.products || [];
         records  = data.records  || [];
-        saveLocal();
-        schedulePush();
+        saveProducts(); saveRecords();
         close();
         toast('导入成功');
         renderProductList();
@@ -1170,8 +997,8 @@ $('#btnClearAll').addEventListener('click', ()=>{
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     products = []; records = [];
-    saveLocal();
-    schedulePush();
+    localStorage.removeItem('ss_products');
+    localStorage.removeItem('ss_records');
     close();
     toast('已清空');
     renderProductList();
@@ -1389,8 +1216,7 @@ function openBatchImport(){
       added++;
     });
 
-    saveLocal();
-    schedulePush();
+    saveProducts();
     close();
     toast(`成功导入 ${added} 件商品`);
     renderProductList();
@@ -1813,20 +1639,8 @@ $$('#tabbar button').forEach(btn => {
 $('#fabAdd').addEventListener('click', () => openAdd(null));
 
 /* ==================== 启动 ==================== */
-(async function boot(){
-  loadLocal();
-  showView('list');
-
-  // 首次从云端拉取
-  setSyncState('syncing', '正在连接云端...');
-  await pullAndMerge();
-  renderProductList();
-  startPolling();
-
-  if(GIST_ID.includes('在这里填') || GITHUB_TOKEN.includes('在这里填')){
-    setSyncState('err', '未配置云同步，数据只存在本地');
-  }
-})();
+loadData();
+showView('list');
 </script>
 </body>
 </html>
