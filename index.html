@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1565C0">
+<title>手机店库存管理</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{
+  --primary:#1565C0; --primary-dark:#0D47A1;
+  --green:#2E7D32; --red:#C62828; --orange:#EF6C00;
+  --bg:#F4F6F9; --card:#FFF; --text:#1A1A1A; --text2:#6B7280; --border:#E5E7EB;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:#DFE4EA;color:var(--text);font-size:15px;overflow:hidden;
+}
+#app{
+  max-width:640px;margin:0 auto;height:100vh;height:100dvh;
+  display:flex;flex-direction:column;background:var(--bg);
+  position:relative;overflow:hidden;
+}
+/* 顶栏 */
+#topbar{
+  height:56px;flex:none;display:flex;align-items:center;
+  padding:0 8px;background:var(--primary);color:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.12);z-index:10;
+}
+#topbar .tb-btn{
+  width:44px;height:44px;border:0;background:transparent;color:#fff;
+  font-size:20px;border-radius:50%;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;
+}
+#topbar .tb-btn:active{background:rgba(255,255,255,.18);}
+#topbar .tb-btn.hidden{visibility:hidden;}
+#topbar h1{
+  flex:1;text-align:center;font-size:17px;margin:0;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* 主区 */
+#main{flex:1;position:relative;overflow:hidden;}
+.view{
+  position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:none;padding-bottom:24px;
+}
+.view.active{display:block;}
+/* 底部 tab */
+#tabbar{
+  flex:none;height:58px;display:flex;background:#fff;
+  border-top:1px solid var(--border);z-index:10;
+}
+#tabbar.hidden{display:none;}
+#tabbar button{
+  flex:1;border:0;background:transparent;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;font-size:11px;
+  color:var(--text2);cursor:pointer;padding:6px 0;
+}
+#tabbar button .ic{font-size:19px;line-height:1;}
+#tabbar button.active{color:var(--primary);font-weight:600;}
+/* 搜索 */
+.search-wrap{padding:10px 12px 6px;}
+.search-wrap input{
+  width:100%;height:42px;border:1px solid var(--border);border-radius:10px;
+  padding:0 14px;font-size:14px;background:#fff;outline:none;
+}
+.search-wrap input:focus{border-color:var(--primary);}
+/* 列表 */
+.list{padding:4px 12px 90px;}
+.card{
+  background:var(--card);border-radius:12px;padding:12px 14px;
+  margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);
+  cursor:pointer;transition:transform .1s;
+}
+.card:active{transform:scale(.985);}
+.product-item{display:flex;gap:10px;align-items:flex-start;}
+.pi-main{flex:1;min-width:0;}
+.pi-name{font-size:15px;font-weight:600;margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pi-code{font-size:11.5px;color:#9AA0A6;font-family:monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pi-right{flex:none;text-align:right;}
+.pi-stock{font-size:14px;font-weight:700;margin-bottom:5px;}
+.pi-stock.ok{color:var(--green);}
+.pi-stock.warn{color:var(--orange);}
+.pi-stock.danger{color:var(--red);}
+.pi-price{font-size:13px;color:var(--primary);font-weight:600;}
+/* 空状态 */
+.empty{
+  text-align:center;color:var(--text2);font-size:14px;
+  padding:60px 24px;line-height:1.8;
+}
+/* FAB */
+.fab{
+  position:fixed;right:calc(50% - 320px + 18px);bottom:78px;
+  width:56px;height:56px;border-radius:50%;border:0;
+  background:var(--primary);color:#fff;font-size:28px;line-height:1;
+  box-shadow:0 4px 14px rgba(21,101,192,.42);cursor:pointer;z-index:9;
+  display:flex;align-items:center;justify-content:center;
+}
+@media (max-width:676px){ .fab{right:18px;} }
+.fab:active{transform:scale(.94);}
+/* 表单 */
+.form-body{padding:16px 14px 40px;}
+.field{margin-bottom:14px;flex:1;min-width:0;}
+.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;}
+.field .req{color:var(--red);}
+.field input,.field textarea{
+  width:100%;border:1px solid var(--border);border-radius:10px;
+  padding:11px 13px;font-size:15px;background:#fff;outline:none;
+  font-family:inherit;color:var(--text);
+}
+.field input:focus,.field textarea:focus{border-color:var(--primary);}
+.field input:disabled{background:#F0F1F3;color:#9AA0A6;}
+.row2{display:flex;gap:12px;}
+.input-with-actions{display:flex;gap:8px;align-items:center;}
+.input-with-actions input{flex:1;min-width:0;}
+.mini-btn{
+  flex:none;height:42px;padding:0 14px;border:1px solid var(--primary);
+  background:#fff;color:var(--primary);border-radius:10px;
+  font-size:13px;cursor:pointer;white-space:nowrap;
+}
+.mini-btn:active{background:#E8F0FE;}
+.btn-primary{
+  width:100%;height:50px;border:0;border-radius:12px;
+  background:var(--primary);color:#fff;font-size:16px;font-weight:600;
+  cursor:pointer;margin-top:8px;
+}
+.btn-primary:active{background:var(--primary-dark);}
+.btn-primary:disabled{opacity:.6;}
+.btn-plain{
+  width:100%;height:44px;border:1px solid var(--border);border-radius:10px;
+  background:#fff;color:var(--text2);font-size:14px;cursor:pointer;
+}
+.btn-danger{
+  width:100%;height:46px;border:1px solid #F3C6C6;border-radius:12px;
+  background:#FFF5F5;color:var(--red);font-size:15px;cursor:pointer;font-weight:600;
+}
+/* 详情 */
+.detail-body{padding:16px 14px 40px;}
+.d-name{font-size:22px;font-weight:700;margin:0 0 4px;}
+.d-sub{font-size:14px;color:var(--text2);margin-bottom:10px;}
+.d-badge{
+  display:inline-block;font-size:15px;font-weight:700;
+  padding:4px 12px;border-radius:20px;background:#F0F1F3;
+}
+.d-badge.ok{color:var(--green);background:#E8F5E9;}
+.d-badge.warn{color:var(--orange);background:#FFF3E0;}
+.d-badge.danger{color:var(--red);background:#FFEBEE;}
+.barcode-box{
+  background:#fff;border-radius:12px;padding:14px;margin:14px 0;
+  text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.barcode-box svg{width:100%;height:auto;max-height:130px;display:block;}
+.barcode-text{
+  font-family:monospace;font-size:13px;letter-spacing:1px;
+  margin-top:6px;color:#374151;
+}
+.d-actions{display:flex;gap:10px;margin-bottom:12px;}
+.d-actions button{
+  flex:1;height:48px;border:0;border-radius:12px;font-size:15px;
+  font-weight:600;cursor:pointer;
+}
+.btn-in{background:var(--green);color:#fff;}
+.btn-out{background:#fff;color:var(--red);border:1.5px solid var(--red)!important;}
+.d-mini{display:flex;gap:8px;margin-bottom:18px;}
+.d-mini button{
+  flex:1;height:38px;border:1px solid var(--border);background:#fff;
+  border-radius:9px;font-size:12.5px;color:var(--text2);cursor:pointer;
+}
+.section-title{
+  font-size:14px;font-weight:700;margin:18px 0 8px;color:#374151;
+}
+.info-box{
+  background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;
+  line-height:1.9;box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.info-box b{color:var(--text2);font-weight:400;}
+/* 流水 */
+.rec-item{
+  display:flex;align-items:center;gap:10px;padding:10px 0;
+  border-bottom:1px solid #F0F1F3;
+}
+.rec-item:last-child{border-bottom:0;}
+.rec-type{flex:none;width:42px;font-size:12.5px;font-weight:700;}
+.rec-type.in{color:var(--green);}
+.rec-type.out{color:var(--red);}
+.rec-main{flex:1;min-width:0;}
+.rec-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rec-time{font-size:11.5px;color:var(--text2);}
+.rec-qty{flex:none;font-size:16px;font-weight:700;}
+.rec-qty.in{color:var(--green);}
+.rec-qty.out{color:var(--red);}
+/* 扫码页 */
+.scan-tabs{
+  display:flex;gap:8px;padding:12px 14px 8px;
+}
+.scan-tabs button{
+  flex:1;height:40px;border:1px solid var(--border);background:#fff;
+  border-radius:10px;font-size:13.5px;color:var(--text2);cursor:pointer;
+}
+.scan-tabs button.active{
+  background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;
+}
+.scan-reader{
+  width:100%;min-height:260px;background:#000;border-radius:12px;
+  overflow:hidden;position:relative;
+}
+.scan-reader video{width:100%!important;height:auto!important;}
+.scan-tip{
+  text-align:center;font-size:13px;color:var(--text2);
+  padding:12px 20px;line-height:1.7;
+}
+/* 弹窗 */
+.modal-mask{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  opacity:0;transition:opacity .18s;
+}
+.modal-mask.show{opacity:1;}
+.modal{
+  width:100%;max-width:380px;background:#fff;border-radius:16px;
+  padding:20px;transform:scale(.94);transition:transform .18s;
+  max-height:80vh;overflow-y:auto;
+}
+.modal-mask.show .modal{transform:scale(1);}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:10px;text-align:center;}
+.modal-body{font-size:14px;color:#374151;line-height:1.7;margin-bottom:16px;text-align:center;white-space:pre-line;}
+.modal-input{
+  width:100%;height:46px;border:1px solid var(--border);border-radius:10px;
+  padding:0 13px;font-size:16px;outline:none;margin-bottom:10px;
+}
+.modal-input:focus{border-color:var(--primary);}
+.modal-btns{display:flex;gap:10px;margin-top:6px;}
+.modal-btns button{
+  flex:1;height:44px;border-radius:10px;font-size:15px;cursor:pointer;
+  border:1px solid var(--border);background:#fff;color:var(--text2);
+}
+.modal-btns button.primary{
+  background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;
+}
+/* Toast */
+.toast{
+  position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(10px);
+  background:rgba(30,30,30,.92);color:#fff;font-size:14px;
+  padding:11px 20px;border-radius:22px;z-index:200;
+  opacity:0;transition:all .25s;pointer-events:none;max-width:80vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header id="topbar">
+    <button class="tb-btn hidden" id="btnBack">←</button>
+    <h1 id="tbTitle">手机店库存</h1>
+    <button class="tb-btn hidden" id="tbRight">⋯</button>
+  </header>
+
+  <main id="main">
+
+    <!-- 商品列表 -->
+    <section id="view-list" class="view active">
+      <div class="search-wrap">
+        <input id="searchInput" type="search" placeholder="搜索 名称 / 品牌 / 型号 / 条码">
+      </div>
+      <div id="productList" class="list"></div>
+    </section>
+
+    <!-- 新增 / 编辑 -->
+    <section id="view-add" class="view">
+      <div class="form-body">
+        <div class="field">
+          <label>商品名称 <span class="req">*</span></label>
+          <input id="fName" type="text" placeholder="如 iPhone 15 Pro Max">
+        </div>
+        <div class="row2">
+          <div class="field"><label>品牌</label><input id="fBrand" placeholder="Apple"></div>
+          <div class="field"><label>型号</label><input id="fModel" placeholder="A3108"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>规格</label><input id="fSpec" placeholder="8G+256G"></div>
+          <div class="field"><label>颜色</label><input id="fColor" placeholder="原色钛金属"></div>
+        </div>
+        <div class="field">
+          <label>商品条码 <span class="req">*</span></label>
+          <div class="input-with-actions">
+            <input id="fBarcode" placeholder="扫描 / 输入 / 生成">
+            <button type="button" class="mini-btn" id="btnScanBarcode">扫描</button>
+            <button type="button" class="mini-btn" id="btnGenBarcode">生成</button>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>进货价</label><input id="fPriceIn" type="number" inputmode="decimal" placeholder="0.00"></div>
+          <div class="field"><label>销售价</label><input id="fPriceOut" type="number" inputmode="decimal" placeholder="0.00"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label id="lbStock">初始库存</label><input id="fStock" type="number" inputmode="numeric" value="0"></div>
+          <div class="field"><label>预警值</label><input id="fWarn" type="number" inputmode="numeric" value="2"></div>
+        </div>
+        <div class="field"><label>备注</label><textarea id="fRemark" rows="2" placeholder="可选"></textarea></div>
+        <button class="btn-primary" id="btnSaveProduct">保存</button>
+      </div>
+    </section>
+
+    <!-- 详情 -->
+    <section id="view-detail" class="view">
+      <div class="detail-body" id="detailBody"></div>
+    </section>
+
+    <!-- 扫码 -->
+    <section id="view-scan" class="view">
+      <div class="scan-tabs">
+        <button data-mode="query" class="active">扫码查询</button>
+        <button data-mode="in">扫码入库</button>
+        <button data-mode="out">扫码出库</button>
+      </div>
+      <div style="padding:0 14px;">
+        <div id="reader" class="scan-reader"></div>
+      </div>
+      <div class="scan-tip" id="scanTip">将条形码 / 二维码放入取景框内</div>
+    </section>
+
+    <!-- 记录 -->
+    <section id="view-records" class="view">
+      <div style="padding:14px;">
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button class="mini-btn" id="btnExport" style="flex:1;">导出备份</button>
+          <button class="mini-btn" id="btnImport" style="flex:1;">导入备份</button>
+          <button class="mini-btn" id="btnClearAll" style="flex:1;border-color:#F3C6C6;color:var(--red);">清空数据</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+        <div class="section-title">全部出入库流水</div>
+        <div class="card" style="padding:6px 14px;">
+          <div id="recordList"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav id="tabbar">
+    <button data-tab="list" class="active"><span class="ic">📦</span>库存</button>
+    <button data-tab="scan"><span class="ic">📷</span>扫码</button>
+    <button data-tab="records"><span class="ic">📋</span>记录</button>
+  </nav>
+
+  <button class="fab" id="fabAdd">+</button>
+</div>
+
+<script>
+/* ==================== 工具 ==================== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => (
+    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
+  ));
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmtMoney(n){ return (Number(n)||0).toFixed(2); }
+function fmtTime(ts){
+  const d = new Date(ts), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function toast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2200);
+}
+
+/* ==================== 数据层 ==================== */
+let products = [];
+let records = [];
+
+function loadData(){
+  try{ products = JSON.parse(localStorage.getItem('ss_products') || '[]'); }catch(e){ products = []; }
+  try{ records  = JSON.parse(localStorage.getItem('ss_records')  || '[]'); }catch(e){ records  = []; }
+}
+function saveProducts(){ localStorage.setItem('ss_products', JSON.stringify(products)); }
+function saveRecords(){ localStorage.setItem('ss_records',  JSON.stringify(records)); }
+
+function findProduct(id){ return products.find(p => p.id === id); }
+function findByBarcode(code){ return products.find(p => p.barcode === code); }
+
+/**
+ * 出入库核心：改库存 + 写流水
+ * @param delta 正数入库，负数出库
+ */
+function changeStock(productId, delta, remark = ''){
+  if(!delta) return { ok:false, msg:'数量不能为 0' };
+  const p = findProduct(productId);
+  if(!p) return { ok:false, msg:'商品不存在' };
+  const newStock = p.stock + delta;
+  if(newStock < 0) return { ok:false, msg:`库存不足，当前库存 ${p.stock}` };
+
+  p.stock = newStock;
+  p.updatedAt = Date.now();
+
+  records.unshift({
+    id: uid(),
+    productId: p.id,
+    productName: p.name,
+    barcode: p.barcode,
+    type: delta > 0 ? 1 : -1,
+    quantity: Math.abs(delta),
+    remark: remark || '',
+    time: Date.now()
+  });
+
+  saveProducts();
+  saveRecords();
+  return { ok:true, stock:newStock };
+}
+
+/* ==================== 视图管理 ==================== */
+let currentView = 'list';
+let editingId = null;
+let currentProductId = null;
+
+const TITLES = {
+  list:'手机店库存', add:'新增商品', edit:'编辑商品',
+  detail:'商品详情', scan:'扫码', records:'出入库记录'
+};
+
+function showView(name){
+  // 离开扫码页时关闭摄像头
+  if(currentView === 'scan' && name !== 'scan') stopScan();
+
+  currentView = name;
+  $$('.view').forEach(v => v.classList.remove('active'));
+  const el = $('#view-' + name);
+  if(el) el.classList.add('active');
+
+  $('#tbTitle').textContent = TITLES[name] || '手机店库存';
+
+  const isRoot = (name === 'list' || name === 'scan' || name === 'records');
+  $('#btnBack').classList.toggle('hidden', isRoot);
+  $('#tabbar').classList.toggle('hidden', !isRoot);
+  $('#fabAdd').style.display = (name === 'list') ? 'flex' : 'none';
+
+  // tab 高亮
+  $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+
+  // 切换时刷新
+  if(name === 'list') renderProductList();
+  if(name === 'records') renderRecords();
+  if(name === 'scan') startScan();
+}
+
+$('#btnBack').addEventListener('click', ()=>{
+  if(currentView === 'detail' || currentView === 'add' || currentView === 'edit') showView('list');
+  else showView('list');
+});
+
+/* ==================== 商品列表 ==================== */
+let searchKeyword = '';
+$('#searchInput').addEventListener('input', e => {
+  searchKeyword = e.target.value;
+  renderProductList();
+});
+
+function renderProductList(){
+  const kw = searchKeyword.trim().toLowerCase();
+  const list = products
+    .filter(p => {
+      if(!kw) return true;
+      return (p.name + p.brand + p.model + p.spec + p.color + p.barcode)
+        .toLowerCase().includes(kw);
+    })
+    .sort((a,b) => b.createdAt - a.createdAt);
+
+  const el = $('#productList');
+  if(list.length === 0){
+    el.innerHTML = `<div class="empty">${products.length === 0
+      ? '还没有商品<br>点击右下角 <b>+</b> 添加第一件商品'
+      : '没有找到匹配的商品'}</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(p => {
+    const cls = p.stock <= 0 ? 'danger' : (p.stock <= p.warnStock ? 'warn' : 'ok');
+    const sub = [p.brand, p.model, p.spec, p.color].filter(Boolean).join(' / ') || '—';
+    return `<div class="card product-item" data-id="${esc(p.id)}">
+      <div class="pi-main">
+        <div class="pi-name">${esc(p.name)}</div>
+        <div class="pi-sub">${esc(sub)}</div>
+        <div class="pi-code">条码：${esc(p.barcode)}</div>
+      </div>
+      <div class="pi-right">
+        <div class="pi-stock ${cls}">库存 ${p.stock}</div>
+        <div class="pi-price">¥${fmtMoney(p.priceOut)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.product-item').forEach(node => {
+    const id = node.dataset.id;
+    node.addEventListener('click', () => openDetail(id));
+    // 长按 / 右键 → 快捷菜单
+    let timer = null;
+    const start = () => { timer = setTimeout(()=>{ timer = null; showQuickMenu(id); }, 600); };
+    const cancel = () => { if(timer){ clearTimeout(timer); timer = null; } };
+    node.addEventListener('touchstart', start, {passive:true});
+    node.addEventListener('touchend', cancel);
+    node.addEventListener('touchmove', cancel, {passive:true});
+    node.addEventListener('contextmenu', e => { e.preventDefault(); showQuickMenu(id); });
+  });
+}
+
+function showQuickMenu(id){
+  const p = findProduct(id);
+  if(!p) return;
+  const { mask, close } = showModal(`
+    <div class="modal-title">${esc(p.name)}</div>
+    <div class="modal-body">库存 ${p.stock}</div>
+    <div class="modal-btns" style="flex-direction:column;gap:8px;">
+      <button class="primary" data-act="in">入库</button>
+      <button data-act="out">出库</button>
+      <button data-act="detail">查看详情</button>
+      <button data-act="edit">编辑商品</button>
+    </div>
+  `);
+  mask.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.act;
+      close();
+      if(act === 'in')  setTimeout(()=>promptQuantity(id, 1), 220);
+      if(act === 'out') setTimeout(()=>promptQuantity(id, -1), 220);
+      if(act === 'detail') setTimeout(()=>openDetail(id), 220);
+      if(act === 'edit')   setTimeout(()=>openAdd(id), 220);
+    });
+  });
+}
+
+/* ==================== 新增 / 编辑 ==================== */
+function openAdd(id = null, presetBarcode = ''){
+  editingId = id;
+  showView(id ? 'edit' : 'add');
+
+  const p = id ? findProduct(id) : null;
+
+  $('#fName').value     = p ? p.name : '';
+  $('#fBrand').value    = p ? p.brand : '';
+  $('#fModel').value    = p ? p.model : '';
+  $('#fSpec').value     = p ? p.spec : '';
+  $('#fColor').value    = p ? p.color : '';
+  $('#fBarcode').value  = p ? p.barcode : (presetBarcode || '');
+  $('#fPriceIn').value  = p && p.priceIn ? p.priceIn : '';
+  $('#fPriceOut').value = p && p.priceOut ? p.priceOut : '';
+  $('#fStock').value    = p ? p.stock : 0;
+  $('#fWarn').value     = p ? p.warnStock : 2;
+  $('#fRemark').value   = p ? p.remark : '';
+
+  $('#lbStock').textContent = p ? '当前库存（通过出入库变更）' : '初始库存';
+  $('#fStock').disabled = !!p;
+  $('#btnSaveProduct').disabled = false;
+  $('#btnSaveProduct').textContent = p ? '保存修改' : '保存';
+}
+
+$('#btnGenBarcode').addEventListener('click', ()=>{
+  const ts = String(Date.now()).slice(-11);
+  const r = Math.floor(Math.random() * 10);
+  $('#fBarcode').value = '2' + ts + r;
+  toast('已生成店内码');
+});
+
+$('#btnScanBarcode').addEventListener('click', ()=>{
+  scanOnce(code => { $('#fBarcode').value = code; });
+});
+
+$('#btnSaveProduct').addEventListener('click', ()=>{
+  const name = $('#fName').value.trim();
+  const barcode = $('#fBarcode').value.trim();
+
+  if(!name){ toast('请输入商品名称'); return; }
+  if(!barcode){ toast('请扫码、输入或生成商品条码'); return; }
+
+  const exist = findByBarcode(barcode);
+  if(exist && exist.id !== editingId){
+    toast(`条码已被「${exist.name}」占用`);
+    return;
+  }
+
+  const data = {
+    name,
+    brand: $('#fBrand').value.trim(),
+    model: $('#fModel').value.trim(),
+    spec: $('#fSpec').value.trim(),
+    color: $('#fColor').value.trim(),
+    barcode,
+    priceIn: parseFloat($('#fPriceIn').value) || 0,
+    priceOut: parseFloat($('#fPriceOut').value) || 0,
+    warnStock: parseInt($('#fWarn').value) || 2,
+    remark: $('#fRemark').value.trim()
+  };
+
+  if(editingId){
+    const p = findProduct(editingId);
+    Object.assign(p, data, { updatedAt: Date.now() });
+    saveProducts();
+    toast('已保存');
+  }else{
+    const stock = parseInt($('#fStock').value) || 0;
+    const p = {
+      id: uid(),
+      ...data,
+      stock: 0,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    products.push(p);
+    saveProducts();
+    // 初始库存写一条入库流水
+    if(stock > 0) changeStock(p.id, stock, '新建商品初始入库');
+    toast('已添加');
+  }
+  showView('list');
+});
+
+/* ==================== 商品详情 ==================== */
+function openDetail(id){
+  const p = findProduct(id);
+  if(!p){ toast('商品不存在'); return; }
+  currentProductId = id;
+  showView('detail');
+  renderDetail(p);
+}
+
+function renderDetail(p){
+  const cls = p.stock <= 0 ? 'danger' : (p.stock <= p.warnStock ? 'warn' : 'ok');
+  const recs = records.filter(r => r.productId === p.id).slice(0, 100);
+
+  $('#detailBody').innerHTML = `
+    <div class="d-name">${esc(p.name)}</div>
+    <div class="d-sub">${esc([p.brand, p.model].filter(Boolean).join(' ') || '—')}</div>
+    <div class="d-badge ${cls}">库存 ${p.stock}</div>
+
+    <div class="barcode-box">
+      <svg id="barcodeSvg"></svg>
+      <div class="barcode-text">${esc(p.barcode)}</div>
+    </div>
+
+    <div class="d-actions">
+      <button class="btn-in"  id="dIn">入库</button>
+      <button class="btn-out" id="dOut">出库</button>
+    </div>
+
+    <div class="d-mini">
+      <button id="dCopy">复制条码</button>
+      <button id="dEdit">编辑</button>
+      <button id="dDel" style="color:var(--red);border-color:#F3C6C6;">删除</button>
+    </div>
+
+    <div class="section-title">商品信息</div>
+    <div class="info-box">
+      <div><b>规格：</b>${esc(p.spec || '—')}</div>
+      <div><b>颜色：</b>${esc(p.color || '—')}</div>
+      <div><b>进货价：</b>¥${fmtMoney(p.priceIn)}</div>
+      <div><b>销售价：</b>¥${fmtMoney(p.priceOut)}</div>
+      <div><b>预警值：</b>${p.warnStock}</div>
+      <div><b>创建时间：</b>${fmtTime(p.createdAt)}</div>
+      ${p.remark ? `<div><b>备注：</b>${esc(p.remark)}</div>` : ''}
+    </div>
+
+    <div class="section-title">出入库记录（${recs.length}）</div>
+    <div class="card" style="padding:6px 14px;">
+      ${recs.length ? recs.map(r => `
+        <div class="rec-item">
+          <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
+          <div class="rec-main">
+            <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div>
+          </div>
+          <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
+        </div>
+      `).join('') : '<div class="empty" style="padding:20px;">暂无记录</div>'}
+    </div>
+  `;
+
+  // 生成条码
+  try{
+    JsBarcode('#barcodeSvg', p.barcode, {
+      format: 'CODE128',
+      width: 2,
+      height: 80,
+      displayValue: false,
+      margin: 6,
+      background: '#FFFFFF',
+      lineColor: '#000000'
+    });
+  }catch(e){
+    $('#barcodeSvg').outerHTML = '<div class="empty">条码格式不支持生成图片</div>';
+  }
+
+  $('#dIn').onclick  = () => promptQuantity(p.id, 1);
+  $('#dOut').onclick = () => promptQuantity(p.id, -1);
+  $('#dEdit').onclick = () => openAdd(p.id);
+  $('#dDel').onclick = () => confirmDelete(p);
+  $('#dCopy').onclick = () => copyText(p.barcode, '条码已复制');
+}
+
+function copyText(text, msg){
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(()=>toast(msg)).catch(()=>fallbackCopy(text, msg));
+  }else{
+    fallbackCopy(text, msg);
+  }
+}
+function fallbackCopy(text, msg){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast(msg); }catch(e){ toast('复制失败'); }
+  ta.remove();
+}
+
+function confirmDelete(p){
+  const { mask, close } = showModal(`
+    <div class="modal-title">删除商品</div>
+    <div class="modal-body">确定要删除「${esc(p.name)}」吗？\n历史出入库记录会保留。</div>
+    <div class="modal-btns">
+      <button data-act="cancel">取消</button>
+      <button class="primary" data-act="ok" style="background:var(--red);border-color:var(--red);">删除</button>
+    </div>
+  `);
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+  mask.querySelector('[data-act="ok"]').onclick = () => {
+    products = products.filter(x => x.id !== p.id);
+    saveProducts();
+    close();
+    toast('已删除');
+    showView('list');
+  };
+}
+
+/* ==================== 出入库数量弹窗 ==================== */
+function promptQuantity(productId, sign){
+  const p = findProduct(productId);
+  if(!p) return;
+
+  const isIn = sign > 0;
+  const { mask, close } = showModal(`
+    <div class="modal-title">${isIn ? '商品入库' : '商品出库'}</div>
+    <div class="modal-body">${esc(p.name)}\n当前库存：${p.stock}</div>
+    <input class="modal-input" id="mqQty" type="number" inputmode="numeric" value="1" placeholder="数量">
+    <input class="modal-input" id="mqRemark" type="text" placeholder="备注（可选，如客户/供应商）">
+    <div class="modal-btns">
+      <button data-act="cancel">取消</button>
+      <button class="primary" data-act="ok">确定</button>
+    </div>
+  `);
+
+  const qtyEl = mask.querySelector('#mqQty');
+  const rmkEl = mask.querySelector('#mqRemark');
+  setTimeout(()=>{ qtyEl.focus(); qtyEl.select(); }, 120);
+
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+  mask.querySelector('[data-act="ok"]').onclick = () => {
+    const qty = parseInt(qtyEl.value) || 0;
+    if(qty <= 0){ toast('请输入正确的数量'); return; }
+    if(!isIn && qty > p.stock){ toast(`库存不足，当前 ${p.stock}`); return; }
+
+    const res = changeStock(p.id, sign * qty, rmkEl.value.trim());
+    if(!res.ok){ toast(res.msg); return; }
+
+    close();
+    toast(`${isIn ? '入库' : '出库'}成功，当前库存 ${res.stock}`);
+
+    if(currentView === 'detail' && currentProductId === p.id){
+      renderDetail(findProduct(p.id));
+    }else{
+      renderProductList();
+    }
+  };
+}
+
+/* ==================== 扫码 ==================== */
+let scanner = null;
+let scanMode = 'query';
+let scanning = false;
+
+$$('.scan-tabs button').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    $$('.scan-tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    scanMode = btn.dataset.mode;
+    $('#scanTip').textContent =
+      scanMode === 'query' ? '将条形码 / 二维码放入取景框内' :
+      scanMode === 'in'    ? '扫描商品条码 → 快速入库' :
+                             '扫描商品条码 → 快速出库';
+    await stopScan();
+    startScan();
+  });
+});
+
+async function startScan(){
+  if(scanning) return;
+  const readerEl = $('#reader');
+  if(!window.Html5Qrcode){
+    readerEl.innerHTML = '<div class="empty" style="color:#fff;">扫码组件加载失败<br>请检查网络后刷新</div>';
+    return;
+  }
+  readerEl.innerHTML = '';
+  scanner = new Html5Qrcode('reader', { verbose: false });
+  scanning = true;
+  try{
+    await scanner.start(
+      { facingMode: 'environment' },
+      {
+        fps: 12,
+        qrbox: (w, h) => ({ width: Math.floor(w * 0.9), height: Math.floor(h * 0.5) }),
+        aspectRatio: 1.0
+      },
+      onScanSuccess,
+      () => {}
+    );
+  }catch(e){
+    scanning = false;
+    readerEl.innerHTML = `<div class="empty" style="color:#fff;padding:30px 16px;">
+      无法启动摄像头<br><br>
+      请确认：<br>
+      1. 使用 <b>HTTPS</b> 访问本页面<br>
+      2. 浏览器已允许摄像头权限<br>
+      3. 设备有可用摄像头
+    </div>`;
+  }
+}
+
+async function stopScan(){
+  if(!scanner) return;
+  scanning = false;
+  try{ await scanner.stop(); scanner.clear(); }catch(e){}
+  scanner = null;
+}
+
+function onScanSuccess(text){
+  if(!scanning) return;
+  scanning = false;
+  const code = String(text).trim();
+
+  // 先停摄像头
+  if(scanner){
+    scanner.stop().then(()=>{ try{ scanner.clear(); }catch(e){} scanner = null; })
+      .catch(()=>{ scanner = null; });
+  }
+
+  setTimeout(() => handleScanResult(code), 120);
+}
+
+function handleScanResult(code){
+  const p = findByBarcode(code);
+
+  if(!p){
+    const { mask, close } = showModal(`
+      <div class="modal-title">未找到商品</div>
+      <div class="modal-body">条码 ${esc(code)} 尚未录入\n是否立即新增？</div>
+      <div class="modal-btns">
+        <button data-act="cancel">取消</button>
+        <button class="primary" data-act="add">新增商品</button>
+      </div>
+    `);
+    mask.querySelector('[data-act="cancel"]').onclick = () => {
+      close();
+      setTimeout(startScan, 250);
+    };
+    mask.querySelector('[data-act="add"]').onclick = () => {
+      close();
+      setTimeout(()=>openAdd(null, code), 220);
+    };
+    return;
+  }
+
+  if(scanMode === 'query'){
+    openDetail(p.id);
+  }else{
+    const sign = scanMode === 'in' ? 1 : -1;
+    promptQuantity(p.id, sign);
+  }
+}
+
+/* ==================== 出入库记录页 ==================== */
+function renderRecords(){
+  const el = $('#recordList');
+  if(records.length === 0){
+    el.innerHTML = '<div class="empty" style="padding:30px;">暂无出入库记录</div>';
+    return;
+  }
+  el.innerHTML = records.slice(0, 500).map(r => `
+    <div class="rec-item">
+      <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
+      <div class="rec-main">
+        <div class="rec-name">${esc(r.productName)}</div>
+        <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div>
+      </div>
+      <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
+    </div>
+  `).join('');
+}
+
+$('#btnExport').addEventListener('click', ()=>{
+  const data = { version: 1, exportedAt: Date.now(), products, records };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  a.href = url;
+  a.download = `库存备份_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  toast('已导出备份文件');
+});
+
+$('#btnImport').addEventListener('click', ()=> $('#importFile').click());
+$('#importFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(!Array.isArray(data.products)) throw new Error('格式不正确');
+      const { mask, close } = showModal(`
+        <div class="modal-title">导入备份</div>
+        <div class="modal-body">将导入 ${data.products.length} 件商品、${(data.records||[]).length} 条流水。\n当前数据会被覆盖，是否继续？</div>
+        <div class="modal-btns">
+          <button data-act="cancel">取消</button>
+          <button class="primary" data-act="ok">覆盖导入</button>
+        </div>
+      `);
+      mask.querySelector('[data-act="cancel"]').onclick = close;
+      mask.querySelector('[data-act="ok"]').onclick = () => {
+        products = data.products || [];
+        records  = data.records  || [];
+        saveProducts(); saveRecords();
+        close();
+        toast('导入成功');
+        renderProductList();
+        renderRecords();
+      };
+    }catch(err){
+      toast('文件格式不正确');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+$('#btnClearAll').addEventListener('click', ()=>{
+  const { mask, close } = showModal(`
+    <div class="modal-title">清空全部数据</div>
+    <div class="modal-body">将删除所有商品和出入库记录，且不可恢复。\n建议先导出备份。</div>
+    <div class="modal-btns">
+      <button data-act="cancel">取消</button>
+      <button class="primary" data-act="ok" style="background:var(--red);border-color:var(--red);">确认清空</button>
+    </div>
+  `);
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+  mask.querySelector('[data-act="ok"]').onclick = () => {
+    products = []; records = [];
+    localStorage.removeItem('ss_products');
+    localStorage.removeItem('ss_records');
+    close();
+    toast('已清空');
+    renderProductList();
+    renderRecords();
+  };
+});
+
+/* ==================== 通用弹窗 ==================== */
+function showModal(html){
+  const mask = document.createElement('div');
+  mask.className = 'modal-mask';
+  mask.innerHTML = `<div class="modal">${html}</div>`;
+  document.body.appendChild(mask);
+  requestAnimationFrame(()=> mask.classList.add('show'));
+
+  const close = () => {
+    mask.classList.remove('show');
+    setTimeout(()=> mask.remove(), 200);
+  };
+  mask.addEventListener('click', e => { if(e.target === mask) close(); });
+  return { mask, close };
+}
+
+/* ==================== 单次扫码（用于表单填条码） ==================== */
+async function scanOnce(onResult){
+  const { mask, close } = showModal(`
+    <div class="modal-title">扫描条码</div>
+    <div id="scanOnceReader" style="width:100%;min-height:220px;background:#000;border-radius:10px;overflow:hidden;"></div>
+    <div style="height:12px;"></div>
+    <button class="btn-plain" id="scanOnceCancel">取消</button>
+  `);
+
+  const q = new Html5Qrcode('scanOnceReader', { verbose:false });
+  let done = false;
+  const stop = async () => {
+    if(done) return; done = true;
+    try{ await q.stop(); q.clear(); }catch(e){}
+  };
+
+  mask.querySelector('#scanOnceCancel').onclick = async () => { await stop(); close(); };
+
+  try{
+    await q.start(
+      { facingMode:'environment' },
+      { fps:12, qrbox:(w,h)=>({width:Math.floor(w*0.9),height:Math.floor(h*0.5)}), aspectRatio:1.0 },
+      async (text) => { await stop(); close(); setTimeout(()=>onResult(String(text).trim()), 200); },
+      () => {}
+    );
+  }catch(e){
+    mask.querySelector('#scanOnceReader').innerHTML =
+      '<div class="empty" style="color:#fff;padding:30px 16px;">无法启动摄像头<br>请使用 HTTPS 访问并允许权限</div>';
+  }
+}
+
+/* ==================== 底部 tab / FAB ==================== */
+$$('#tabbar button').forEach(btn => {
+  btn.addEventListener('click', () => showView(btn.dataset.tab));
+});
+$('#fabAdd').addEventListener('click', () => openAdd(null));
+
+/* ==================== 启动 ==================== */
+loadData();
+showView('list');
+</script>
+</body>
+</html>	
