@@ -245,6 +245,29 @@ body{
   opacity:0;transition:all .25s;pointer-events:none;max-width:80vw;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* 批量导入专用样式 */
+.import-tip{
+  font-size:12px;color:var(--text2);background:#F8FAFC;border-radius:8px;
+  padding:10px 12px;line-height:1.7;margin-bottom:10px;
+}
+.import-tip code{background:#E8F0FE;color:#1565C0;padding:1px 5px;border-radius:3px;font-size:11px;}
+.import-area{
+  width:100%;min-height:160px;max-height:300px;border:1px solid var(--border);
+  border-radius:10px;padding:10px;font-size:12px;font-family:monospace;
+  outline:none;resize:vertical;
+}
+.import-area:focus{border-color:var(--primary);}
+.import-preview{
+  max-height:200px;overflow-y:auto;border:1px solid var(--border);
+  border-radius:8px;margin-top:10px;font-size:12px;
+}
+.import-preview .row{
+  display:flex;gap:6px;padding:5px 8px;border-bottom:1px solid #F0F1F3;
+}
+.import-preview .row:last-child{border-bottom:0;}
+.import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.import-preview .row .c{color:var(--text2);font-family:monospace;}
+.import-preview .row.err{background:#FFF5F5;color:var(--red);}
 </style>
 </head>
 <body>
@@ -324,6 +347,7 @@ body{
           <button class="mini-btn" id="btnClearAll" style="flex:1;border-color:#F3C6C6;color:var(--red);">清空数据</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button class="mini-btn" id="btnBatchImport" style="flex:1;background:#2E7D32;color:#fff;border-color:#2E7D32;">批量导入商品</button>
           <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:#1565C0;color:#fff;border-color:#1565C0;">批量下载条码</button>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none">
@@ -976,6 +1000,209 @@ $('#btnClearAll').addEventListener('click', ()=>{
   };
 });
 
+/* ==================== 批量导入商品 ==================== */
+function generateInternalBarcode(){
+  const ts = String(Date.now()).slice(-8) + String(Math.floor(Math.random()*100)).padStart(2,'0');
+  const r = Math.floor(Math.random() * 10);
+  return '2' + ts + r;  // 13 位
+}
+
+/**
+ * 解析批量导入文本
+ * 每行格式（用逗号或制表符分隔）：
+ * 商品名称, 品牌, 型号, 规格, 颜色, 条码, 进货价, 销售价, 预警值, 备注
+ * 除「商品名称」外，其他列都可以省略
+ */
+function parseImportText(text){
+  const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+  if(lines.length === 0) return { rows: [], errors: [] };
+
+  // 检测分隔符
+  const firstLine = lines[0];
+  let sep = ',';
+  if(firstLine.includes('\t')) sep = '\t';
+  else if(firstLine.includes('，')) sep = '，';
+
+  // 首行是否为表头
+  const firstCells = firstLine.split(sep).map(c => c.trim().toLowerCase());
+  let startIdx = 0;
+  if(firstCells.some(c => c.includes('名称') || c === 'name' || c.includes('商品'))){
+    startIdx = 1;
+  }
+
+  const rows = [];
+  const errors = [];
+
+  for(let i = startIdx; i < lines.length; i++){
+    const rawCells = lines[i].split(sep);
+    // 去掉首尾空格和 BOM
+    const cells = rawCells.map(c => c.replace(/^\uFEFF/, '').trim());
+
+    if(cells.length < 1 || !cells[0]) continue;
+
+    const [name, brand, model, spec, color, barcode, priceIn, priceOut, warnStock, remark] = cells;
+
+    if(!name){
+      errors.push({ line: i + 1, msg: '商品名称为空', raw: lines[i] });
+      continue;
+    }
+
+    const finalBarcode = (barcode && barcode.trim())
+      ? barcode.trim()
+      : generateInternalBarcode();
+
+    rows.push({
+      lineNo: i + 1,
+      name,
+      brand: brand || '',
+      model: model || '',
+      spec: spec || '',
+      color: color || '',
+      barcode: finalBarcode,
+      priceIn: parseFloat(priceIn) || 0,
+      priceOut: parseFloat(priceOut) || 0,
+      warnStock: parseInt(warnStock) || 2,
+      remark: remark || '',
+      autoBarcode: !(barcode && barcode.trim())
+    });
+  }
+
+  return { rows, errors };
+}
+
+/** 打开批量导入弹窗 */
+function openBatchImport(){
+  const { mask, close } = showModal(`
+    <div class="modal-title">批量导入商品</div>
+    <div class="import-tip">
+      每行一件商品，用逗号或制表符分隔。列顺序：<br>
+      <code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,备注</code><br>
+      除<b>名称</b>外，其他列都可以省略；不填条码会自动生成。<br>
+      支持从 Excel 另存为 CSV 后直接粘贴或选文件。
+    </div>
+    <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,2&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,2&#10;小米 14,小米,,12+256G,黑色"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <input type="file" id="batchFile" accept=".csv,.txt" style="display:none">
+      <button class="mini-btn" id="btnPickFile" style="flex:1;">选择 CSV 文件</button>
+      <button class="mini-btn" id="btnParsePreview" style="flex:1;background:#2E7D32;color:#fff;border-color:#2E7D32;">解析预览</button>
+    </div>
+    <div id="importPreviewWrap" style="display:none;">
+      <div class="import-preview" id="importPreview"></div>
+    </div>
+    <div class="modal-btns" style="margin-top:12px;">
+      <button data-act="cancel">取消</button>
+      <button class="primary" data-act="ok" id="btnConfirmImport" disabled>确认导入</button>
+    </div>
+  `);
+
+  let parsedRows = [];
+
+  const textarea = mask.querySelector('#importText');
+  const previewWrap = mask.querySelector('#importPreviewWrap');
+  const preview = mask.querySelector('#importPreview');
+  const fileInput = mask.querySelector('#batchFile');
+
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+
+  // 选文件
+  mask.querySelector('#btnPickFile').onclick = () => fileInput.click();
+  fileInput.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      textarea.value = String(reader.result || '');
+      toast('已读取文件，点「解析预览」查看');
+    };
+    reader.readAsText(file, 'UTF-8');
+    e.target.value = '';
+  };
+
+  // 解析预览
+  mask.querySelector('#btnParsePreview').onclick = () => {
+    const text = textarea.value.trim();
+    if(!text){ toast('请先粘贴文本或选择文件'); return; }
+
+    const result = parseImportText(text);
+    parsedRows = result.rows;
+
+    if(parsedRows.length === 0 && result.errors.length === 0){
+      toast('没有解析到任何商品');
+      return;
+    }
+
+    // 检查与现有商品的条码冲突
+    const existingCodes = new Set(products.map(p => p.barcode));
+    const newCodes = new Set();
+    let conflictCount = 0;
+
+    const previewRows = parsedRows.map(r => {
+      const isDup =
+        existingCodes.has(r.barcode) || newCodes.has(r.barcode);
+      if(isDup) conflictCount++;
+      if(!isDup) newCodes.add(r.barcode);
+      return { ...r, conflict: isDup };
+    });
+
+    previewWrap.style.display = 'block';
+    preview.innerHTML = previewRows.slice(0, 50).map(r => `
+      <div class="row ${r.conflict ? 'err' : ''}">
+        <span class="n">${esc(r.name)}</span>
+        <span class="c">${esc(r.barcode)}</span>
+        ${r.conflict ? '<span style="color:var(--red);">条码冲突</span>' : ''}
+      </div>
+    `).join('') + (previewRows.length > 50
+      ? `<div class="row" style="justify-content:center;color:var(--text2);">... 还有 ${previewRows.length - 50} 件未显示</div>`
+      : '') + (result.errors.length > 0
+      ? `<div class="row err">跳过 ${result.errors.length} 行无效数据</div>`
+      : '');
+
+    // 保存有效行（排除冲突的）
+    parsedRows = previewRows.filter(r => !r.conflict);
+
+    const okBtn = mask.querySelector('#btnConfirmImport');
+    okBtn.disabled = parsedRows.length === 0;
+    okBtn.textContent = `确认导入 ${parsedRows.length} 件` + (conflictCount ? ` (跳过 ${conflictCount} 件冲突)` : '');
+  };
+
+  // 确认导入
+  mask.querySelector('#btnConfirmImport').onclick = () => {
+    if(parsedRows.length === 0) return;
+
+    const now = Date.now();
+    let added = 0;
+
+    parsedRows.forEach(r => {
+      const p = {
+        id: uid(),
+        name: r.name,
+        brand: r.brand,
+        model: r.model,
+        spec: r.spec,
+        color: r.color,
+        barcode: r.barcode,
+        priceIn: r.priceIn,
+        priceOut: r.priceOut,
+        warnStock: r.warnStock,
+        remark: r.remark,
+        stock: 0,
+        createdAt: now,
+        updatedAt: now
+      };
+      products.push(p);
+      added++;
+    });
+
+    saveProducts();
+    close();
+    toast(`成功导入 ${added} 件商品`);
+    renderProductList();
+    showView('list');
+  };
+}
+
+$('#btnBatchImport').addEventListener('click', openBatchImport);
+
 /* ==================== 通用弹窗 ==================== */
 function showModal(html){
   const mask = document.createElement('div');
@@ -1103,12 +1330,12 @@ function printBarcode(p) {
 
 /* ==================== 蓝牙打印（精臣 NIMBOT B1，严格锁定尺寸） ==================== */
 // ⚠️ 请根据你的实际标签纸尺寸修改以下参数
-// 40mm × 30mm 标签：w_px = 320, h_px = 240
-// 50mm × 30mm 标签：w_px = 384, h_px = 240
-// 50mm × 40mm 标签：w_px = 384, h_px = 320
+// 40mm × 30mm：w_px = 320, h_px = 240
+// 50mm × 30mm：w_px = 384, h_px = 240
+// 50mm × 40mm：w_px = 384, h_px = 320
 const B1_LABEL_SIZE = {
-  w_px: 384,    // 宽度像素
-  h_px: 240,    // 高度像素（必须严格等于实际标签高度，宁小勿大）
+  w_px: 384,
+  h_px: 240,
   offset_y_px: 0
 };
 
@@ -1122,13 +1349,11 @@ async function blePrint(product) {
     return;
   }
 
-  // 严格锁定画布尺寸，绝不溢出
   const canvas = document.createElement('canvas');
   canvas.width = B1_LABEL_SIZE.w_px;
   canvas.height = B1_LABEL_SIZE.h_px;
   const ctx = canvas.getContext('2d');
 
-  // 白色背景
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1137,13 +1362,12 @@ async function blePrint(product) {
   const nameMaxWidth = canvas.width - 16;
   const totalH = canvas.height;
 
-  // 按比例分配高度（名称 22%，配置 16%，数字 16%，剩余给条码）
   const nameH = Math.floor(totalH * 0.22);
   const configH = Math.floor(totalH * 0.16);
   const codeH = Math.floor(totalH * 0.16);
   const barcodeH = totalH - nameH - configH - codeH;
 
-  // ---- 第 1 行：商品名称 ----
+  // 名称
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1158,7 +1382,7 @@ async function blePrint(product) {
   }
   ctx.fillText(nameText, canvas.width / 2, nameH / 2);
 
-  // ---- 第 2 行：配置信息 ----
+  // 配置行
   if (configLine) {
     let configFontSize = Math.min(20, Math.floor(configH * 0.65));
     let configFont = `bold ${configFontSize}px sans-serif`;
@@ -1172,7 +1396,7 @@ async function blePrint(product) {
     ctx.fillText(configLine, canvas.width / 2, nameH + configH / 2);
   }
 
-  // ---- 第 3 行：条码 ----
+  // 条码
   const barcodeCanvas = document.createElement('canvas');
   try {
     JsBarcode(barcodeCanvas, product.barcode, {
@@ -1197,7 +1421,7 @@ async function blePrint(product) {
   const bcX = (canvas.width - bcW) / 2;
   ctx.drawImage(barcodeCanvas, bcX, bcY + (barcodeH - bcH) / 2, bcW, bcH);
 
-  // ---- 第 4 行：条码数字 ----
+  // 数字
   ctx.fillStyle = '#000000';
   let codeFontSize = Math.min(18, Math.floor(codeH * 0.65));
   let codeFont = `${codeFontSize}px monospace`;
@@ -1257,9 +1481,6 @@ function saveBarcodeImage(p) {
   }, 'image/png');
 }
 
-/** 生成单个商品的条码画布（供单个下载和批量下载复用）
- *  包含：商品名 + 配置行 + 条码 + 条码数字
- */
 function buildBarcodeCanvas(p) {
   const barcodeCanvas = document.createElement('canvas');
   try {
@@ -1291,7 +1512,6 @@ function buildBarcodeCanvas(p) {
 
   const maxContentWidth = Math.max(barcodeCanvas.width, 360);
 
-  // 名称自动缩放
   let nameFontSize = 24;
   let nameFont = `bold ${nameFontSize}px sans-serif`;
   measure.font = nameFont;
@@ -1302,7 +1522,6 @@ function buildBarcodeCanvas(p) {
   }
   const nameWidth = measure.measureText(nameText).width;
 
-  // 配置行自动缩放
   let configWidth = 0;
   let configFont = 'bold 18px sans-serif';
   if (configText) {
@@ -1317,13 +1536,7 @@ function buildBarcodeCanvas(p) {
     configWidth = measure.measureText(configText).width;
   }
 
-  const contentWidth = Math.max(
-    barcodeCanvas.width,
-    nameWidth,
-    configWidth,
-    codeWidth,
-    360
-  );
+  const contentWidth = Math.max(barcodeCanvas.width, nameWidth, configWidth, codeWidth, 360);
 
   const canvas = document.createElement('canvas');
   canvas.width  = Math.ceil(contentWidth + padding * 2);
@@ -1337,11 +1550,9 @@ function buildBarcodeCanvas(p) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // 名称
   ctx.font = nameFont;
   ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
-  // 配置行
   let currentY = padding + nameH;
   if (configText) {
     ctx.font = configFont;
@@ -1351,11 +1562,9 @@ function buildBarcodeCanvas(p) {
     currentY += configH;
   }
 
-  // 条码
   const bx = (canvas.width - barcodeCanvas.width) / 2;
   ctx.drawImage(barcodeCanvas, bx, currentY);
 
-  // 数字
   ctx.font = codeFont;
   ctx.fillText(p.barcode, canvas.width / 2, currentY + barcodeCanvas.height + codeH / 2);
 
