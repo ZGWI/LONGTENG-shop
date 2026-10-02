@@ -149,7 +149,8 @@ body{
   background:#fff;border-radius:12px;padding:14px;margin:14px 0;
   text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);
 }
-.barcode-box canvas{max-width:100%;height:auto;display:block;margin:0 auto;}
+.barcode-box img{max-width:100%;height:auto;display:block;margin:0 auto;}
+.barcode-box .qr-loading{color:#9AA0A6;font-size:13px;padding:40px 0;}
 .barcode-text{
   font-family:monospace;font-size:13px;letter-spacing:1px;
   margin-top:6px;color:#374151;
@@ -443,14 +444,19 @@ function changeStock(productId, delta, remark = ''){
 /* ==================== 二维码生成工具 ==================== */
 function generateQRCodeDataURL(text, size = 300){
   return new Promise((resolve, reject) => {
-    QRCode.toDataURL(text, {
-      width: size,
-      margin: 1,
-      color: { dark: '#000000', light: '#FFFFFF' }
-    }, (err, url) => {
-      if(err) reject(err);
-      else resolve(url);
-    });
+    try{
+      QRCode.toDataURL(text, {
+        width: size,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#000000', light: '#FFFFFF' }
+      }, (err, url) => {
+        if(err) reject(err);
+        else resolve(url);
+      });
+    }catch(e){
+      reject(e);
+    }
   });
 }
 
@@ -688,7 +694,7 @@ function renderDetail(p){
     <div class="d-badge ${cls}">库存 ${p.stock}</div>
 
     <div class="barcode-box">
-      <canvas id="qrcodeCanvas"></canvas>
+      <div id="qrcodeWrap"><div class="qr-loading">二维码生成中...</div></div>
       <div class="barcode-text">${esc(p.barcode)}</div>
     </div>
 
@@ -731,14 +737,18 @@ function renderDetail(p){
     </div>
   `;
 
-  const canvas = document.getElementById('qrcodeCanvas');
-  QRCode.toCanvas(canvas, p.barcode, {
-    width: 220,
-    margin: 1,
-    color: { dark: '#000000', light: '#FFFFFF' }
-  }, (err) => {
-    if(err) console.error(err);
-  });
+  // 用 img 方式渲染二维码，兼容性更好
+  const wrap = document.getElementById('qrcodeWrap');
+  if(wrap){
+    generateQRCodeDataURL(p.barcode, 300)
+      .then(url => {
+        wrap.innerHTML = `<img src="${url}" alt="二维码" style="width:220px;height:220px;">`;
+      })
+      .catch(err => {
+        console.error('二维码生成失败', err);
+        wrap.innerHTML = '<div class="empty">二维码生成失败<br>请检查网络后刷新</div>';
+      });
+  }
 
   $('#dIn').onclick  = () => promptQuantity(p.id, 1);
   $('#dOut').onclick = () => promptQuantity(p.id, -1);
@@ -1016,7 +1026,7 @@ $('#btnClearAll').addEventListener('click', ()=>{
   };
 });
 
-/* ==================== 下载 CSV 导入模板（含初始库存） ==================== */
+/* ==================== 下载 CSV 导入模板 ==================== */
 function downloadImportTemplate(){
   const rows = [
     ['商品名称','品牌','型号','规格','颜色','二维码内容','进货价','销售价','初始库存','预警值','备注'],
@@ -1046,7 +1056,7 @@ function downloadImportTemplate(){
   toast('模板已下载，用 Excel 打开填写后另存为 CSV');
 }
 
-/* ==================== 批量导入商品（含初始库存） ==================== */
+/* ==================== 批量导入商品 ==================== */
 function generateInternalBarcode(){
   const ts = String(Date.now()).slice(-8) + String(Math.floor(Math.random()*100)).padStart(2,'0');
   const r = Math.floor(Math.random() * 10);
@@ -1226,7 +1236,6 @@ function openBatchImport(){
         updatedAt: now
       };
       products.push(p);
-      // 如果填写了初始库存，生成一条入库流水
       if(r.stock > 0){
         changeStock(p.id, r.stock, '批量导入初始库存');
       }
