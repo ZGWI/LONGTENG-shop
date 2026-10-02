@@ -562,7 +562,6 @@ function renderDetail(p){
         </div>`).join('') : '<div class="empty" style="padding:20px;">暂无记录</div>'}
     </div>`;
   try{
-    // 详情页也使用二维码展示
     const qr = qrcode(0, 'M');
     qr.addData(p.barcode);
     qr.make();
@@ -759,10 +758,10 @@ $('#btnClearAll').addEventListener('click', ()=>{
 /* ==================== 下载 CSV 导入模板 ==================== */
 function downloadImportTemplate(){
   const rows = [
-    ['商品名称','品牌','型号','规格','颜色','条码','进货价','销售价','预警值','备注'],
-    ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','2','示例：可以删除本行'],
-    ['华为 Mate 60 Pro','华为','ALN-AL00','12+512G','雅川青','','6500','6999','2','条码留空会自动生成'],
-    ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','2','']
+    ['商品名称','品牌','型号','规格','颜色','条码','进货价','销售价','预警值','库存量','备注'],
+    ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','2','5','示例：可以删除本行'],
+    ['华为 Mate 60 Pro','华为','ALN-AL00','12+512G','雅川青','','6500','6999','2','3','条码留空会自动生成'],
+    ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','2','0','']
   ];
   const csv = '\uFEFF' + rows.map(r => r.map(cell => {
     const s = String(cell ?? '');
@@ -796,10 +795,25 @@ function parseImportText(text){
   for(let i = startIdx; i < lines.length; i++){
     const cells = lines[i].split(sep).map(c => c.replace(/^\uFEFF/, '').trim());
     if(cells.length < 1 || !cells[0]) continue;
-    const [name, brand, model, spec, color, barcode, priceIn, priceOut, warnStock, remark] = cells;
+    // 列顺序：名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,库存量,备注
+    const [name, brand, model, spec, color, barcode, priceIn, priceOut, warnStock, stock, remark] = cells;
     if(!name){ errors.push({ line: i + 1, msg: '商品名称为空', raw: lines[i] }); continue; }
     const finalBarcode = (barcode && barcode.trim()) ? barcode.trim() : generateInternalBarcode();
-    rows.push({ lineNo: i + 1, name, brand: brand || '', model: model || '', spec: spec || '', color: color || '', barcode: finalBarcode, priceIn: parseFloat(priceIn) || 0, priceOut: parseFloat(priceOut) || 0, warnStock: parseInt(warnStock) || 2, remark: remark || '', autoBarcode: !(barcode && barcode.trim()) });
+    rows.push({ 
+      lineNo: i + 1, 
+      name, 
+      brand: brand || '', 
+      model: model || '', 
+      spec: spec || '', 
+      color: color || '', 
+      barcode: finalBarcode, 
+      priceIn: parseFloat(priceIn) || 0, 
+      priceOut: parseFloat(priceOut) || 0, 
+      warnStock: parseInt(warnStock) || 2, 
+      stock: parseInt(stock) || 0,   // 新增：库存量
+      remark: remark || '', 
+      autoBarcode: !(barcode && barcode.trim()) 
+    });
   }
   return { rows, errors };
 }
@@ -807,8 +821,8 @@ function openBatchImport(){
   const { mask, close } = showModal(`
     <div class="modal-title">批量导入商品</div>
     <button class="tpl-btn" id="btnDownloadTpl">⬇ 下载 CSV 导入模板（用 Excel 填写）</button>
-    <div class="import-tip">每行一件商品，用逗号或制表符分隔。列顺序：<br><code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,备注</code><br>除<b>名称</b>外，其他列都可以省略；不填条码会自动生成。</div>
-    <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,2&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,2&#10;小米 14,小米,,12+256G,黑色"></textarea>
+    <div class="import-tip">每行一件商品，用逗号或制表符分隔。列顺序：<br><code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,库存量,备注</code><br>除<b>名称</b>外，其他列都可以省略；不填条码会自动生成。</div>
+    <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,2,5&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,2,3&#10;小米 14,小米,,12+256G,黑色,,,3899,4299,2,0"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;">
       <input type="file" id="batchFile" accept=".csv,.txt" style="display:none">
       <button class="mini-btn" id="btnPickFile" style="flex:1;">选择 CSV 文件</button>
@@ -851,10 +865,34 @@ function openBatchImport(){
     if(parsedRows.length === 0) return;
     const now = Date.now(); let added = 0;
     parsedRows.forEach(r => {
-      products.push({ id: uid(), name: r.name, brand: r.brand, model: r.model, spec: r.spec, color: r.color, barcode: r.barcode, priceIn: r.priceIn, priceOut: r.priceOut, warnStock: r.warnStock, remark: r.remark, stock: 0, createdAt: now, updatedAt: now });
+      const p = { 
+        id: uid(), 
+        name: r.name, 
+        brand: r.brand, 
+        model: r.model, 
+        spec: r.spec, 
+        color: r.color, 
+        barcode: r.barcode, 
+        priceIn: r.priceIn, 
+        priceOut: r.priceOut, 
+        warnStock: r.warnStock, 
+        remark: r.remark, 
+        stock: 0,          // 先设为 0
+        createdAt: now, 
+        updatedAt: now 
+      };
+      products.push(p);
       added++;
+      // 如果有初始库存，通过 changeStock 添加并记录流水
+      if (r.stock > 0) {
+        changeStock(p.id, r.stock, '批量导入初始库存');
+      }
     });
-    saveProducts(); close(); toast(`成功导入 ${added} 件商品`); renderProductList(); showView('list');
+    saveProducts(); 
+    close(); 
+    toast(`成功导入 ${added} 件商品`); 
+    renderProductList(); 
+    showView('list');
   };
 }
 $('#btnBatchImport').addEventListener('click', openBatchImport);
@@ -893,7 +931,6 @@ async function scanOnce(onResult){
 /* ==================== 打印条码（系统打印） ==================== */
 function printBarcode(p) {
   try {
-    // 使用二维码生成器生成 SVG
     const qr = qrcode(0, 'M');
     qr.addData(p.barcode);
     qr.make();
