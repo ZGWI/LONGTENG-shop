@@ -440,20 +440,19 @@ function changeStock(productId, delta, remark = ''){
   return { ok:true, stock:newStock };
 }
 
-/* ==================== 二维码生成（qrcode-generator + Canvas 手绘） ==================== */
+/* ==================== 二维码生成 ==================== */
 function generateQRCodeDataURL(text, size = 300){
   return new Promise((resolve, reject) => {
     try {
       if (typeof qrcode !== 'function') {
         throw new Error('二维码库未加载');
       }
-      // type 0 = 自动选择版本，'M' 为容错等级
       const qr = qrcode(0, 'M');
       qr.addData(String(text));
       qr.make();
 
       const moduleCount = qr.getModuleCount();
-      const margin = 4; // 留白，单位：模块
+      const margin = 4;
       const totalModules = moduleCount + margin * 2;
       const cellSize = size / totalModules;
 
@@ -462,11 +461,9 @@ function generateQRCodeDataURL(text, size = 300){
       canvas.height = size;
       const ctx = canvas.getContext('2d');
 
-      // 白色背景
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, size, size);
 
-      // 黑色模块
       ctx.fillStyle = '#000000';
       for (let r = 0; r < moduleCount; r++) {
         for (let c = 0; c < moduleCount; c++) {
@@ -490,14 +487,40 @@ function generateQRCodeDataURL(text, size = 300){
   });
 }
 
-/* ==================== 配置行工具 ==================== */
-function buildConfigLine(p){
-  const parts = [];
+/* ==================== 标签文本行构建 ==================== */
+/**
+ * 生成标签要显示的文字行
+ * 返回数组：{ text, weight, maxSize }
+ */
+function buildLabelLines(p){
+  const lines = [];
+
+  // 第 1 行：商品名称
+  lines.push({ text: p.name || '', weight: 'bold', maxSize: 22 });
+
+  // 第 2 行：品牌 + 型号
+  const brandModel = [p.brand, p.model].filter(Boolean).join(' ');
+  if (brandModel) lines.push({ text: brandModel, weight: 'bold', maxSize: 16 });
+
+  // 第 3 行：规格 + 颜色
+  const specColor = [p.spec, p.color].filter(Boolean).join(' / ');
+  if (specColor) lines.push({ text: specColor, weight: 'bold', maxSize: 16 });
+
+  // 第 4 行：备注
+  if (p.remark) lines.push({ text: '备注：' + p.remark, weight: 'normal', maxSize: 14 });
+
+  return lines;
+}
+
+/* ==================== 配置行工具（用于系统打印和保存图片） ==================== */
+function buildConfigLines(p){
+  const lines = [];
   const bm = [p.brand, p.model].filter(Boolean).join(' ');
-  if(bm) parts.push(bm);
-  if(p.spec) parts.push(p.spec);
-  if(p.color) parts.push(p.color);
-  return parts.join(' · ');
+  if(bm) lines.push(bm);
+  const sc = [p.spec, p.color].filter(Boolean).join(' / ');
+  if(sc) lines.push(sc);
+  if(p.remark) lines.push('备注：' + p.remark);
+  return lines;
 }
 
 /* ==================== 视图管理 ==================== */
@@ -1327,7 +1350,7 @@ async function scanOnce(onResult){
   }
 }
 
-/* ==================== 打印二维码 ==================== */
+/* ==================== 打印二维码（系统打印，含规格+备注） ==================== */
 async function printQRCode(p) {
   let qrDataUrl;
   try {
@@ -1337,7 +1360,9 @@ async function printQRCode(p) {
     return;
   }
 
-  const configLine = buildConfigLine(p);
+  const configLines = buildConfigLines(p);
+  const configHtml = configLines.map(line => `<div class="config">${esc(line)}</div>`).join('');
+
   const win = window.open('', '_blank');
   win.document.write(`
     <!DOCTYPE html>
@@ -1360,7 +1385,8 @@ async function printQRCode(p) {
           background: #fff;
         }
         .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
-        .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
+        .config { font-size: 12px; color: #555; margin-bottom: 2px; white-space: nowrap; }
+        .qrcode { margin-top: 6px; }
         .qrcode img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
         .code { font-family: monospace; font-size: 13px; letter-spacing: 1px; margin-top: 4px; color: #333; }
         @media print { body { padding: 0; } .label { border: none; margin: 0; padding: 8px; } }
@@ -1369,7 +1395,7 @@ async function printQRCode(p) {
     <body>
       <div class="label">
         <div class="name">${esc(p.name)}</div>
-        ${configLine ? `<div class="config">${esc(configLine)}</div>` : ''}
+        ${configHtml}
         <div class="qrcode"><img src="${qrDataUrl}" alt="二维码"></div>
         <div class="code">${esc(p.barcode)}</div>
       </div>
@@ -1382,7 +1408,7 @@ async function printQRCode(p) {
   win.document.close();
 }
 
-/* ==================== 蓝牙打印（精臣 NIMBOT B1） ==================== */
+/* ==================== 蓝牙打印（精臣 NIMBOT B1，含规格+备注） ==================== */
 const B1_LABEL_SIZE = { w_px: 384, h_px: 240, offset_y_px: 0 };
 
 async function blePrint(product) {
@@ -1403,70 +1429,72 @@ async function blePrint(product) {
     return;
   }
 
+  const W = B1_LABEL_SIZE.w_px;
+  const H = B1_LABEL_SIZE.h_px;
+
   const canvas = document.createElement('canvas');
-  canvas.width = B1_LABEL_SIZE.w_px;
-  canvas.height = B1_LABEL_SIZE.h_px;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext('2d');
 
+  // 白色背景
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, W, H);
 
-  const nameText = product.name || '';
-  const configLine = buildConfigLine(product);
-  const nameMaxWidth = canvas.width - 16;
-  const totalH = canvas.height;
+  // 二维码尺寸和位置（固定）
+  const qrSize = 130;
+  const codeH = 22;
+  const qrY = H - codeH - qrSize - 4;   // 二维码顶部位置
 
-  const nameH = Math.floor(totalH * 0.20);
-  const configH = Math.floor(totalH * 0.14);
-  const codeH = Math.floor(totalH * 0.14);
-  const qrH = totalH - nameH - configH - codeH;
+  // 文本区：从顶部到二维码上方
+  const textTop = 4;
+  const textBottom = qrY - 4;
+  const textAreaH = textBottom - textTop;
 
+  // 根据商品信息动态生成文字行
+  const textLines = buildLabelLines(product);
+  const lineH = textAreaH / textLines.length;
+
+  // 绘制文字行
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  let nameFontSize = Math.min(26, Math.floor(nameH * 0.65));
-  let nameFont = `bold ${nameFontSize}px sans-serif`;
-  ctx.font = nameFont;
-  while (ctx.measureText(nameText).width > nameMaxWidth && nameFontSize > 10) {
-    nameFontSize -= 1;
-    nameFont = `bold ${nameFontSize}px sans-serif`;
-    ctx.font = nameFont;
-  }
-  ctx.fillText(nameText, canvas.width / 2, nameH / 2);
-
-  if (configLine) {
-    let configFontSize = Math.min(20, Math.floor(configH * 0.65));
-    let configFont = `bold ${configFontSize}px sans-serif`;
-    ctx.font = configFont;
-    while (ctx.measureText(configLine).width > nameMaxWidth && configFontSize > 9) {
-      configFontSize -= 1;
-      configFont = `bold ${configFontSize}px sans-serif`;
-      ctx.font = configFont;
+  let y = textTop;
+  textLines.forEach(line => {
+    let fontSize = Math.min(line.maxSize, Math.floor(lineH * 0.78));
+    let font = `${line.weight} ${fontSize}px sans-serif`;
+    ctx.font = font;
+    // 超宽自动缩小
+    while (ctx.measureText(line.text).width > W - 12 && fontSize > 8) {
+      fontSize -= 1;
+      font = `${line.weight} ${fontSize}px sans-serif`;
+      ctx.font = font;
     }
-    ctx.fillStyle = '#333333';
-    ctx.fillText(configLine, canvas.width / 2, nameH + configH / 2);
-  }
+    ctx.fillText(line.text, W / 2, y + lineH / 2);
+    y += lineH;
+  });
 
+  // 绘制二维码
   const qrImg = new Image();
   qrImg.src = qrDataUrl;
   await new Promise(resolve => { qrImg.onload = resolve; });
-
-  const qrSize = Math.min(qrH, canvas.width - 24);
-  const qrX = (canvas.width - qrSize) / 2;
-  const qrY = nameH + configH + (qrH - qrSize) / 2;
+  const qrX = (W - qrSize) / 2;
   ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
+  // 底部二维码内容文字
   ctx.fillStyle = '#000000';
-  let codeFontSize = Math.min(16, Math.floor(codeH * 0.65));
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  let codeFontSize = 14;
   let codeFont = `${codeFontSize}px monospace`;
   ctx.font = codeFont;
-  while (ctx.measureText(product.barcode).width > nameMaxWidth && codeFontSize > 8) {
+  while (ctx.measureText(product.barcode).width > W - 12 && codeFontSize > 8) {
     codeFontSize -= 1;
     codeFont = `${codeFontSize}px monospace`;
     ctx.font = codeFont;
   }
-  ctx.fillText(product.barcode, canvas.width / 2, canvas.height - codeH / 2);
+  ctx.fillText(product.barcode, W / 2, H - codeH / 2);
 
   const dataUrl = canvas.toDataURL('image/png');
   toast('正在连接打印机...');
@@ -1483,7 +1511,7 @@ async function blePrint(product) {
   }
 }
 
-/* ==================== 保存单张二维码图 ==================== */
+/* ==================== 保存单张二维码图（含规格+备注） ==================== */
 async function saveQRCodeImage(p) {
   const canvas = await buildQRCodeCanvas(p);
   if (!canvas) { toast('二维码生成失败'); return; }
@@ -1512,13 +1540,16 @@ async function buildQRCodeCanvas(p) {
 
   const padding = 16;
   const nameH = 44;
-  const configH = 34;
   const codeH = 32;
-  const qrSize = 200;
+  const qrSize = 220;
+  const lineH = 30;   // 每行配置信息的高度
 
   const measure = document.createElement('canvas').getContext('2d');
   const nameText = p.name || '';
-  const configText = buildConfigLine(p);
+
+  // 构建配置行（品牌型号 / 规格颜色 / 备注）
+  const configLines = buildConfigLines(p);
+  const configTotalH = configLines.length * lineH;
 
   const codeFont = '18px monospace';
   measure.font = codeFont;
@@ -1526,6 +1557,7 @@ async function buildQRCodeCanvas(p) {
 
   const maxContentWidth = Math.max(qrSize, 360);
 
+  // 名称自动缩放
   let nameFontSize = 24;
   let nameFont = `bold ${nameFontSize}px sans-serif`;
   measure.font = nameFont;
@@ -1536,25 +1568,27 @@ async function buildQRCodeCanvas(p) {
   }
   const nameWidth = measure.measureText(nameText).width;
 
-  let configWidth = 0;
-  let configFont = 'bold 18px sans-serif';
-  if (configText) {
-    let configFontSize = 18;
-    configFont = `bold ${configFontSize}px sans-serif`;
-    measure.font = configFont;
-    while (measure.measureText(configText).width > maxContentWidth && configFontSize > 10) {
-      configFontSize -= 1;
-      configFont = `bold ${configFontSize}px sans-serif`;
-      measure.font = configFont;
+  // 配置行自动缩放
+  let maxConfigWidth = 0;
+  const configFonts = configLines.map(text => {
+    let fs = 18;
+    let f = `bold ${fs}px sans-serif`;
+    measure.font = f;
+    while (measure.measureText(text).width > maxContentWidth && fs > 10) {
+      fs -= 1;
+      f = `bold ${fs}px sans-serif`;
+      measure.font = f;
     }
-    configWidth = measure.measureText(configText).width;
-  }
+    const w = measure.measureText(text).width;
+    if (w > maxConfigWidth) maxConfigWidth = w;
+    return { text, font: f };
+  });
 
-  const contentWidth = Math.max(qrSize, nameWidth, configWidth, codeWidth, 360);
+  const contentWidth = Math.max(qrSize, nameWidth, maxConfigWidth, codeWidth, 360);
 
   const canvas = document.createElement('canvas');
   canvas.width  = Math.ceil(contentWidth + padding * 2);
-  canvas.height = nameH + (configText ? configH : 0) + qrSize + codeH + padding;
+  canvas.height = nameH + configTotalH + qrSize + codeH + padding * 2;
 
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#FFFFFF';
@@ -1564,24 +1598,28 @@ async function buildQRCodeCanvas(p) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
+  // 名称
   ctx.font = nameFont;
   ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
+  // 配置行
   let currentY = padding + nameH;
-  if (configText) {
-    ctx.font = configFont;
-    ctx.fillStyle = '#333333';
-    ctx.fillText(configText, canvas.width / 2, currentY + configH / 2);
-    ctx.fillStyle = '#000000';
-    currentY += configH;
-  }
+  ctx.fillStyle = '#333333';
+  configFonts.forEach(cf => {
+    ctx.font = cf.font;
+    ctx.fillText(cf.text, canvas.width / 2, currentY + lineH / 2);
+    currentY += lineH;
+  });
+  ctx.fillStyle = '#000000';
 
+  // 二维码
   const qrImg = new Image();
   qrImg.src = qrDataUrl;
   await new Promise(resolve => { qrImg.onload = resolve; });
   const qrX = (canvas.width - qrSize) / 2;
   ctx.drawImage(qrImg, qrX, currentY, qrSize, qrSize);
 
+  // 二维码内容
   ctx.font = codeFont;
   ctx.fillText(p.barcode, canvas.width / 2, currentY + qrSize + codeH / 2);
 
