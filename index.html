@@ -7,6 +7,7 @@
 <title>手机店库存管理</title>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 :root{
   --primary:#1565C0; --primary-dark:#0D47A1;
@@ -24,7 +25,6 @@ body{
   display:flex;flex-direction:column;background:var(--bg);
   position:relative;overflow:hidden;
 }
-/* 顶栏 */
 #topbar{
   height:56px;flex:none;display:flex;align-items:center;
   padding:0 8px;background:var(--primary);color:#fff;
@@ -41,14 +41,12 @@ body{
   flex:1;text-align:center;font-size:17px;margin:0;font-weight:600;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-/* 主区 */
 #main{flex:1;position:relative;overflow:hidden;}
 .view{
   position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
   display:none;padding-bottom:24px;
 }
 .view.active{display:block;}
-/* 底部 tab */
 #tabbar{
   flex:none;height:58px;display:flex;background:#fff;
   border-top:1px solid var(--border);z-index:10;
@@ -61,14 +59,12 @@ body{
 }
 #tabbar button .ic{font-size:19px;line-height:1;}
 #tabbar button.active{color:var(--primary);font-weight:600;}
-/* 搜索 */
 .search-wrap{padding:10px 12px 6px;}
 .search-wrap input{
   width:100%;height:42px;border:1px solid var(--border);border-radius:10px;
   padding:0 14px;font-size:14px;background:#fff;outline:none;
 }
 .search-wrap input:focus{border-color:var(--primary);}
-/* 列表 */
 .list{padding:4px 12px 90px;}
 .card{
   background:var(--card);border-radius:12px;padding:12px 14px;
@@ -90,12 +86,10 @@ body{
 .pi-stock.warn{color:var(--orange);}
 .pi-stock.danger{color:var(--red);}
 .pi-price{font-size:13px;color:var(--primary);font-weight:600;}
-/* 空状态 */
 .empty{
   text-align:center;color:var(--text2);font-size:14px;
   padding:60px 24px;line-height:1.8;
 }
-/* FAB */
 .fab{
   position:fixed;right:calc(50% - 320px + 18px);bottom:78px;
   width:56px;height:56px;border-radius:50%;border:0;
@@ -105,7 +99,6 @@ body{
 }
 @media (max-width:676px){ .fab{right:18px;} }
 .fab:active{transform:scale(.94);}
-/* 表单 */
 .form-body{padding:16px 14px 40px;}
 .field{margin-bottom:14px;flex:1;min-width:0;}
 .field label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;}
@@ -141,7 +134,6 @@ body{
   width:100%;height:46px;border:1px solid #F3C6C6;border-radius:12px;
   background:#FFF5F5;color:var(--red);font-size:15px;cursor:pointer;font-weight:600;
 }
-/* 详情 */
 .detail-body{padding:16px 14px 40px;}
 .d-name{font-size:22px;font-weight:700;margin:0 0 4px;}
 .d-sub{font-size:14px;color:var(--text2);margin-bottom:10px;}
@@ -168,9 +160,9 @@ body{
 }
 .btn-in{background:var(--green);color:#fff;}
 .btn-out{background:#fff;color:var(--red);border:1.5px solid var(--red)!important;}
-.d-mini{display:flex;gap:8px;margin-bottom:18px;}
+.d-mini{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
 .d-mini button{
-  flex:1;height:38px;border:1px solid var(--border);background:#fff;
+  flex:1;min-width:72px;height:38px;border:1px solid var(--border);background:#fff;
   border-radius:9px;font-size:12.5px;color:var(--text2);cursor:pointer;
 }
 .section-title{
@@ -181,7 +173,6 @@ body{
   line-height:1.9;box-shadow:0 1px 3px rgba(0,0,0,.06);
 }
 .info-box b{color:var(--text2);font-weight:400;}
-/* 流水 */
 .rec-item{
   display:flex;align-items:center;gap:10px;padding:10px 0;
   border-bottom:1px solid #F0F1F3;
@@ -196,7 +187,6 @@ body{
 .rec-qty{flex:none;font-size:16px;font-weight:700;}
 .rec-qty.in{color:var(--green);}
 .rec-qty.out{color:var(--red);}
-/* 扫码页 */
 .scan-tabs{
   display:flex;gap:8px;padding:12px 14px 8px;
 }
@@ -216,7 +206,6 @@ body{
   text-align:center;font-size:13px;color:var(--text2);
   padding:12px 20px;line-height:1.7;
 }
-/* 弹窗 */
 .modal-mask{
   position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
   display:flex;align-items:center;justify-content:center;padding:24px;
@@ -244,7 +233,6 @@ body{
 .modal-btns button.primary{
   background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;
 }
-/* Toast */
 .toast{
   position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(10px);
   background:rgba(30,30,30,.92);color:#fff;font-size:14px;
@@ -330,10 +318,13 @@ body{
     <!-- 记录 -->
     <section id="view-records" class="view">
       <div style="padding:14px;">
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
           <button class="mini-btn" id="btnExport" style="flex:1;">导出备份</button>
           <button class="mini-btn" id="btnImport" style="flex:1;">导入备份</button>
           <button class="mini-btn" id="btnClearAll" style="flex:1;border-color:#F3C6C6;color:var(--red);">清空数据</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:#1565C0;color:#fff;border-color:#1565C0;">批量下载条码</button>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <div class="section-title">全部出入库流水</div>
@@ -433,7 +424,6 @@ const TITLES = {
 };
 
 function showView(name){
-  // 离开扫码页时关闭摄像头
   if(currentView === 'scan' && name !== 'scan') stopScan();
 
   currentView = name;
@@ -448,18 +438,15 @@ function showView(name){
   $('#tabbar').classList.toggle('hidden', !isRoot);
   $('#fabAdd').style.display = (name === 'list') ? 'flex' : 'none';
 
-  // tab 高亮
   $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
 
-  // 切换时刷新
   if(name === 'list') renderProductList();
   if(name === 'records') renderRecords();
   if(name === 'scan') startScan();
 }
 
 $('#btnBack').addEventListener('click', ()=>{
-  if(currentView === 'detail' || currentView === 'add' || currentView === 'edit') showView('list');
-  else showView('list');
+  showView('list');
 });
 
 /* ==================== 商品列表 ==================== */
@@ -506,7 +493,6 @@ function renderProductList(){
   el.querySelectorAll('.product-item').forEach(node => {
     const id = node.dataset.id;
     node.addEventListener('click', () => openDetail(id));
-    // 长按 / 右键 → 快捷菜单
     let timer = null;
     const start = () => { timer = setTimeout(()=>{ timer = null; showQuickMenu(id); }, 600); };
     const cancel = () => { if(timer){ clearTimeout(timer); timer = null; } };
@@ -526,6 +512,8 @@ function showQuickMenu(id){
     <div class="modal-btns" style="flex-direction:column;gap:8px;">
       <button class="primary" data-act="in">入库</button>
       <button data-act="out">出库</button>
+      <button data-act="print">打印条码</button>
+      <button data-act="saveImg">保存条码图</button>
       <button data-act="detail">查看详情</button>
       <button data-act="edit">编辑商品</button>
     </div>
@@ -534,10 +522,12 @@ function showQuickMenu(id){
     btn.addEventListener('click', () => {
       const act = btn.dataset.act;
       close();
-      if(act === 'in')  setTimeout(()=>promptQuantity(id, 1), 220);
-      if(act === 'out') setTimeout(()=>promptQuantity(id, -1), 220);
-      if(act === 'detail') setTimeout(()=>openDetail(id), 220);
-      if(act === 'edit')   setTimeout(()=>openAdd(id), 220);
+      if(act === 'in')       setTimeout(()=>promptQuantity(id, 1), 220);
+      if(act === 'out')      setTimeout(()=>promptQuantity(id, -1), 220);
+      if(act === 'print')    setTimeout(()=>printBarcode(p), 220);
+      if(act === 'saveImg')  setTimeout(()=>saveBarcodeImage(p), 220);
+      if(act === 'detail')   setTimeout(()=>openDetail(id), 220);
+      if(act === 'edit')     setTimeout(()=>openAdd(id), 220);
     });
   });
 }
@@ -620,7 +610,6 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
     };
     products.push(p);
     saveProducts();
-    // 初始库存写一条入库流水
     if(stock > 0) changeStock(p.id, stock, '新建商品初始入库');
     toast('已添加');
   }
@@ -657,6 +646,8 @@ function renderDetail(p){
 
     <div class="d-mini">
       <button id="dCopy">复制条码</button>
+      <button id="dPrint">打印条码</button>
+      <button id="dSaveImg">保存条码图</button>
       <button id="dEdit">编辑</button>
       <button id="dDel" style="color:var(--red);border-color:#F3C6C6;">删除</button>
     </div>
@@ -686,7 +677,6 @@ function renderDetail(p){
     </div>
   `;
 
-  // 生成条码
   try{
     JsBarcode('#barcodeSvg', p.barcode, {
       format: 'CODE128',
@@ -706,6 +696,8 @@ function renderDetail(p){
   $('#dEdit').onclick = () => openAdd(p.id);
   $('#dDel').onclick = () => confirmDelete(p);
   $('#dCopy').onclick = () => copyText(p.barcode, '条码已复制');
+  $('#dPrint').onclick = () => printBarcode(p);
+  $('#dSaveImg').onclick = () => saveBarcodeImage(p);
 }
 
 function copyText(text, msg){
@@ -847,7 +839,6 @@ function onScanSuccess(text){
   scanning = false;
   const code = String(text).trim();
 
-  // 先停摄像头
   if(scanner){
     scanner.stop().then(()=>{ try{ scanner.clear(); }catch(e){} scanner = null; })
       .catch(()=>{ scanner = null; });
@@ -991,7 +982,7 @@ function showModal(html){
   return { mask, close };
 }
 
-/* ==================== 单次扫码（用于表单填条码） ==================== */
+/* ==================== 单次扫码（表单填条码） ==================== */
 async function scanOnce(onResult){
   const { mask, close } = showModal(`
     <div class="modal-title">扫描条码</div>
@@ -1022,6 +1013,227 @@ async function scanOnce(onResult){
   }
 }
 
+/* ==================== 打印条码 ==================== */
+function printBarcode(p) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  try {
+    JsBarcode(svg, p.barcode, {
+      format: 'CODE128',
+      width: 2,
+      height: 80,
+      displayValue: false,
+      margin: 6,
+      background: '#FFFFFF',
+      lineColor: '#000000'
+    });
+  } catch (e) {
+    toast('条码格式不支持生成');
+    return;
+  }
+
+  const svgHtml = svg.outerHTML;
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>打印条码 - ${esc(p.name)}</title>
+      <style>
+        * { box-sizing: border-box; }
+        body {
+          font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+          text-align: center; padding: 20px; margin: 0;
+        }
+        .label {
+          display: inline-block;
+          border: 1px dashed #ccc;
+          padding: 12px 24px;
+          margin: 10px;
+          border-radius: 6px;
+          background: #fff;
+        }
+        .name {
+          font-size: 15px; font-weight: 600; margin-bottom: 6px;
+          max-width: 260px; white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis;
+        }
+        .barcode svg { display: block; max-width: 100%; height: auto; }
+        .code {
+          font-family: monospace; font-size: 13px; letter-spacing: 1px;
+          margin-top: 4px; color: #333;
+        }
+        @media print {
+          body { padding: 0; }
+          .label { border: none; margin: 0; padding: 8px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="label">
+        <div class="name">${esc(p.name)}</div>
+        <div class="barcode">${svgHtml}</div>
+        <div class="code">${esc(p.barcode)}</div>
+      </div>
+      <script>
+        window.onload = function() {
+          setTimeout(function() { window.print(); }, 200);
+        };
+      <\/script>
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+/* ==================== 保存单张条码图 ==================== */
+function saveBarcodeImage(p) {
+  const canvas = buildBarcodeCanvas(p);
+  if (!canvas) { toast('条码格式不支持生成'); return; }
+
+  canvas.toBlob(blob => {
+    if (!blob) { toast('生成图片失败'); return; }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `条码_${(p.name||'').replace(/[\\/:*?"<>|]/g,'_')}_${p.barcode}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('已下载条码图片');
+  }, 'image/png');
+}
+
+/** 生成单个商品的条码画布（供单个下载和批量下载复用） */
+function buildBarcodeCanvas(p) {
+  const barcodeCanvas = document.createElement('canvas');
+  try {
+    JsBarcode(barcodeCanvas, p.barcode, {
+      format: 'CODE128',
+      width: 3,
+      height: 100,
+      displayValue: false,
+      margin: 10,
+      background: '#FFFFFF',
+      lineColor: '#000000'
+    });
+  } catch (e) {
+    return null;
+  }
+
+  const canvas = document.createElement('canvas');
+  const padding = 16;
+  const nameH = 36;
+  const codeH = 30;
+  canvas.width = barcodeCanvas.width + padding * 2;
+  canvas.height = nameH + barcodeCanvas.height + codeH + padding;
+
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const name = p.name.length > 16 ? p.name.slice(0, 16) + '…' : p.name;
+  ctx.fillText(name, canvas.width / 2, padding + nameH / 2);
+
+  ctx.drawImage(barcodeCanvas, padding, padding + nameH);
+
+  ctx.font = '18px monospace';
+  ctx.fillText(p.barcode, canvas.width / 2, padding + nameH + barcodeCanvas.height + codeH / 2);
+
+  return canvas;
+}
+
+/* ==================== 批量下载所有条码（ZIP） ==================== */
+async function batchDownloadBarcodes() {
+  if (products.length === 0) {
+    toast('还没有商品，无法下载');
+    return;
+  }
+  if (typeof JSZip === 'undefined') {
+    toast('打包组件未加载，请检查网络后刷新');
+    return;
+  }
+
+  const nameCount = {};
+
+  const { mask, close } = showModal(`
+    <div class="modal-title">批量下载条码</div>
+    <div class="modal-body">
+      正在生成 ${products.length} 张条码图片...
+      <div id="batchProgress" style="margin-top:10px;font-size:13px;color:#6B7280;">准备中</div>
+    </div>
+  `);
+
+  const progressEl = mask.querySelector('#batchProgress');
+  const zip = new JSZip();
+  const folder = zip.folder('条码图片');
+
+  let ok = 0, fail = 0;
+
+  for (let i = 0; i < products.length; i++) {
+    const p = products[i];
+    progressEl.textContent = `正在处理 ${i + 1} / ${products.length}：${p.name}`;
+
+    const canvas = buildBarcodeCanvas(p);
+    if (!canvas) {
+      fail++;
+      continue;
+    }
+
+    const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 20);
+    const safeCode = (p.barcode || 'nocode').replace(/[\\/:*?"<>|]/g, '_');
+    let baseName = `${safeName}_${safeCode}`;
+    if (nameCount[baseName]) {
+      nameCount[baseName]++;
+      baseName = `${baseName}(${nameCount[baseName]})`;
+    } else {
+      nameCount[baseName] = 1;
+    }
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (blob) {
+      folder.file(`${baseName}.png`, blob);
+      ok++;
+    } else {
+      fail++;
+    }
+
+    if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+  }
+
+  progressEl.textContent = '正在打包 ZIP...';
+
+  try {
+    const zipBlob = await zip.generateAsync({ type: 'blob' }, meta => {
+      progressEl.textContent = `正在打包... ${Math.round(meta.percent)}%`;
+    });
+
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    const d = new Date(), pad = n => String(n).padStart(2, '0');
+    a.href = url;
+    a.download = `条码打包_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+    close();
+    toast(`已完成：成功 ${ok} 张${fail ? `，失败 ${fail} 张` : ''}`);
+  } catch (e) {
+    console.error(e);
+    close();
+    toast('打包失败，请重试');
+  }
+}
+
+$('#btnBatchBarcode').addEventListener('click', batchDownloadBarcodes);
+
 /* ==================== 底部 tab / FAB ==================== */
 $$('#tabbar button').forEach(btn => {
   btn.addEventListener('click', () => showView(btn.dataset.tab));
@@ -1033,4 +1245,4 @@ loadData();
 showView('list');
 </script>
 </body>
-</html>	
+</html>
