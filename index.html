@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1565C0">
 <title>龙腾手机库存</title>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
@@ -149,7 +149,7 @@ body{
   background:#fff;border-radius:12px;padding:14px;margin:14px 0;
   text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);
 }
-.barcode-box svg{width:100%;height:auto;max-height:130px;display:block;}
+.barcode-box canvas{max-width:100%;height:auto;display:block;margin:0 auto;}
 .barcode-text{
   font-family:monospace;font-size:13px;letter-spacing:1px;
   margin-top:6px;color:#374151;
@@ -267,6 +267,7 @@ body{
 .import-preview .row:last-child{border-bottom:0;}
 .import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .import-preview .row .c{color:var(--text2);font-family:monospace;}
+.import-preview .row .s{color:var(--green);font-weight:600;}
 .import-preview .row.err{background:#FFF5F5;color:var(--red);}
 .tpl-btn{
   width:100%;height:40px;border:1px dashed #1565C0;border-radius:10px;
@@ -309,7 +310,7 @@ body{
           <div class="field"><label>颜色</label><input id="fColor" placeholder="原色钛金属"></div>
         </div>
         <div class="field">
-          <label>商品条码 <span class="req">*</span></label>
+          <label>商品二维码内容 <span class="req">*</span></label>
           <div class="input-with-actions">
             <input id="fBarcode" placeholder="扫描 / 输入 / 生成">
             <button type="button" class="mini-btn" id="btnScanBarcode">扫描</button>
@@ -342,7 +343,7 @@ body{
       <div style="padding:0 14px;">
         <div id="reader" class="scan-reader"></div>
       </div>
-      <div class="scan-tip" id="scanTip">将条形码 / 二维码放入取景框内</div>
+      <div class="scan-tip" id="scanTip">将二维码放入取景框内</div>
     </section>
 
     <section id="view-records" class="view">
@@ -354,7 +355,7 @@ body{
         </div>
         <div style="display:flex;gap:8px;margin-bottom:10px;">
           <button class="mini-btn" id="btnBatchImport" style="flex:1;background:#2E7D32;color:#fff;border-color:#2E7D32;">批量导入商品</button>
-          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:#1565C0;color:#fff;border-color:#1565C0;">批量下载条码</button>
+          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:#1565C0;color:#fff;border-color:#1565C0;">批量下载二维码</button>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <div class="section-title">全部出入库流水</div>
@@ -439,6 +440,20 @@ function changeStock(productId, delta, remark = ''){
   return { ok:true, stock:newStock };
 }
 
+/* ==================== 二维码生成工具 ==================== */
+function generateQRCodeDataURL(text, size = 300){
+  return new Promise((resolve, reject) => {
+    QRCode.toDataURL(text, {
+      width: size,
+      margin: 1,
+      color: { dark: '#000000', light: '#FFFFFF' }
+    }, (err, url) => {
+      if(err) reject(err);
+      else resolve(url);
+    });
+  });
+}
+
 /* ==================== 配置行工具 ==================== */
 function buildConfigLine(p){
   const parts = [];
@@ -517,7 +532,7 @@ function renderProductList(){
       <div class="pi-main">
         <div class="pi-name">${esc(p.name)}</div>
         <div class="pi-sub">${esc(sub)}</div>
-        <div class="pi-code">条码：${esc(p.barcode)}</div>
+        <div class="pi-code">二维码：${esc(p.barcode)}</div>
       </div>
       <div class="pi-right">
         <div class="pi-stock ${cls}">库存 ${p.stock}</div>
@@ -548,9 +563,9 @@ function showQuickMenu(id){
     <div class="modal-btns" style="flex-direction:column;gap:8px;">
       <button class="primary" data-act="in">入库</button>
       <button data-act="out">出库</button>
-      <button data-act="ble" style="background:#1565C0;color:#fff;border-color:#1565C0;font-weight:600;">蓝牙打印</button>
-      <button data-act="print">打印条码</button>
-      <button data-act="saveImg">保存条码图</button>
+      <button data-act="ble" style="background:#1565C0;color:#fff;border-color:#1565C0;font-weight:600;">蓝牙打印二维码</button>
+      <button data-act="print">打印二维码</button>
+      <button data-act="saveImg">保存二维码图</button>
       <button data-act="detail">查看详情</button>
       <button data-act="edit">编辑商品</button>
     </div>
@@ -562,8 +577,8 @@ function showQuickMenu(id){
       if(act === 'in')       setTimeout(()=>promptQuantity(id, 1), 220);
       if(act === 'out')      setTimeout(()=>promptQuantity(id, -1), 220);
       if(act === 'ble')      setTimeout(()=>blePrint(p), 220);
-      if(act === 'print')    setTimeout(()=>printBarcode(p), 220);
-      if(act === 'saveImg')  setTimeout(()=>saveBarcodeImage(p), 220);
+      if(act === 'print')    setTimeout(()=>printQRCode(p), 220);
+      if(act === 'saveImg')  setTimeout(()=>saveQRCodeImage(p), 220);
       if(act === 'detail')   setTimeout(()=>openDetail(id), 220);
       if(act === 'edit')     setTimeout(()=>openAdd(id), 220);
     });
@@ -599,7 +614,7 @@ $('#btnGenBarcode').addEventListener('click', ()=>{
   const ts = String(Date.now()).slice(-11);
   const r = Math.floor(Math.random() * 10);
   $('#fBarcode').value = '2' + ts + r;
-  toast('已生成店内码');
+  toast('已生成店内二维码内容');
 });
 
 $('#btnScanBarcode').addEventListener('click', ()=>{
@@ -611,11 +626,11 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
   const barcode = $('#fBarcode').value.trim();
 
   if(!name){ toast('请输入商品名称'); return; }
-  if(!barcode){ toast('请扫码、输入或生成商品条码'); return; }
+  if(!barcode){ toast('请扫码、输入或生成二维码内容'); return; }
 
   const exist = findByBarcode(barcode);
   if(exist && exist.id !== editingId){
-    toast(`条码已被「${exist.name}」占用`);
+    toast(`二维码内容已被「${exist.name}」占用`);
     return;
   }
 
@@ -673,7 +688,7 @@ function renderDetail(p){
     <div class="d-badge ${cls}">库存 ${p.stock}</div>
 
     <div class="barcode-box">
-      <svg id="barcodeSvg"></svg>
+      <canvas id="qrcodeCanvas"></canvas>
       <div class="barcode-text">${esc(p.barcode)}</div>
     </div>
 
@@ -683,10 +698,10 @@ function renderDetail(p){
     </div>
 
     <div class="d-mini">
-      <button id="dBlePrint" class="btn-ble">蓝牙打印</button>
-      <button id="dCopy">复制条码</button>
-      <button id="dPrint">打印条码</button>
-      <button id="dSaveImg">保存条码图</button>
+      <button id="dBlePrint" class="btn-ble">蓝牙打印二维码</button>
+      <button id="dCopy">复制内容</button>
+      <button id="dPrint">打印二维码</button>
+      <button id="dSaveImg">保存二维码图</button>
       <button id="dEdit">编辑</button>
       <button id="dDel" style="color:var(--red);border-color:#F3C6C6;">删除</button>
     </div>
@@ -716,27 +731,22 @@ function renderDetail(p){
     </div>
   `;
 
-  try{
-    JsBarcode('#barcodeSvg', p.barcode, {
-      format: 'CODE128',
-      width: 2,
-      height: 80,
-      displayValue: false,
-      margin: 6,
-      background: '#FFFFFF',
-      lineColor: '#000000'
-    });
-  }catch(e){
-    $('#barcodeSvg').outerHTML = '<div class="empty">条码格式不支持生成图片</div>';
-  }
+  const canvas = document.getElementById('qrcodeCanvas');
+  QRCode.toCanvas(canvas, p.barcode, {
+    width: 220,
+    margin: 1,
+    color: { dark: '#000000', light: '#FFFFFF' }
+  }, (err) => {
+    if(err) console.error(err);
+  });
 
   $('#dIn').onclick  = () => promptQuantity(p.id, 1);
   $('#dOut').onclick = () => promptQuantity(p.id, -1);
   $('#dEdit').onclick = () => openAdd(p.id);
   $('#dDel').onclick = () => confirmDelete(p);
-  $('#dCopy').onclick = () => copyText(p.barcode, '条码已复制');
-  $('#dPrint').onclick = () => printBarcode(p);
-  $('#dSaveImg').onclick = () => saveBarcodeImage(p);
+  $('#dCopy').onclick = () => copyText(p.barcode, '二维码内容已复制');
+  $('#dPrint').onclick = () => printQRCode(p);
+  $('#dSaveImg').onclick = () => saveQRCodeImage(p);
   $('#dBlePrint').onclick = () => blePrint(p);
 }
 
@@ -826,9 +836,9 @@ $$('.scan-tabs button').forEach(btn => {
     btn.classList.add('active');
     scanMode = btn.dataset.mode;
     $('#scanTip').textContent =
-      scanMode === 'query' ? '将条形码 / 二维码放入取景框内' :
-      scanMode === 'in'    ? '扫描商品条码 → 快速入库' :
-                             '扫描商品条码 → 快速出库';
+      scanMode === 'query' ? '将二维码放入取景框内' :
+      scanMode === 'in'    ? '扫描二维码 → 快速入库' :
+                             '扫描二维码 → 快速出库';
     await stopScan();
     startScan();
   });
@@ -893,7 +903,7 @@ function handleScanResult(code){
   if(!p){
     const { mask, close } = showModal(`
       <div class="modal-title">未找到商品</div>
-      <div class="modal-body">条码 ${esc(code)} 尚未录入\n是否立即新增？</div>
+      <div class="modal-body">二维码 ${esc(code)} 尚未录入\n是否立即新增？</div>
       <div class="modal-btns">
         <button data-act="cancel">取消</button>
         <button class="primary" data-act="add">新增商品</button>
@@ -1006,13 +1016,13 @@ $('#btnClearAll').addEventListener('click', ()=>{
   };
 });
 
-/* ==================== 下载 CSV 导入模板 ==================== */
+/* ==================== 下载 CSV 导入模板（含初始库存） ==================== */
 function downloadImportTemplate(){
   const rows = [
-    ['商品名称','品牌','型号','规格','颜色','条码','进货价','销售价','预警值','备注'],
-    ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','2','示例：可以删除本行'],
-    ['华为 Mate 60 Pro','华为','ALN-AL00','12+512G','雅川青','','6500','6999','2','条码留空会自动生成'],
-    ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','2','']
+    ['商品名称','品牌','型号','规格','颜色','二维码内容','进货价','销售价','初始库存','预警值','备注'],
+    ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','10','2','示例：可以删除本行'],
+    ['华为 Mate 60 Pro','华为','ALN-AL00','12+512G','雅川青','','6500','6999','5','2','二维码内容留空会自动生成'],
+    ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','0','2','']
   ];
 
   const csv = '\uFEFF' + rows.map(r =>
@@ -1036,7 +1046,7 @@ function downloadImportTemplate(){
   toast('模板已下载，用 Excel 打开填写后另存为 CSV');
 }
 
-/* ==================== 批量导入商品 ==================== */
+/* ==================== 批量导入商品（含初始库存） ==================== */
 function generateInternalBarcode(){
   const ts = String(Date.now()).slice(-8) + String(Math.floor(Math.random()*100)).padStart(2,'0');
   const r = Math.floor(Math.random() * 10);
@@ -1067,7 +1077,8 @@ function parseImportText(text){
 
     if(cells.length < 1 || !cells[0]) continue;
 
-    const [name, brand, model, spec, color, barcode, priceIn, priceOut, warnStock, remark] = cells;
+    // 列顺序：名称,品牌,型号,规格,颜色,二维码内容,进货价,销售价,初始库存,预警值,备注
+    const [name, brand, model, spec, color, barcode, priceIn, priceOut, initStock, warnStock, remark] = cells;
 
     if(!name){
       errors.push({ line: i + 1, msg: '商品名称为空', raw: lines[i] });
@@ -1088,6 +1099,7 @@ function parseImportText(text){
       barcode: finalBarcode,
       priceIn: parseFloat(priceIn) || 0,
       priceOut: parseFloat(priceOut) || 0,
+      stock: parseInt(initStock) || 0,
       warnStock: parseInt(warnStock) || 2,
       remark: remark || '',
       autoBarcode: !(barcode && barcode.trim())
@@ -1103,11 +1115,11 @@ function openBatchImport(){
     <button class="tpl-btn" id="btnDownloadTpl">⬇ 下载 CSV 导入模板（用 Excel 填写）</button>
     <div class="import-tip">
       每行一件商品，用逗号或制表符分隔。列顺序：<br>
-      <code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,备注</code><br>
-      除<b>名称</b>外，其他列都可以省略；不填条码会自动生成。<br>
+      <code>名称,品牌,型号,规格,颜色,二维码内容,进货价,销售价,初始库存,预警值,备注</code><br>
+      除<b>名称</b>外，其他列都可以省略；不填二维码内容会自动生成。<br>
       支持从 Excel 另存为 CSV 后直接粘贴或选文件。
     </div>
-    <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,2&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,2&#10;小米 14,小米,,12+256G,黑色"></textarea>
+    <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,10,2&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,5,2&#10;小米 14,小米,,12+256G,黑色,,,,0,2"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;">
       <input type="file" id="batchFile" accept=".csv,.txt" style="display:none">
       <button class="mini-btn" id="btnPickFile" style="flex:1;">选择 CSV 文件</button>
@@ -1173,8 +1185,9 @@ function openBatchImport(){
     preview.innerHTML = previewRows.slice(0, 50).map(r => `
       <div class="row ${r.conflict ? 'err' : ''}">
         <span class="n">${esc(r.name)}</span>
+        <span class="s">库存 ${r.stock}</span>
         <span class="c">${esc(r.barcode)}</span>
-        ${r.conflict ? '<span style="color:var(--red);">条码冲突</span>' : ''}
+        ${r.conflict ? '<span style="color:var(--red);">二维码冲突</span>' : ''}
       </div>
     `).join('') + (previewRows.length > 50
       ? `<div class="row" style="justify-content:center;color:var(--text2);">... 还有 ${previewRows.length - 50} 件未显示</div>`
@@ -1213,6 +1226,10 @@ function openBatchImport(){
         updatedAt: now
       };
       products.push(p);
+      // 如果填写了初始库存，生成一条入库流水
+      if(r.stock > 0){
+        changeStock(p.id, r.stock, '批量导入初始库存');
+      }
       added++;
     });
 
@@ -1245,7 +1262,7 @@ function showModal(html){
 /* ==================== 单次扫码 ==================== */
 async function scanOnce(onResult){
   const { mask, close } = showModal(`
-    <div class="modal-title">扫描条码</div>
+    <div class="modal-title">扫描二维码</div>
     <div id="scanOnceReader" style="width:100%;min-height:220px;background:#000;border-radius:10px;overflow:hidden;"></div>
     <div style="height:12px;"></div>
     <button class="btn-plain" id="scanOnceCancel">取消</button>
@@ -1273,33 +1290,24 @@ async function scanOnce(onResult){
   }
 }
 
-/* ==================== 打印条码（系统打印） ==================== */
-function printBarcode(p) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+/* ==================== 打印二维码（系统打印） ==================== */
+async function printQRCode(p) {
+  let qrDataUrl;
   try {
-    JsBarcode(svg, p.barcode, {
-      format: 'CODE128',
-      width: 2,
-      height: 80,
-      displayValue: false,
-      margin: 6,
-      background: '#FFFFFF',
-      lineColor: '#000000'
-    });
+    qrDataUrl = await generateQRCodeDataURL(p.barcode, 300);
   } catch (e) {
-    toast('条码格式不支持生成');
+    toast('二维码生成失败');
     return;
   }
 
   const configLine = buildConfigLine(p);
-  const svgHtml = svg.outerHTML;
   const win = window.open('', '_blank');
   win.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>打印条码 - ${esc(p.name)}</title>
+      <title>打印二维码 - ${esc(p.name)}</title>
       <style>
         * { box-sizing: border-box; }
         body {
@@ -1316,7 +1324,7 @@ function printBarcode(p) {
         }
         .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
         .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
-        .barcode svg { display: block; max-width: 100%; height: auto; }
+        .qrcode img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
         .code { font-family: monospace; font-size: 13px; letter-spacing: 1px; margin-top: 4px; color: #333; }
         @media print { body { padding: 0; } .label { border: none; margin: 0; padding: 8px; } }
       </style>
@@ -1325,7 +1333,7 @@ function printBarcode(p) {
       <div class="label">
         <div class="name">${esc(p.name)}</div>
         ${configLine ? `<div class="config">${esc(configLine)}</div>` : ''}
-        <div class="barcode">${svgHtml}</div>
+        <div class="qrcode"><img src="${qrDataUrl}" alt="二维码"></div>
         <div class="code">${esc(p.barcode)}</div>
       </div>
       <script>
@@ -1350,6 +1358,14 @@ async function blePrint(product) {
     return;
   }
 
+  let qrDataUrl;
+  try {
+    qrDataUrl = await generateQRCodeDataURL(product.barcode, 300);
+  } catch (e) {
+    toast('二维码生成失败');
+    return;
+  }
+
   const canvas = document.createElement('canvas');
   canvas.width = B1_LABEL_SIZE.w_px;
   canvas.height = B1_LABEL_SIZE.h_px;
@@ -1363,10 +1379,10 @@ async function blePrint(product) {
   const nameMaxWidth = canvas.width - 16;
   const totalH = canvas.height;
 
-  const nameH = Math.floor(totalH * 0.22);
-  const configH = Math.floor(totalH * 0.16);
-  const codeH = Math.floor(totalH * 0.16);
-  const barcodeH = totalH - nameH - configH - codeH;
+  const nameH = Math.floor(totalH * 0.20);
+  const configH = Math.floor(totalH * 0.14);
+  const codeH = Math.floor(totalH * 0.14);
+  const qrH = totalH - nameH - configH - codeH;
 
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
@@ -1395,32 +1411,17 @@ async function blePrint(product) {
     ctx.fillText(configLine, canvas.width / 2, nameH + configH / 2);
   }
 
-  const barcodeCanvas = document.createElement('canvas');
-  try {
-    JsBarcode(barcodeCanvas, product.barcode, {
-      format: 'CODE128',
-      width: 2,
-      height: 100,
-      displayValue: false,
-      margin: 0,
-      background: '#FFFFFF',
-      lineColor: '#000000'
-    });
-  } catch (e) {
-    toast('条码生成失败');
-    return;
-  }
+  const qrImg = new Image();
+  qrImg.src = qrDataUrl;
+  await new Promise(resolve => { qrImg.onload = resolve; });
 
-  const bcY = nameH + configH;
-  const bcMaxWidth = canvas.width - 16;
-  const bcRatio = Math.min(bcMaxWidth / barcodeCanvas.width, barcodeH / barcodeCanvas.height);
-  const bcW = barcodeCanvas.width * bcRatio;
-  const bcH = barcodeCanvas.height * bcRatio;
-  const bcX = (canvas.width - bcW) / 2;
-  ctx.drawImage(barcodeCanvas, bcX, bcY + (barcodeH - bcH) / 2, bcW, bcH);
+  const qrSize = Math.min(qrH, canvas.width - 24);
+  const qrX = (canvas.width - qrSize) / 2;
+  const qrY = nameH + configH + (qrH - qrSize) / 2;
+  ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
   ctx.fillStyle = '#000000';
-  let codeFontSize = Math.min(18, Math.floor(codeH * 0.65));
+  let codeFontSize = Math.min(16, Math.floor(codeH * 0.65));
   let codeFont = `${codeFontSize}px monospace`;
   ctx.font = codeFont;
   while (ctx.measureText(product.barcode).width > nameMaxWidth && codeFontSize > 8) {
@@ -1445,37 +1446,29 @@ async function blePrint(product) {
   }
 }
 
-/* ==================== 保存单张条码图 ==================== */
-function saveBarcodeImage(p) {
-  const canvas = buildBarcodeCanvas(p);
-  if (!canvas) { toast('条码格式不支持生成'); return; }
+/* ==================== 保存单张二维码图 ==================== */
+async function saveQRCodeImage(p) {
+  const canvas = await buildQRCodeCanvas(p);
+  if (!canvas) { toast('二维码生成失败'); return; }
 
   canvas.toBlob(blob => {
     if (!blob) { toast('生成图片失败'); return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `条码_${(p.name||'').replace(/[\\/:*?"<>|]/g,'_')}_${p.barcode}.png`;
+    a.download = `二维码_${(p.name||'').replace(/[\\/:*?"<>|]/g,'_')}_${p.barcode}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast('已下载条码图片');
+    toast('已下载二维码图片');
   }, 'image/png');
 }
 
-function buildBarcodeCanvas(p) {
-  const barcodeCanvas = document.createElement('canvas');
+async function buildQRCodeCanvas(p) {
+  let qrDataUrl;
   try {
-    JsBarcode(barcodeCanvas, p.barcode, {
-      format: 'CODE128',
-      width: 3,
-      height: 100,
-      displayValue: false,
-      margin: 10,
-      background: '#FFFFFF',
-      lineColor: '#000000'
-    });
+    qrDataUrl = await generateQRCodeDataURL(p.barcode, 300);
   } catch (e) {
     return null;
   }
@@ -1484,6 +1477,7 @@ function buildBarcodeCanvas(p) {
   const nameH = 44;
   const configH = 34;
   const codeH = 32;
+  const qrSize = 200;
 
   const measure = document.createElement('canvas').getContext('2d');
   const nameText = p.name || '';
@@ -1493,7 +1487,7 @@ function buildBarcodeCanvas(p) {
   measure.font = codeFont;
   const codeWidth = measure.measureText(p.barcode).width;
 
-  const maxContentWidth = Math.max(barcodeCanvas.width, 360);
+  const maxContentWidth = Math.max(qrSize, 360);
 
   let nameFontSize = 24;
   let nameFont = `bold ${nameFontSize}px sans-serif`;
@@ -1519,11 +1513,11 @@ function buildBarcodeCanvas(p) {
     configWidth = measure.measureText(configText).width;
   }
 
-  const contentWidth = Math.max(barcodeCanvas.width, nameWidth, configWidth, codeWidth, 360);
+  const contentWidth = Math.max(qrSize, nameWidth, configWidth, codeWidth, 360);
 
   const canvas = document.createElement('canvas');
   canvas.width  = Math.ceil(contentWidth + padding * 2);
-  canvas.height = nameH + (configText ? configH : 0) + barcodeCanvas.height + codeH + padding;
+  canvas.height = nameH + (configText ? configH : 0) + qrSize + codeH + padding;
 
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#FFFFFF';
@@ -1545,16 +1539,19 @@ function buildBarcodeCanvas(p) {
     currentY += configH;
   }
 
-  const bx = (canvas.width - barcodeCanvas.width) / 2;
-  ctx.drawImage(barcodeCanvas, bx, currentY);
+  const qrImg = new Image();
+  qrImg.src = qrDataUrl;
+  await new Promise(resolve => { qrImg.onload = resolve; });
+  const qrX = (canvas.width - qrSize) / 2;
+  ctx.drawImage(qrImg, qrX, currentY, qrSize, qrSize);
 
   ctx.font = codeFont;
-  ctx.fillText(p.barcode, canvas.width / 2, currentY + barcodeCanvas.height + codeH / 2);
+  ctx.fillText(p.barcode, canvas.width / 2, currentY + qrSize + codeH / 2);
 
   return canvas;
 }
 
-/* ==================== 批量下载所有条码（ZIP） ==================== */
+/* ==================== 批量下载所有二维码（ZIP） ==================== */
 async function batchDownloadBarcodes() {
   if (products.length === 0) {
     toast('还没有商品，无法下载');
@@ -1568,16 +1565,16 @@ async function batchDownloadBarcodes() {
   const nameCount = {};
 
   const { mask, close } = showModal(`
-    <div class="modal-title">批量下载条码</div>
+    <div class="modal-title">批量下载二维码</div>
     <div class="modal-body">
-      正在生成 ${products.length} 张条码图片...
+      正在生成 ${products.length} 张二维码图片...
       <div id="batchProgress" style="margin-top:10px;font-size:13px;color:#6B7280;">准备中</div>
     </div>
   `);
 
   const progressEl = mask.querySelector('#batchProgress');
   const zip = new JSZip();
-  const folder = zip.folder('条码图片');
+  const folder = zip.folder('二维码图片');
 
   let ok = 0, fail = 0;
 
@@ -1585,7 +1582,7 @@ async function batchDownloadBarcodes() {
     const p = products[i];
     progressEl.textContent = `正在处理 ${i + 1} / ${products.length}：${p.name}`;
 
-    const canvas = buildBarcodeCanvas(p);
+    const canvas = await buildQRCodeCanvas(p);
     if (!canvas) { fail++; continue; }
 
     const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
@@ -1615,7 +1612,7 @@ async function batchDownloadBarcodes() {
     const a = document.createElement('a');
     const d = new Date(), pad = n => String(n).padStart(2, '0');
     a.href = url;
-    a.download = `条码打包_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.zip`;
+    a.download = `二维码打包_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.zip`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
