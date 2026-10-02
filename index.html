@@ -322,7 +322,7 @@ body{
           <div class="field"><label>销售价</label><input id="fPriceOut" type="number" inputmode="decimal" placeholder="0.00"></div>
         </div>
         <div class="row2">
-          <div class="field"><label id="lbStock">库存</label><input id="fStock" type="number" inputmode="numeric" value="0"></div>
+          <div class="field"><label id="lbStock">初始库存</label><input id="fStock" type="number" inputmode="numeric" value="0"></div>
           <div class="field"><label>预警值</label><input id="fWarn" type="number" inputmode="numeric" value="2"></div>
         </div>
         <div class="field"><label>备注</label><textarea id="fRemark" rows="2" placeholder="可选"></textarea></div>
@@ -527,7 +527,12 @@ function showView(name){
   const el = $('#view-' + name);
   if(el) el.classList.add('active');
 
-  $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
+  // 编辑页共用 add 页面，所以标题单独处理
+  if(name === 'edit'){
+    $('#tbTitle').textContent = '编辑商品';
+  }else{
+    $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
+  }
 
   const isRoot = (name === 'list' || name === 'scan' || name === 'records');
   $('#btnBack').classList.toggle('hidden', isRoot);
@@ -633,7 +638,10 @@ function showQuickMenu(id){
 /* ==================== 新增 / 编辑 ==================== */
 function openAdd(id = null, presetBarcode = ''){
   editingId = id;
-  showView(id ? 'edit' : 'add');
+
+  // ★ 关键修复：编辑和新增共用 view-add 页面
+  showView('add');
+  $('#tbTitle').textContent = id ? '编辑商品' : '新增商品';
 
   const p = id ? findProduct(id) : null;
 
@@ -649,7 +657,7 @@ function openAdd(id = null, presetBarcode = ''){
   $('#fWarn').value     = p ? p.warnStock : 2;
   $('#fRemark').value   = p ? p.remark : '';
 
-  // 编辑时也允许修改库存，保存时会自动生成"库存调整"流水
+  // 编辑时库存也可以修改，保存时会自动记录调整流水
   $('#lbStock').textContent = p ? '库存（可修改，会记录调整流水）' : '初始库存';
   $('#fStock').disabled = false;
   $('#btnSaveProduct').disabled = false;
@@ -701,7 +709,6 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
 
     Object.assign(p, data, { updatedAt: Date.now() });
 
-    // 如果库存被修改，生成一条库存调整流水
     if(finalStock !== oldStock){
       const delta = finalStock - oldStock;
       p.stock = finalStock;
