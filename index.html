@@ -42,6 +42,15 @@ body{
   flex:1;text-align:center;font-size:17px;margin:0;font-weight:600;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+/* 同步状态小圆点 */
+#syncDot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  margin-right:4px;vertical-align:middle;background:#9AA0A6;
+}
+#syncDot.ok{background:#66BB6A;}
+#syncDot.syncing{background:#FFA726;animation:pulse 1s infinite;}
+#syncDot.err{background:#EF5350;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 #main{flex:1;position:relative;overflow:hidden;}
 .view{
   position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -245,7 +254,7 @@ body{
   opacity:0;transition:all .25s;pointer-events:none;max-width:80vw;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-/* 批量导入专用样式 */
+/* 批量导入 */
 .import-tip{
   font-size:12px;color:var(--text2);background:#F8FAFC;border-radius:8px;
   padding:10px 12px;line-height:1.7;margin-bottom:10px;
@@ -274,6 +283,14 @@ body{
   cursor:pointer;margin-bottom:10px;
 }
 .tpl-btn:active{background:#E1EFFF;}
+/* 同步状态条 */
+#syncBar{
+  position:absolute;top:56px;left:0;right:0;height:0;overflow:hidden;
+  background:#FFF3E0;color:#E65100;font-size:12px;text-align:center;
+  transition:height .2s;z-index:8;
+}
+#syncBar.show{height:26px;line-height:26px;}
+#syncBar.err{background:#FFEBEE;color:#C62828;}
 </style>
 </head>
 <body>
@@ -281,9 +298,11 @@ body{
 
   <header id="topbar">
     <button class="tb-btn hidden" id="btnBack">←</button>
-    <h1 id="tbTitle">龙腾手机库存</h1>
-    <button class="tb-btn hidden" id="tbRight">⋯</button>
+    <h1 id="tbTitle"><span id="syncDot"></span>龙腾手机库存</h1>
+    <button class="tb-btn" id="btnSyncNow" title="立即同步">⟳</button>
   </header>
+
+  <div id="syncBar"></div>
 
   <main id="main">
 
@@ -376,6 +395,14 @@ body{
 </div>
 
 <script>
+/* ==================== 云同步配置 ==================== */
+// ⚠️ 把下面两个值替换成你自己的
+const GIST_ID = '1b73363e8b92c9e6892439426a291b33';
+const GITHUB_TOKEN = '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';
+
+const SYNC_POLL_MS = 20000;   // 每 20 秒轮询一次
+const SYNC_DEBOUNCE_MS = 1200; // 本地修改后 1.2 秒推送到云端
+
 /* ==================== 工具 ==================== */
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
@@ -399,16 +426,41 @@ function toast(msg){
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2200);
 }
 
+/* ==================== 云同步状态 ==================== */
+let syncState = 'idle'; // idle | syncing | ok | err
+function setSyncState(state, msg){
+  syncState = state;
+  const dot = $('#syncDot');
+  dot.className = '';
+  if(state === 'ok') dot.classList.add('ok');
+  else if(state === 'syncing') dot.classList.add('syncing');
+  else if(state === 'err') dot.classList.add('err');
+
+  const bar = $('#syncBar');
+  if(msg){
+    bar.textContent = msg;
+    bar.classList.add('show');
+    bar.classList.toggle('err', state === 'err');
+    if(state === 'ok'){
+      setTimeout(()=>bar.classList.remove('show'), 1500);
+    }
+  }
+}
+
 /* ==================== 数据层 ==================== */
 let products = [];
 let records = [];
+let lastCloudUpdatedAt = 0;
 
-function loadData(){
+function loadLocal(){
   try{ products = JSON.parse(localStorage.getItem('ss_products') || '[]'); }catch(e){ products = []; }
   try{ records  = JSON.parse(localStorage.getItem('ss_records')  || '[]'); }catch(e){ records  = []; }
+  lastCloudUpdatedAt = parseInt(localStorage.getItem('ss_cloud_time') || '0');
 }
-function saveProducts(){ localStorage.setItem('ss_products', JSON.stringify(products)); }
-function saveRecords(){ localStorage.setItem('ss_records',  JSON.stringify(records)); }
+function saveLocal(){
+  localStorage.setItem('ss_products', JSON.stringify(products));
+  localStorage.setItem('ss_records',  JSON.stringify(records));
+}
 
 function findProduct(id){ return products.find(p => p.id === id); }
 function findByBarcode(code){ return products.find(p => p.barcode === code); }
@@ -434,10 +486,118 @@ function changeStock(productId, delta, remark = ''){
     time: Date.now()
   });
 
-  saveProducts();
-  saveRecords();
+  saveLocal();
+  schedulePush();
   return { ok:true, stock:newStock };
 }
+
+/* ==================== GitHub Gist 云同步 ==================== */
+let pushTimer = null;
+let pollTimer = null;
+let pushing = false;
+
+function schedulePush(){
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(cloudPush, SYNC_DEBOUNCE_MS);
+}
+
+async function cloudPull(){
+  const res = await fetch(`https://api.github.com/gists/${GIST_ID}?t=${Date.now()}`, {
+    headers: {
+      'Authorization': `token ${GITHUB_TOKEN}`,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  });
+  if(!res.ok){
+    const t = await res.text();
+    throw new Error(`拉取失败 ${res.status}: ${t.slice(0,100)}`);
+  }
+  const json = await res.json();
+  const file = json.files['data.json'];
+  if(!file || !file.content) throw new Error('云端数据文件缺失');
+  return JSON.parse(file.content);
+}
+
+async function cloudPush(){
+  if(pushing) return;
+  pushing = true;
+  setSyncState('syncing', '正在同步到云端...');
+  try{
+    const payload = {
+      products,
+      records,
+      updatedAt: Date.now()
+    };
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: {
+          'data.json': {
+            content: JSON.stringify(payload, null, 2)
+          }
+        }
+      })
+    });
+    if(!res.ok){
+      const t = await res.text();
+      throw new Error(`推送失败 ${res.status}`);
+    }
+    lastCloudUpdatedAt = payload.updatedAt;
+    localStorage.setItem('ss_cloud_time', String(lastCloudUpdatedAt));
+    setSyncState('ok', '已同步到云端');
+  }catch(e){
+    console.error('云推送失败', e);
+    setSyncState('err', '云端同步失败，数据已存本地');
+  }finally{
+    pushing = false;
+  }
+}
+
+async function pullAndMerge(){
+  if(pushing) return; // 推送中不拉
+  try{
+    const remote = await cloudPull();
+    const remoteTime = remote.updatedAt || 0;
+    if(remoteTime > lastCloudUpdatedAt){
+      // 云端有更新，覆盖本地
+      products = remote.products || [];
+      records  = remote.records  || [];
+      lastCloudUpdatedAt = remoteTime;
+      saveLocal();
+      localStorage.setItem('ss_cloud_time', String(remoteTime));
+      // 刷新界面
+      if(currentView === 'list') renderProductList();
+      if(currentView === 'records') renderRecords();
+      if(currentView === 'detail' && currentProductId){
+        const p = findProduct(currentProductId);
+        if(p) renderDetail(p);
+        else showView('list');
+      }
+      setSyncState('ok', '已从云端更新');
+    }
+  }catch(e){
+    console.error('云拉取失败', e);
+    setSyncState('err', '云端连接失败，请检查网络');
+  }
+}
+
+function startPolling(){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(()=>{
+    if(document.hidden) return;
+    pullAndMerge();
+  }, SYNC_POLL_MS);
+}
+
+// 页面重新可见时立即拉一次
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden) pullAndMerge();
+});
 
 /* ==================== 配置行工具 ==================== */
 function buildConfigLine(p){
@@ -467,7 +627,7 @@ function showView(name){
   const el = $('#view-' + name);
   if(el) el.classList.add('active');
 
-  $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
+  $('#tbTitle').innerHTML = `<span id="syncDot"></span>` + (TITLES[name] || '龙腾手机库存');
 
   const isRoot = (name === 'list' || name === 'scan' || name === 'records');
   $('#btnBack').classList.toggle('hidden', isRoot);
@@ -476,6 +636,10 @@ function showView(name){
 
   $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
 
+  // 重建 dot 引用
+  const dot = $('#syncDot');
+  dot.className = syncState === 'ok' ? 'ok' : syncState === 'syncing' ? 'syncing' : syncState === 'err' ? 'err' : '';
+
   if(name === 'list') renderProductList();
   if(name === 'records') renderRecords();
   if(name === 'scan') startScan();
@@ -483,6 +647,11 @@ function showView(name){
 
 $('#btnBack').addEventListener('click', ()=>{
   showView('list');
+});
+$('#btnSyncNow').addEventListener('click', async ()=>{
+  toast('正在从云端拉取...');
+  await pullAndMerge();
+  toast('已同步');
 });
 
 /* ==================== 商品列表 ==================== */
@@ -635,7 +804,8 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
   if(editingId){
     const p = findProduct(editingId);
     Object.assign(p, data, { updatedAt: Date.now() });
-    saveProducts();
+    saveLocal();
+    schedulePush();
     toast('已保存');
   }else{
     const stock = parseInt($('#fStock').value) || 0;
@@ -647,8 +817,9 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
       updatedAt: Date.now()
     };
     products.push(p);
-    saveProducts();
+    saveLocal();
     if(stock > 0) changeStock(p.id, stock, '新建商品初始入库');
+    else schedulePush();
     toast('已添加');
   }
   showView('list');
@@ -767,7 +938,8 @@ function confirmDelete(p){
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     products = products.filter(x => x.id !== p.id);
-    saveProducts();
+    saveLocal();
+    schedulePush();
     close();
     toast('已删除');
     showView('list');
@@ -971,7 +1143,8 @@ $('#importFile').addEventListener('change', e => {
       mask.querySelector('[data-act="ok"]').onclick = () => {
         products = data.products || [];
         records  = data.records  || [];
-        saveProducts(); saveRecords();
+        saveLocal();
+        schedulePush();
         close();
         toast('导入成功');
         renderProductList();
@@ -997,8 +1170,8 @@ $('#btnClearAll').addEventListener('click', ()=>{
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     products = []; records = [];
-    localStorage.removeItem('ss_products');
-    localStorage.removeItem('ss_records');
+    saveLocal();
+    schedulePush();
     close();
     toast('已清空');
     renderProductList();
@@ -1008,7 +1181,6 @@ $('#btnClearAll').addEventListener('click', ()=>{
 
 /* ==================== 下载 CSV 导入模板 ==================== */
 function downloadImportTemplate(){
-  // CSV 表头 + 三行示例数据
   const rows = [
     ['商品名称','品牌','型号','规格','颜色','条码','进货价','销售价','预警值','备注'],
     ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','2','示例：可以删除本行'],
@@ -1016,11 +1188,9 @@ function downloadImportTemplate(){
     ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','2','']
   ];
 
-  // 加 UTF-8 BOM，避免 Excel 打开时中文乱码
   const csv = '\uFEFF' + rows.map(r =>
     r.map(cell => {
       const s = String(cell ?? '');
-      // 含逗号、引号、换行时用双引号包裹
       if(/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
       return s;
     }).join(',')
@@ -1133,11 +1303,8 @@ function openBatchImport(){
   const fileInput = mask.querySelector('#batchFile');
 
   mask.querySelector('[data-act="cancel"]').onclick = close;
-
-  // 下载模板
   mask.querySelector('#btnDownloadTpl').onclick = downloadImportTemplate;
 
-  // 选文件
   mask.querySelector('#btnPickFile').onclick = () => fileInput.click();
   fileInput.onchange = e => {
     const file = e.target.files[0];
@@ -1151,7 +1318,6 @@ function openBatchImport(){
     e.target.value = '';
   };
 
-  // 解析预览
   mask.querySelector('#btnParsePreview').onclick = () => {
     const text = textarea.value.trim();
     if(!text){ toast('请先粘贴文本或选择文件'); return; }
@@ -1196,7 +1362,6 @@ function openBatchImport(){
     okBtn.textContent = `确认导入 ${parsedRows.length} 件` + (conflictCount ? ` (跳过 ${conflictCount} 件冲突)` : '');
   };
 
-  // 确认导入
   mask.querySelector('#btnConfirmImport').onclick = () => {
     if(parsedRows.length === 0) return;
 
@@ -1224,7 +1389,8 @@ function openBatchImport(){
       added++;
     });
 
-    saveProducts();
+    saveLocal();
+    schedulePush();
     close();
     toast(`成功导入 ${added} 件商品`);
     renderProductList();
@@ -1250,7 +1416,7 @@ function showModal(html){
   return { mask, close };
 }
 
-/* ==================== 单次扫码（表单填条码） ==================== */
+/* ==================== 单次扫码 ==================== */
 async function scanOnce(onResult){
   const { mask, close } = showModal(`
     <div class="modal-title">扫描条码</div>
@@ -1322,23 +1488,11 @@ function printBarcode(p) {
           border-radius: 6px;
           background: #fff;
         }
-        .name {
-          font-size: 15px; font-weight: 600; margin-bottom: 3px;
-          white-space: nowrap;
-        }
-        .config {
-          font-size: 12px; color: #555; margin-bottom: 6px;
-          white-space: nowrap;
-        }
+        .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
+        .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
         .barcode svg { display: block; max-width: 100%; height: auto; }
-        .code {
-          font-family: monospace; font-size: 13px; letter-spacing: 1px;
-          margin-top: 4px; color: #333;
-        }
-        @media print {
-          body { padding: 0; }
-          .label { border: none; margin: 0; padding: 8px; }
-        }
+        .code { font-family: monospace; font-size: 13px; letter-spacing: 1px; margin-top: 4px; color: #333; }
+        @media print { body { padding: 0; } .label { border: none; margin: 0; padding: 8px; } }
       </style>
     </head>
     <body>
@@ -1349,9 +1503,7 @@ function printBarcode(p) {
         <div class="code">${esc(p.barcode)}</div>
       </div>
       <script>
-        window.onload = function() {
-          setTimeout(function() { window.print(); }, 200);
-        };
+        window.onload = function() { setTimeout(function() { window.print(); }, 200); };
       <\/script>
     </body>
     </html>
@@ -1360,15 +1512,7 @@ function printBarcode(p) {
 }
 
 /* ==================== 蓝牙打印（精臣 NIMBOT B1） ==================== */
-// ⚠️ 请根据你的实际标签纸尺寸修改以下参数
-// 40mm × 30mm：w_px = 320, h_px = 240
-// 50mm × 30mm：w_px = 384, h_px = 240
-// 50mm × 40mm：w_px = 384, h_px = 320
-const B1_LABEL_SIZE = {
-  w_px: 384,
-  h_px: 240,
-  offset_y_px: 0
-};
+const B1_LABEL_SIZE = { w_px: 384, h_px: 240, offset_y_px: 0 };
 
 async function blePrint(product) {
   if (!navigator.bluetooth) {
@@ -1398,7 +1542,6 @@ async function blePrint(product) {
   const codeH = Math.floor(totalH * 0.16);
   const barcodeH = totalH - nameH - configH - codeH;
 
-  // 名称
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1413,7 +1556,6 @@ async function blePrint(product) {
   }
   ctx.fillText(nameText, canvas.width / 2, nameH / 2);
 
-  // 配置行
   if (configLine) {
     let configFontSize = Math.min(20, Math.floor(configH * 0.65));
     let configFont = `bold ${configFontSize}px sans-serif`;
@@ -1427,7 +1569,6 @@ async function blePrint(product) {
     ctx.fillText(configLine, canvas.width / 2, nameH + configH / 2);
   }
 
-  // 条码
   const barcodeCanvas = document.createElement('canvas');
   try {
     JsBarcode(barcodeCanvas, product.barcode, {
@@ -1452,7 +1593,6 @@ async function blePrint(product) {
   const bcX = (canvas.width - bcW) / 2;
   ctx.drawImage(barcodeCanvas, bcX, bcY + (barcodeH - bcH) / 2, bcW, bcH);
 
-  // 数字
   ctx.fillStyle = '#000000';
   let codeFontSize = Math.min(18, Math.floor(codeH * 0.65));
   let codeFont = `${codeFontSize}px monospace`;
@@ -1468,28 +1608,14 @@ async function blePrint(product) {
   toast('正在连接打印机...');
 
   try {
-    const model = {
-      name_prefixes: ['B1'],
-      task: 'b1',
-      density: 3,
-      label_type: 1,
-      speed: 1
-    };
-
-    await Niimbot.printImage(dataUrl, {
-      model: model,
-      size: B1_LABEL_SIZE
-    });
+    const model = { name_prefixes: ['B1'], task: 'b1', density: 3, label_type: 1, speed: 1 };
+    await Niimbot.printImage(dataUrl, { model: model, size: B1_LABEL_SIZE });
     toast('打印指令已发送');
   } catch (e) {
     console.error('蓝牙打印失败', e);
-    if (e.name === 'NotFoundError') {
-      toast('未选择打印机，已取消');
-    } else if (e.name === 'SecurityError') {
-      toast('需要 HTTPS 才能使用蓝牙，请通过 GitHub Pages 访问');
-    } else {
-      toast('打印失败：' + (e.message || '请重试'));
-    }
+    if (e.name === 'NotFoundError') toast('未选择打印机，已取消');
+    else if (e.name === 'SecurityError') toast('需要 HTTPS 才能使用蓝牙');
+    else toast('打印失败：' + (e.message || '请重试'));
   }
 }
 
@@ -1634,10 +1760,7 @@ async function batchDownloadBarcodes() {
     progressEl.textContent = `正在处理 ${i + 1} / ${products.length}：${p.name}`;
 
     const canvas = buildBarcodeCanvas(p);
-    if (!canvas) {
-      fail++;
-      continue;
-    }
+    if (!canvas) { fail++; continue; }
 
     const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
     const safeCode = (p.barcode || 'nocode').replace(/[\\/:*?"<>|]/g, '_');
@@ -1650,12 +1773,7 @@ async function batchDownloadBarcodes() {
     }
 
     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    if (blob) {
-      folder.file(`${baseName}.png`, blob);
-      ok++;
-    } else {
-      fail++;
-    }
+    if (blob) { folder.file(`${baseName}.png`, blob); ok++; } else { fail++; }
 
     if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
   }
@@ -1695,8 +1813,20 @@ $$('#tabbar button').forEach(btn => {
 $('#fabAdd').addEventListener('click', () => openAdd(null));
 
 /* ==================== 启动 ==================== */
-loadData();
-showView('list');
+(async function boot(){
+  loadLocal();
+  showView('list');
+
+  // 首次从云端拉取
+  setSyncState('syncing', '正在连接云端...');
+  await pullAndMerge();
+  renderProductList();
+  startPolling();
+
+  if(GIST_ID.includes('在这里填') || GITHUB_TOKEN.includes('在这里填')){
+    setSyncState('err', '未配置云同步，数据只存在本地');
+  }
+})();
 </script>
 </body>
 </html>
