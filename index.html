@@ -253,7 +253,6 @@ body{
 
   <main id="main">
 
-    <!-- 商品列表 -->
     <section id="view-list" class="view active">
       <div class="search-wrap">
         <input id="searchInput" type="search" placeholder="搜索 名称 / 品牌 / 型号 / 条码">
@@ -261,7 +260,6 @@ body{
       <div id="productList" class="list"></div>
     </section>
 
-    <!-- 新增 / 编辑 -->
     <section id="view-add" class="view">
       <div class="form-body">
         <div class="field">
@@ -297,12 +295,10 @@ body{
       </div>
     </section>
 
-    <!-- 详情 -->
     <section id="view-detail" class="view">
       <div class="detail-body" id="detailBody"></div>
     </section>
 
-    <!-- 扫码 -->
     <section id="view-scan" class="view">
       <div class="scan-tabs">
         <button data-mode="query" class="active">扫码查询</button>
@@ -315,7 +311,6 @@ body{
       <div class="scan-tip" id="scanTip">将条形码 / 二维码放入取景框内</div>
     </section>
 
-    <!-- 记录 -->
     <section id="view-records" class="view">
       <div style="padding:14px;">
         <div style="display:flex;gap:8px;margin-bottom:8px;">
@@ -383,10 +378,6 @@ function saveRecords(){ localStorage.setItem('ss_records',  JSON.stringify(recor
 function findProduct(id){ return products.find(p => p.id === id); }
 function findByBarcode(code){ return products.find(p => p.barcode === code); }
 
-/**
- * 出入库核心：改库存 + 写流水
- * @param delta 正数入库，负数出库
- */
 function changeStock(productId, delta, remark = ''){
   if(!delta) return { ok:false, msg:'数量不能为 0' };
   const p = findProduct(productId);
@@ -1055,8 +1046,7 @@ function printBarcode(p) {
         }
         .name {
           font-size: 15px; font-weight: 600; margin-bottom: 6px;
-          max-width: 260px; white-space: nowrap;
-          overflow: hidden; text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .barcode svg { display: block; max-width: 100%; height: auto; }
         .code {
@@ -1105,7 +1095,9 @@ function saveBarcodeImage(p) {
   }, 'image/png');
 }
 
-/** 生成单个商品的条码画布（供单个下载和批量下载复用） */
+/** 生成单个商品的条码画布（供单个下载和批量下载复用）
+ *  商品名称完整显示，超长自动缩小字号，不会截断
+ */
 function buildBarcodeCanvas(p) {
   const barcodeCanvas = document.createElement('canvas');
   try {
@@ -1122,27 +1114,56 @@ function buildBarcodeCanvas(p) {
     return null;
   }
 
-  const canvas = document.createElement('canvas');
   const padding = 16;
-  const nameH = 36;
-  const codeH = 30;
-  canvas.width = barcodeCanvas.width + padding * 2;
+  const nameH = 44;   // 商品名称区域高度
+  const codeH = 32;   // 条码数字区域高度
+
+  // 用临时画布测量文本宽度
+  const measure = document.createElement('canvas').getContext('2d');
+  const nameText = p.name || '';
+
+  // 数字用固定字号
+  const codeFont = '18px monospace';
+  measure.font = codeFont;
+  const codeWidth = measure.measureText(p.barcode).width;
+
+  // 商品名最大允许宽度：条码宽度与最低 360px 取最大值
+  const maxNameWidth = Math.max(barcodeCanvas.width, 360);
+
+  // 自动缩放商品名字号（从 24px 逐级降到 12px），保证完整放下
+  let nameFontSize = 24;
+  let nameFont = `bold ${nameFontSize}px sans-serif`;
+  measure.font = nameFont;
+  while (measure.measureText(nameText).width > maxNameWidth && nameFontSize > 12) {
+    nameFontSize -= 1;
+    nameFont = `bold ${nameFontSize}px sans-serif`;
+    measure.font = nameFont;
+  }
+  const nameWidth = measure.measureText(nameText).width;
+
+  // 画布宽度：条码 / 名称 / 数字 三者最宽的 + 左右留白
+  const contentWidth = Math.max(barcodeCanvas.width, nameWidth, codeWidth, 360);
+  const canvas = document.createElement('canvas');
+  canvas.width  = Math.ceil(contentWidth + padding * 2);
   canvas.height = nameH + barcodeCanvas.height + codeH + padding;
 
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // 商品名称（完整显示，居中）
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 22px sans-serif';
+  ctx.font = nameFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const name = p.name.length > 16 ? p.name.slice(0, 16) + '…' : p.name;
-  ctx.fillText(name, canvas.width / 2, padding + nameH / 2);
+  ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
-  ctx.drawImage(barcodeCanvas, padding, padding + nameH);
+  // 条码居中绘制
+  const bx = (canvas.width - barcodeCanvas.width) / 2;
+  ctx.drawImage(barcodeCanvas, bx, padding + nameH);
 
-  ctx.font = '18px monospace';
+  // 条码数字
+  ctx.font = codeFont;
   ctx.fillText(p.barcode, canvas.width / 2, padding + nameH + barcodeCanvas.height + codeH / 2);
 
   return canvas;
@@ -1185,7 +1206,7 @@ async function batchDownloadBarcodes() {
       continue;
     }
 
-    const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 20);
+    const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
     const safeCode = (p.barcode || 'nocode').replace(/[\\/:*?"<>|]/g, '_');
     let baseName = `${safeName}_${safeCode}`;
     if (nameCount[baseName]) {
