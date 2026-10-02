@@ -322,7 +322,7 @@ body{
           <div class="field"><label>销售价</label><input id="fPriceOut" type="number" inputmode="decimal" placeholder="0.00"></div>
         </div>
         <div class="row2">
-          <div class="field"><label id="lbStock">初始库存</label><input id="fStock" type="number" inputmode="numeric" value="0"></div>
+          <div class="field"><label id="lbStock">库存</label><input id="fStock" type="number" inputmode="numeric" value="0"></div>
           <div class="field"><label>预警值</label><input id="fWarn" type="number" inputmode="numeric" value="2"></div>
         </div>
         <div class="field"><label>备注</label><textarea id="fRemark" rows="2" placeholder="可选"></textarea></div>
@@ -488,31 +488,17 @@ function generateQRCodeDataURL(text, size = 300){
 }
 
 /* ==================== 标签文本行构建 ==================== */
-/**
- * 生成标签要显示的文字行
- * 返回数组：{ text, weight, maxSize }
- */
 function buildLabelLines(p){
   const lines = [];
-
-  // 第 1 行：商品名称
   lines.push({ text: p.name || '', weight: 'bold', maxSize: 22 });
-
-  // 第 2 行：品牌 + 型号
   const brandModel = [p.brand, p.model].filter(Boolean).join(' ');
   if (brandModel) lines.push({ text: brandModel, weight: 'bold', maxSize: 16 });
-
-  // 第 3 行：规格 + 颜色
   const specColor = [p.spec, p.color].filter(Boolean).join(' / ');
   if (specColor) lines.push({ text: specColor, weight: 'bold', maxSize: 16 });
-
-  // 第 4 行：备注
   if (p.remark) lines.push({ text: '备注：' + p.remark, weight: 'normal', maxSize: 14 });
-
   return lines;
 }
 
-/* ==================== 配置行工具（用于系统打印和保存图片） ==================== */
 function buildConfigLines(p){
   const lines = [];
   const bm = [p.brand, p.model].filter(Boolean).join(' ');
@@ -663,8 +649,9 @@ function openAdd(id = null, presetBarcode = ''){
   $('#fWarn').value     = p ? p.warnStock : 2;
   $('#fRemark').value   = p ? p.remark : '';
 
-  $('#lbStock').textContent = p ? '当前库存（通过出入库变更）' : '初始库存';
-  $('#fStock').disabled = !!p;
+  // 编辑时也允许修改库存，保存时会自动生成"库存调整"流水
+  $('#lbStock').textContent = p ? '库存（可修改，会记录调整流水）' : '初始库存';
+  $('#fStock').disabled = false;
   $('#btnSaveProduct').disabled = false;
   $('#btnSaveProduct').textContent = p ? '保存修改' : '保存';
 }
@@ -708,9 +695,32 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
 
   if(editingId){
     const p = findProduct(editingId);
+    const oldStock = p.stock;
+    const newStock = parseInt($('#fStock').value);
+    const finalStock = isNaN(newStock) ? oldStock : newStock;
+
     Object.assign(p, data, { updatedAt: Date.now() });
+
+    // 如果库存被修改，生成一条库存调整流水
+    if(finalStock !== oldStock){
+      const delta = finalStock - oldStock;
+      p.stock = finalStock;
+      records.unshift({
+        id: uid(),
+        productId: p.id,
+        productName: p.name,
+        barcode: p.barcode,
+        type: delta > 0 ? 1 : -1,
+        quantity: Math.abs(delta),
+        remark: `库存调整（${oldStock} → ${finalStock}）`,
+        time: Date.now()
+      });
+      saveRecords();
+      toast(`已保存，库存已调整为 ${finalStock}`);
+    }else{
+      toast('已保存');
+    }
     saveProducts();
-    toast('已保存');
   }else{
     const stock = parseInt($('#fStock').value) || 0;
     const p = {
@@ -722,7 +732,7 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
     };
     products.push(p);
     saveProducts();
-    if(stock > 0) changeStock(p.id, stock, '新建商品初始入库');
+    if(stock > 0) changeStock(p.id, stock, '新建商品初始库存');
     toast('已添加');
   }
   showView('list');
@@ -1350,7 +1360,7 @@ async function scanOnce(onResult){
   }
 }
 
-/* ==================== 打印二维码（系统打印，含规格+备注） ==================== */
+/* ==================== 打印二维码（系统打印） ==================== */
 async function printQRCode(p) {
   let qrDataUrl;
   try {
@@ -1408,7 +1418,7 @@ async function printQRCode(p) {
   win.document.close();
 }
 
-/* ==================== 蓝牙打印（精臣 NIMBOT B1，含规格+备注） ==================== */
+/* ==================== 蓝牙打印 ==================== */
 const B1_LABEL_SIZE = { w_px: 384, h_px: 240, offset_y_px: 0 };
 
 async function blePrint(product) {
@@ -1437,25 +1447,20 @@ async function blePrint(product) {
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // 白色背景
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, W, H);
 
-  // 二维码尺寸和位置（固定）
   const qrSize = 130;
   const codeH = 22;
-  const qrY = H - codeH - qrSize - 4;   // 二维码顶部位置
+  const qrY = H - codeH - qrSize - 4;
 
-  // 文本区：从顶部到二维码上方
   const textTop = 4;
   const textBottom = qrY - 4;
   const textAreaH = textBottom - textTop;
 
-  // 根据商品信息动态生成文字行
   const textLines = buildLabelLines(product);
   const lineH = textAreaH / textLines.length;
 
-  // 绘制文字行
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1465,7 +1470,6 @@ async function blePrint(product) {
     let fontSize = Math.min(line.maxSize, Math.floor(lineH * 0.78));
     let font = `${line.weight} ${fontSize}px sans-serif`;
     ctx.font = font;
-    // 超宽自动缩小
     while (ctx.measureText(line.text).width > W - 12 && fontSize > 8) {
       fontSize -= 1;
       font = `${line.weight} ${fontSize}px sans-serif`;
@@ -1475,14 +1479,12 @@ async function blePrint(product) {
     y += lineH;
   });
 
-  // 绘制二维码
   const qrImg = new Image();
   qrImg.src = qrDataUrl;
   await new Promise(resolve => { qrImg.onload = resolve; });
   const qrX = (W - qrSize) / 2;
   ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-  // 底部二维码内容文字
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1511,7 +1513,7 @@ async function blePrint(product) {
   }
 }
 
-/* ==================== 保存单张二维码图（含规格+备注） ==================== */
+/* ==================== 保存单张二维码图 ==================== */
 async function saveQRCodeImage(p) {
   const canvas = await buildQRCodeCanvas(p);
   if (!canvas) { toast('二维码生成失败'); return; }
@@ -1542,12 +1544,11 @@ async function buildQRCodeCanvas(p) {
   const nameH = 44;
   const codeH = 32;
   const qrSize = 220;
-  const lineH = 30;   // 每行配置信息的高度
+  const lineH = 30;
 
   const measure = document.createElement('canvas').getContext('2d');
   const nameText = p.name || '';
 
-  // 构建配置行（品牌型号 / 规格颜色 / 备注）
   const configLines = buildConfigLines(p);
   const configTotalH = configLines.length * lineH;
 
@@ -1557,7 +1558,6 @@ async function buildQRCodeCanvas(p) {
 
   const maxContentWidth = Math.max(qrSize, 360);
 
-  // 名称自动缩放
   let nameFontSize = 24;
   let nameFont = `bold ${nameFontSize}px sans-serif`;
   measure.font = nameFont;
@@ -1568,7 +1568,6 @@ async function buildQRCodeCanvas(p) {
   }
   const nameWidth = measure.measureText(nameText).width;
 
-  // 配置行自动缩放
   let maxConfigWidth = 0;
   const configFonts = configLines.map(text => {
     let fs = 18;
@@ -1598,11 +1597,9 @@ async function buildQRCodeCanvas(p) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // 名称
   ctx.font = nameFont;
   ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
-  // 配置行
   let currentY = padding + nameH;
   ctx.fillStyle = '#333333';
   configFonts.forEach(cf => {
@@ -1612,14 +1609,12 @@ async function buildQRCodeCanvas(p) {
   });
   ctx.fillStyle = '#000000';
 
-  // 二维码
   const qrImg = new Image();
   qrImg.src = qrDataUrl;
   await new Promise(resolve => { qrImg.onload = resolve; });
   const qrX = (canvas.width - qrSize) / 2;
   ctx.drawImage(qrImg, qrX, currentY, qrSize, qrSize);
 
-  // 二维码内容
   ctx.font = codeFont;
   ctx.fillText(p.barcode, canvas.width / 2, currentY + qrSize + codeH / 2);
 
