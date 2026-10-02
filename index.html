@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1565C0">
 <title>龙腾手机库存</title>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<!-- 引入二维码生成库 -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
@@ -347,16 +348,6 @@ function changeStock(productId, delta, remark = ''){
   return { ok:true, stock:newStock };
 }
 
-/* ==================== 配置行工具 ==================== */
-function buildConfigLine(p){
-  const parts = [];
-  const bm = [p.brand, p.model].filter(Boolean).join(' ');
-  if(bm) parts.push(bm);
-  if(p.spec) parts.push(p.spec);
-  if(p.color) parts.push(p.color);
-  return parts.join(' · ');
-}
-
 /* ==================== 视图管理 ==================== */
 let currentView = 'list';
 let editingId = null;
@@ -572,8 +563,12 @@ function renderDetail(p){
         </div>`).join('') : '<div class="empty" style="padding:20px;">暂无记录</div>'}
     </div>`;
   try{
-    JsBarcode('#barcodeSvg', p.barcode, { format: 'CODE128', width: 2, height: 80, displayValue: false, margin: 6, background: '#FFFFFF', lineColor: '#000000' });
-  }catch(e){ $('#barcodeSvg').outerHTML = '<div class="empty">条码格式不支持生成图片</div>'; }
+    // 详情页也使用二维码展示
+    const qr = qrcode(0, 'M');
+    qr.addData(p.barcode);
+    qr.make();
+    $('#barcodeSvg').outerHTML = qr.createImgTag(3, 0);
+  }catch(e){ $('#barcodeSvg').outerHTML = '<div class="empty">二维码格式不支持生成</div>'; }
 
   $('#dIn').onclick = () => promptQuantity(p.id, 1);
   $('#dOut').onclick = () => promptQuantity(p.id, -1);
@@ -900,30 +895,32 @@ async function scanOnce(onResult){
 function printBarcode(p) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   try {
-    JsBarcode(svg, p.barcode, { format: 'CODE128', width: 2, height: 80, displayValue: false, margin: 6, background: '#FFFFFF', lineColor: '#000000' });
-  } catch (e) { toast('条码格式不支持生成'); return; }
-  const configLine = buildConfigLine(p);
-  const svgHtml = svg.outerHTML;
-  const win = window.open('', '_blank');
-  win.document.write(`
-    <!DOCTYPE html><html><head><meta charset="UTF-8"><title>打印条码 - ${esc(p.name)}</title>
-    <style>* { box-sizing: border-box; } body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; text-align: center; padding: 20px; margin: 0; }
-    .label { display: inline-block; border: 1px dashed #ccc; padding: 12px 24px; margin: 10px; border-radius: 6px; background: #fff; }
-    .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
-    .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
-    .barcode svg { display: block; max-width: 100%; height: auto; }
-    .code { font-family: monospace; font-size: 13px; letter-spacing: 1px; margin-top: 4px; color: #333; }
-    @media print { body { padding: 0; } .label { border: none; margin: 0; padding: 8px; } }</style>
-    </head><body><div class="label"><div class="name">${esc(p.name)}</div>${configLine ? `<div class="config">${esc(configLine)}</div>` : ''}<div class="barcode">${svgHtml}</div><div class="code">${esc(p.barcode)}</div></div>
-    <script>window.onload = function() { setTimeout(function() { window.print(); }, 200); };<\/script></body></html>`);
-  win.document.close();
+    // 使用二维码生成器生成 SVG
+    const qr = qrcode(0, 'M');
+    qr.addData(p.barcode);
+    qr.make();
+    const qrSvg = qr.createSvgTag(3, 0).replace(/<svg[^>]*>/, '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">');
+    const configLine = buildConfigLine(p);
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <!DOCTYPE html><html><head><meta charset="UTF-8"><title>打印条码 - ${esc(p.name)}</title>
+      <style>* { box-sizing: border-box; } body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; text-align: center; padding: 20px; margin: 0; }
+      .label { display: inline-block; border: 1px dashed #ccc; padding: 12px 24px; margin: 10px; border-radius: 6px; background: #fff; }
+      .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
+      .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
+      .qrcode { display: flex; justify-content: center; margin: 8px 0; }
+      .qrcode svg { width: 120px; height: 120px; }
+      .code { font-family: monospace; font-size: 13px; letter-spacing: 1px; margin-top: 4px; color: #333; }
+      @media print { body { padding: 0; } .label { border: none; margin: 0; padding: 8px; } }</style>
+      </head><body><div class="label"><div class="name">${esc(p.name)}</div>${configLine ? `<div class="config">${esc(configLine)}</div>` : ''}<div class="qrcode">${qrSvg}</div><div class="code">${esc(p.barcode)}</div></div>
+      <script>window.onload = function() { setTimeout(function() { window.print(); }, 200); };<\/script></body></html>`);
+    win.document.close();
+  } catch (e) { toast('二维码格式不支持生成'); }
 }
 
 /* ==================== 生成标签 Canvas（供预览和打印共用） ==================== */
 // ⚠️ 请根据你的实际标签纸尺寸修改以下参数（1mm ≈ 8px）
-// 40mm × 30mm：w_px = 320, h_px = 240
 // 50mm × 30mm：w_px = 384, h_px = 240
-// 50mm × 40mm：w_px = 384, h_px = 320
 const B1_LABEL_SIZE = { w_px: 384, h_px: 240, offset_y_px: 0 };
 
 function generateLabelCanvas(product) {
@@ -935,18 +932,9 @@ function generateLabelCanvas(product) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const nameText = product.name || '';
-  const barcodeText = product.barcode || '1234567890';
-  
-  const infoLines = [];
-  const bm = [product.brand, product.model].filter(Boolean).join(' ');
-  if (bm) infoLines.push(bm);
-  const sc = [product.spec, product.color].filter(Boolean).join(' / ');
-  if (sc) infoLines.push(sc);
-  if (product.remark) infoLines.push('备注: ' + product.remark);
-
+  // 文字自适应函数
   function fitTextToBox(text, maxWidth, maxHeight, fontWeight = 'normal') {
-    let fontSize = Math.min(maxHeight, 50);
+    let fontSize = Math.min(maxHeight, 100);
     let font = `${fontWeight} ${fontSize}px sans-serif`;
     ctx.font = font;
     while (fontSize > 8) {
@@ -959,46 +947,89 @@ function generateLabelCanvas(product) {
     return { font: `${fontWeight} 8px sans-serif`, size: 8 };
   }
 
-  // 1. 顶部：商品名称
-  const nameMaxWidth = canvas.width - 20;
-  const nameMaxHeight = Math.floor(canvas.height * 0.28);
-  const nameFit = fitTextToBox(nameText, nameMaxWidth, nameMaxHeight, 'bold');
-  ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  // ================= 1. 顶部：商品名称 =================
+  const nameText = product.name || '';
+  const nameH = 45;      // 名称区域高度
+  const nameY = 8;       // 名称区域起始 Y
+  const nameFit = fitTextToBox(nameText, canvas.width - 20, nameH, 'bold');
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   ctx.font = nameFit.font;
-  ctx.fillText(nameText, canvas.width / 2, nameMaxHeight / 2 + 5);
+  ctx.fillText(nameText, canvas.width / 2, nameY + nameH / 2);
 
-  // 2. 底部：条码数字
-  const codeMaxHeight = Math.floor(canvas.height * 0.18);
-  const codeFit = fitTextToBox(barcodeText, canvas.width - 20, codeMaxHeight);
-  ctx.font = codeFit.font; ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  ctx.fillText(barcodeText, canvas.width / 2, canvas.height - 5);
+  // ================= 2. 底部：条码数字 =================
+  const barcodeText = product.barcode || '';
+  const codeH = 25;      // 数字区域高度
+  const codeY = canvas.height - codeH - 8;
+  const codeFit = fitTextToBox(barcodeText, canvas.width - 20, codeH);
+  ctx.font = codeFit.font;
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(barcodeText, canvas.width / 2, codeY + codeH / 2);
 
-  // 3. 中间：左侧条码 + 右侧文字
-  const midY = nameMaxHeight;
-  const midH = canvas.height - nameMaxHeight - codeMaxHeight - 5;
-  const leftWidth = Math.floor(canvas.width * 0.40);
-  const rightWidth = canvas.width - leftWidth - 15;
-  const rightX = leftWidth + 5;
+  // ================= 3. 中间：左侧二维码 + 右侧文字 =================
+  const midY = nameY + nameH;      // 中间区域起始 Y
+  const midH = codeY - midY;       // 中间区域高度
 
-  const barcodeCanvas = document.createElement('canvas');
+  // 构造右侧文字行
+  const infoLines = [];
+  const bm = [product.brand, product.model].filter(Boolean).join(' ');
+  if (bm) infoLines.push(bm);
+  const sc = [product.spec, product.color].filter(Boolean).join(' / ');
+  if (sc) infoLines.push(sc);
+  if (product.remark) infoLines.push('备注: ' + product.remark);
+
+  // 二维码尺寸和位置
+  const qrSize = 140;
+  const qrX = 10;
+  const qrY = midY + (midH - qrSize) / 2;
+
+  // 生成二维码
   try {
-    JsBarcode(barcodeCanvas, barcodeText, { format: 'CODE128', width: 2, height: 100, displayValue: false, margin: 0, background: '#FFFFFF', lineColor: '#000000' });
-  } catch (e) { return canvas; }
+    const qr = qrcode(0, 'M');
+    qr.addData(barcodeText);
+    qr.make();
+    const qrCount = qr.getModuleCount();
+    const cellSize = Math.floor(qrSize / qrCount);
+    const actualQrSize = cellSize * qrCount;
+    const offsetX = qrX + (qrSize - actualQrSize) / 2;
+    const offsetY = qrY + (qrSize - actualQrSize) / 2;
 
-  const bcRatio = Math.min(leftWidth / barcodeCanvas.width, midH / barcodeCanvas.height);
-  const bcW = barcodeCanvas.width * bcRatio;
-  const bcH = barcodeCanvas.height * bcRatio;
-  const bcX = (leftWidth - bcW) / 2;
-  const bcY = midY + (midH - bcH) / 2;
-  ctx.drawImage(barcodeCanvas, bcX, bcY, bcW, bcH);
+    const qrCanvas = document.createElement('canvas');
+    qrCanvas.width = actualQrSize;
+    qrCanvas.height = actualQrSize;
+    const qrCtx = qrCanvas.getContext('2d');
+    qrCtx.fillStyle = '#FFFFFF';
+    qrCtx.fillRect(0, 0, actualQrSize, actualQrSize);
+    qrCtx.fillStyle = '#000000';
+    for (let row = 0; row < qrCount; row++) {
+      for (let col = 0; col < qrCount; col++) {
+        if (qr.isDark(row, col)) {
+          qrCtx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+    ctx.drawImage(qrCanvas, offsetX, offsetY);
+  } catch (e) {
+    console.error('二维码生成失败', e);
+  }
 
+  // 绘制右侧文字
   if (infoLines.length > 0) {
+    const textX = qrX + qrSize + 10; // 10 + 140 + 10 = 160
+    const textW = canvas.width - textX - 10; // 384 - 160 - 10 = 214
     const lineHeight = midH / infoLines.length;
+
     infoLines.forEach((lineText, index) => {
       const lineY = midY + index * lineHeight;
-      const textFit = fitTextToBox(lineText, rightWidth, lineHeight * 0.8);
-      ctx.font = textFit.font; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000000';
-      ctx.fillText(lineText, rightX, lineY + lineHeight / 2);
+      const textFit = fitTextToBox(lineText, textW, lineHeight * 0.8);
+      ctx.font = textFit.font;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#000000';
+      ctx.fillText(lineText, textX, lineY + lineHeight / 2);
     });
   }
   return canvas;
@@ -1051,67 +1082,17 @@ function showPrintPreview(product) {
 
 /* ==================== 保存单张条码图 ==================== */
 function saveBarcodeImage(p) {
-  const canvas = buildBarcodeCanvas(p);
-  if (!canvas) { toast('条码格式不支持生成'); return; }
+  const canvas = generateLabelCanvas(p);
   canvas.toBlob(blob => {
     if (!blob) { toast('生成图片失败'); return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `条码_${(p.name||'').replace(/[\\/:*?"<>|]/g,'_')}_${p.barcode}.png`;
+    a.download = `标签_${(p.name||'').replace(/[\\/:*?"<>|]/g,'_')}_${p.barcode}.png`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast('已下载条码图片');
+    toast('已下载标签图片');
   }, 'image/png');
-}
-
-function buildBarcodeCanvas(p) {
-  const barcodeCanvas = document.createElement('canvas');
-  try {
-    JsBarcode(barcodeCanvas, p.barcode, { format: 'CODE128', width: 3, height: 100, displayValue: false, margin: 10, background: '#FFFFFF', lineColor: '#000000' });
-  } catch (e) { return null; }
-  const padding = 16; const nameH = 44; const configH = 34; const codeH = 32;
-  const measure = document.createElement('canvas').getContext('2d');
-  const nameText = p.name || '';
-  const configText = buildConfigLine(p);
-  const codeFont = '18px monospace';
-  measure.font = codeFont;
-  const codeWidth = measure.measureText(p.barcode).width;
-  const maxContentWidth = Math.max(barcodeCanvas.width, 360);
-  let nameFontSize = 24;
-  let nameFont = `bold ${nameFontSize}px sans-serif`;
-  measure.font = nameFont;
-  while (measure.measureText(nameText).width > maxContentWidth && nameFontSize > 12) {
-    nameFontSize -= 1; nameFont = `bold ${nameFontSize}px sans-serif`; measure.font = nameFont;
-  }
-  const nameWidth = measure.measureText(nameText).width;
-  let configWidth = 0; let configFont = 'bold 18px sans-serif';
-  if (configText) {
-    let configFontSize = 18; configFont = `bold ${configFontSize}px sans-serif`;
-    measure.font = configFont;
-    while (measure.measureText(configText).width > maxContentWidth && configFontSize > 10) {
-      configFontSize -= 1; configFont = `bold ${configFontSize}px sans-serif`; measure.font = configFont;
-    }
-    configWidth = measure.measureText(configText).width;
-  }
-  const contentWidth = Math.max(barcodeCanvas.width, nameWidth, configWidth, codeWidth, 360);
-  const canvas = document.createElement('canvas');
-  canvas.width  = Math.ceil(contentWidth + padding * 2);
-  canvas.height = nameH + (configText ? configH : 0) + barcodeCanvas.height + codeH + padding;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.font = nameFont; ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
-  let currentY = padding + nameH;
-  if (configText) {
-    ctx.font = configFont; ctx.fillStyle = '#333333';
-    ctx.fillText(configText, canvas.width / 2, currentY + configH / 2);
-    ctx.fillStyle = '#000000'; currentY += configH;
-  }
-  const bx = (canvas.width - barcodeCanvas.width) / 2;
-  ctx.drawImage(barcodeCanvas, bx, currentY);
-  ctx.font = codeFont; ctx.fillText(p.barcode, canvas.width / 2, currentY + barcodeCanvas.height + codeH / 2);
-  return canvas;
 }
 
 /* ==================== 批量下载所有条码（ZIP） ==================== */
@@ -1120,22 +1101,25 @@ async function batchDownloadBarcodes() {
   if (typeof JSZip === 'undefined') { toast('打包组件未加载，请检查网络后刷新'); return; }
   const nameCount = {};
   const { mask, close } = showModal(`
-    <div class="modal-title">批量下载条码</div>
-    <div class="modal-body">正在生成 ${products.length} 张条码图片...<div id="batchProgress" style="margin-top:10px;font-size:13px;color:#6B7280;">准备中</div></div>`);
+    <div class="modal-title">批量下载标签</div>
+    <div class="modal-body">正在生成 ${products.length} 张标签图片...<div id="batchProgress" style="margin-top:10px;font-size:13px;color:#6B7280;">准备中</div></div>`);
   const progressEl = mask.querySelector('#batchProgress');
-  const zip = new JSZip(); const folder = zip.folder('条码图片');
+  const zip = new JSZip(); const folder = zip.folder('标签图片');
   let ok = 0, fail = 0;
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
     progressEl.textContent = `正在处理 ${i + 1} / ${products.length}：${p.name}`;
-    const canvas = buildBarcodeCanvas(p);
-    if (!canvas) { fail++; continue; }
-    const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
-    const safeCode = (p.barcode || 'nocode').replace(/[\\/:*?"<>|]/g, '_');
-    let baseName = `${safeName}_${safeCode}`;
-    if (nameCount[baseName]) { nameCount[baseName]++; baseName = `${baseName}(${nameCount[baseName]})`; } else { nameCount[baseName] = 1; }
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    if (blob) { folder.file(`${baseName}.png`, blob); ok++; } else { fail++; }
+    try {
+      const canvas = generateLabelCanvas(p);
+      const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
+      const safeCode = (p.barcode || 'nocode').replace(/[\\/:*?"<>|]/g, '_');
+      let baseName = `${safeName}_${safeCode}`;
+      if (nameCount[baseName]) { nameCount[baseName]++; baseName = `${baseName}(${nameCount[baseName]})`; } else { nameCount[baseName] = 1; }
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (blob) { folder.file(`${baseName}.png`, blob); ok++; } else { fail++; }
+    } catch (e) {
+      fail++;
+    }
     if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
   }
   progressEl.textContent = '正在打包 ZIP...';
@@ -1144,7 +1128,7 @@ async function batchDownloadBarcodes() {
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
     const d = new Date(), pad = n => String(n).padStart(2, '0');
-    a.href = url; a.download = `条码打包_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.zip`;
+    a.href = url; a.download = `标签打包_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.zip`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     close(); toast(`已完成：成功 ${ok} 张${fail ? `，失败 ${fail} 张` : ''}`);
