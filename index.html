@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1565C0">
 <title>龙腾手机库存</title>
-<!-- 引入二维码生成库 -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -893,7 +892,6 @@ async function scanOnce(onResult){
 
 /* ==================== 打印条码（系统打印） ==================== */
 function printBarcode(p) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   try {
     // 使用二维码生成器生成 SVG
     const qr = qrcode(0, 'M');
@@ -920,8 +918,8 @@ function printBarcode(p) {
 
 /* ==================== 生成标签 Canvas（供预览和打印共用） ==================== */
 // ⚠️ 请根据你的实际标签纸尺寸修改以下参数（1mm ≈ 8px）
-// 50mm × 30mm：w_px = 384, h_px = 240
-const B1_LABEL_SIZE = { w_px: 384, h_px: 240, offset_y_px: 0 };
+// 40mm × 30mm 标签：w_px = 320, h_px = 240
+const B1_LABEL_SIZE = { w_px: 320, h_px: 240, offset_y_px: 0 };
 
 function generateLabelCanvas(product) {
   const canvas = document.createElement('canvas');
@@ -932,9 +930,9 @@ function generateLabelCanvas(product) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 文字自适应函数
-  function fitTextToBox(text, maxWidth, maxHeight, fontWeight = 'normal') {
-    let fontSize = Math.min(maxHeight, 100);
+  // 文字自适应函数（限制最大字号，防止字体过大）
+  function fitTextToBox(text, maxWidth, maxHeight, fontWeight = 'normal', maxFontSize = 100) {
+    let fontSize = Math.min(maxHeight, maxFontSize);
     let font = `${fontWeight} ${fontSize}px sans-serif`;
     ctx.font = font;
     while (fontSize > 8) {
@@ -947,22 +945,23 @@ function generateLabelCanvas(product) {
     return { font: `${fontWeight} 8px sans-serif`, size: 8 };
   }
 
+  const padding = 8; // 整体边距
+
   // ================= 1. 顶部：商品名称 =================
   const nameText = product.name || '';
-  const nameH = 45;      // 名称区域高度
-  const nameY = 8;       // 名称区域起始 Y
-  const nameFit = fitTextToBox(nameText, canvas.width - 20, nameH, 'bold');
+  const nameH = 36; // 名称区域高度
+  const nameFit = fitTextToBox(nameText, canvas.width - padding * 2, nameH, 'bold', 22);
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = nameFit.font;
-  ctx.fillText(nameText, canvas.width / 2, nameY + nameH / 2);
+  ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
   // ================= 2. 底部：条码数字 =================
   const barcodeText = product.barcode || '';
-  const codeH = 25;      // 数字区域高度
-  const codeY = canvas.height - codeH - 8;
-  const codeFit = fitTextToBox(barcodeText, canvas.width - 20, codeH);
+  const codeH = 24; // 数字区域高度
+  const codeY = canvas.height - codeH - padding;
+  const codeFit = fitTextToBox(barcodeText, canvas.width - padding * 2, codeH, 'normal', 18);
   ctx.font = codeFit.font;
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
@@ -970,20 +969,20 @@ function generateLabelCanvas(product) {
   ctx.fillText(barcodeText, canvas.width / 2, codeY + codeH / 2);
 
   // ================= 3. 中间：左侧二维码 + 右侧文字 =================
-  const midY = nameY + nameH;      // 中间区域起始 Y
-  const midH = codeY - midY;       // 中间区域高度
+  const midY = padding + nameH;
+  const midH = codeY - midY;
 
-  // 构造右侧文字行
+  // 构造右侧文字行（优化合并，避免行数过多）
   const infoLines = [];
   const bm = [product.brand, product.model].filter(Boolean).join(' ');
   if (bm) infoLines.push(bm);
   const sc = [product.spec, product.color].filter(Boolean).join(' / ');
   if (sc) infoLines.push(sc);
-  if (product.remark) infoLines.push('备注: ' + product.remark);
+  if (product.remark) infoLines.push(product.remark);
 
-  // 二维码尺寸和位置
-  const qrSize = 140;
-  const qrX = 10;
+  // 二维码尺寸和位置（适度缩小，给文字留空间）
+  const qrSize = 110;
+  const qrX = padding;
   const qrY = midY + (midH - qrSize) / 2;
 
   // 生成二维码
@@ -1018,17 +1017,19 @@ function generateLabelCanvas(product) {
 
   // 绘制右侧文字
   if (infoLines.length > 0) {
-    const textX = qrX + qrSize + 10; // 10 + 140 + 10 = 160
-    const textW = canvas.width - textX - 10; // 384 - 160 - 10 = 214
+    const textX = qrX + qrSize + 8; // 二维码右侧
+    const textW = canvas.width - textX - padding; // 剩余宽度
     const lineHeight = midH / infoLines.length;
 
     infoLines.forEach((lineText, index) => {
       const lineY = midY + index * lineHeight;
-      const textFit = fitTextToBox(lineText, textW, lineHeight * 0.8);
+      // 限制最大字号为 20px，确保视觉协调
+      const textFit = fitTextToBox(lineText, textW, lineHeight * 0.8, 'normal', 20);
       ctx.font = textFit.font;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#000000';
+      // 文字垂直居中于该行，并稍微向上偏移一点保持美观
       ctx.fillText(lineText, textX, lineY + lineHeight / 2);
     });
   }
@@ -1067,7 +1068,7 @@ function showPrintPreview(product) {
       <img src="${dataUrl}" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
     </div>
     <div style="font-size:12px; color:#6B7280; text-align:center; margin-bottom:16px;">
-      当前标签尺寸：50mm × 30mm<br>如果预览显示正常，可直接打印
+      当前标签尺寸：40mm × 30mm<br>如果预览显示正常，可直接打印
     </div>
     <div class="modal-btns">
       <button data-act="cancel">取消</button>
