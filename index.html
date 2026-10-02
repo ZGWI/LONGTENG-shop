@@ -220,7 +220,7 @@ body{
 .modal{
   width:100%;max-width:380px;background:#fff;border-radius:16px;
   padding:20px;transform:scale(.94);transition:transform .18s;
-  max-height:80vh;overflow-y:auto;
+  max-height:85vh;overflow-y:auto;
 }
 .modal-mask.show .modal{transform:scale(1);}
 .modal-title{font-size:17px;font-weight:700;margin-bottom:10px;text-align:center;}
@@ -252,7 +252,7 @@ body{
 }
 .import-tip code{background:#E8F0FE;color:#1565C0;padding:1px 5px;border-radius:3px;font-size:11px;}
 .import-area{
-  width:100%;min-height:160px;max-height:300px;border:1px solid var(--border);
+  width:100%;min-height:140px;max-height:280px;border:1px solid var(--border);
   border-radius:10px;padding:10px;font-size:12px;font-family:monospace;
   outline:none;resize:vertical;
 }
@@ -268,6 +268,12 @@ body{
 .import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .import-preview .row .c{color:var(--text2);font-family:monospace;}
 .import-preview .row.err{background:#FFF5F5;color:var(--red);}
+.tpl-btn{
+  width:100%;height:40px;border:1px dashed #1565C0;border-radius:10px;
+  background:#F0F7FF;color:#1565C0;font-size:13px;font-weight:600;
+  cursor:pointer;margin-bottom:10px;
+}
+.tpl-btn:active{background:#E1EFFF;}
 </style>
 </head>
 <body>
@@ -1000,30 +1006,55 @@ $('#btnClearAll').addEventListener('click', ()=>{
   };
 });
 
+/* ==================== 下载 CSV 导入模板 ==================== */
+function downloadImportTemplate(){
+  // CSV 表头 + 三行示例数据
+  const rows = [
+    ['商品名称','品牌','型号','规格','颜色','条码','进货价','销售价','预警值','备注'],
+    ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','2','示例：可以删除本行'],
+    ['华为 Mate 60 Pro','华为','ALN-AL00','12+512G','雅川青','','6500','6999','2','条码留空会自动生成'],
+    ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','2','']
+  ];
+
+  // 加 UTF-8 BOM，避免 Excel 打开时中文乱码
+  const csv = '\uFEFF' + rows.map(r =>
+    r.map(cell => {
+      const s = String(cell ?? '');
+      // 含逗号、引号、换行时用双引号包裹
+      if(/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }).join(',')
+  ).join('\r\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '商品批量导入模板.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  toast('模板已下载，用 Excel 打开填写后另存为 CSV');
+}
+
 /* ==================== 批量导入商品 ==================== */
 function generateInternalBarcode(){
   const ts = String(Date.now()).slice(-8) + String(Math.floor(Math.random()*100)).padStart(2,'0');
   const r = Math.floor(Math.random() * 10);
-  return '2' + ts + r;  // 13 位
+  return '2' + ts + r;
 }
 
-/**
- * 解析批量导入文本
- * 每行格式（用逗号或制表符分隔）：
- * 商品名称, 品牌, 型号, 规格, 颜色, 条码, 进货价, 销售价, 预警值, 备注
- * 除「商品名称」外，其他列都可以省略
- */
 function parseImportText(text){
   const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
   if(lines.length === 0) return { rows: [], errors: [] };
 
-  // 检测分隔符
   const firstLine = lines[0];
   let sep = ',';
   if(firstLine.includes('\t')) sep = '\t';
   else if(firstLine.includes('，')) sep = '，';
 
-  // 首行是否为表头
   const firstCells = firstLine.split(sep).map(c => c.trim().toLowerCase());
   let startIdx = 0;
   if(firstCells.some(c => c.includes('名称') || c === 'name' || c.includes('商品'))){
@@ -1035,7 +1066,6 @@ function parseImportText(text){
 
   for(let i = startIdx; i < lines.length; i++){
     const rawCells = lines[i].split(sep);
-    // 去掉首尾空格和 BOM
     const cells = rawCells.map(c => c.replace(/^\uFEFF/, '').trim());
 
     if(cells.length < 1 || !cells[0]) continue;
@@ -1070,10 +1100,10 @@ function parseImportText(text){
   return { rows, errors };
 }
 
-/** 打开批量导入弹窗 */
 function openBatchImport(){
   const { mask, close } = showModal(`
     <div class="modal-title">批量导入商品</div>
+    <button class="tpl-btn" id="btnDownloadTpl">⬇ 下载 CSV 导入模板（用 Excel 填写）</button>
     <div class="import-tip">
       每行一件商品，用逗号或制表符分隔。列顺序：<br>
       <code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,备注</code><br>
@@ -1104,6 +1134,9 @@ function openBatchImport(){
 
   mask.querySelector('[data-act="cancel"]').onclick = close;
 
+  // 下载模板
+  mask.querySelector('#btnDownloadTpl').onclick = downloadImportTemplate;
+
   // 选文件
   mask.querySelector('#btnPickFile').onclick = () => fileInput.click();
   fileInput.onchange = e => {
@@ -1131,7 +1164,6 @@ function openBatchImport(){
       return;
     }
 
-    // 检查与现有商品的条码冲突
     const existingCodes = new Set(products.map(p => p.barcode));
     const newCodes = new Set();
     let conflictCount = 0;
@@ -1157,7 +1189,6 @@ function openBatchImport(){
       ? `<div class="row err">跳过 ${result.errors.length} 行无效数据</div>`
       : '');
 
-    // 保存有效行（排除冲突的）
     parsedRows = previewRows.filter(r => !r.conflict);
 
     const okBtn = mask.querySelector('#btnConfirmImport');
@@ -1328,7 +1359,7 @@ function printBarcode(p) {
   win.document.close();
 }
 
-/* ==================== 蓝牙打印（精臣 NIMBOT B1，严格锁定尺寸） ==================== */
+/* ==================== 蓝牙打印（精臣 NIMBOT B1） ==================== */
 // ⚠️ 请根据你的实际标签纸尺寸修改以下参数
 // 40mm × 30mm：w_px = 320, h_px = 240
 // 50mm × 30mm：w_px = 384, h_px = 240
