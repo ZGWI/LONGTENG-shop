@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1565C0">
-<title>手机店库存管理</title>
+<title>龙腾手机库存</title>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
 <style>
 :root{
   --primary:#1565C0; --primary-dark:#0D47A1;
@@ -165,6 +166,10 @@ body{
   flex:1;min-width:72px;height:38px;border:1px solid var(--border);background:#fff;
   border-radius:9px;font-size:12.5px;color:var(--text2);cursor:pointer;
 }
+.btn-ble{
+  background:#1565C0!important;color:#fff!important;border-color:#1565C0!important;
+  font-weight:600!important;
+}
 .section-title{
   font-size:14px;font-weight:700;margin:18px 0 8px;color:#374151;
 }
@@ -247,7 +252,7 @@ body{
 
   <header id="topbar">
     <button class="tb-btn hidden" id="btnBack">←</button>
-    <h1 id="tbTitle">手机店库存</h1>
+    <h1 id="tbTitle">龙腾手机库存</h1>
     <button class="tb-btn hidden" id="tbRight">⋯</button>
   </header>
 
@@ -410,7 +415,7 @@ let editingId = null;
 let currentProductId = null;
 
 const TITLES = {
-  list:'手机店库存', add:'新增商品', edit:'编辑商品',
+  list:'龙腾手机库存', add:'新增商品', edit:'编辑商品',
   detail:'商品详情', scan:'扫码', records:'出入库记录'
 };
 
@@ -422,7 +427,7 @@ function showView(name){
   const el = $('#view-' + name);
   if(el) el.classList.add('active');
 
-  $('#tbTitle').textContent = TITLES[name] || '手机店库存';
+  $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
 
   const isRoot = (name === 'list' || name === 'scan' || name === 'records');
   $('#btnBack').classList.toggle('hidden', isRoot);
@@ -503,6 +508,7 @@ function showQuickMenu(id){
     <div class="modal-btns" style="flex-direction:column;gap:8px;">
       <button class="primary" data-act="in">入库</button>
       <button data-act="out">出库</button>
+      <button data-act="ble" style="background:#1565C0;color:#fff;border-color:#1565C0;font-weight:600;">蓝牙打印</button>
       <button data-act="print">打印条码</button>
       <button data-act="saveImg">保存条码图</button>
       <button data-act="detail">查看详情</button>
@@ -515,6 +521,7 @@ function showQuickMenu(id){
       close();
       if(act === 'in')       setTimeout(()=>promptQuantity(id, 1), 220);
       if(act === 'out')      setTimeout(()=>promptQuantity(id, -1), 220);
+      if(act === 'ble')      setTimeout(()=>blePrint(p), 220);
       if(act === 'print')    setTimeout(()=>printBarcode(p), 220);
       if(act === 'saveImg')  setTimeout(()=>saveBarcodeImage(p), 220);
       if(act === 'detail')   setTimeout(()=>openDetail(id), 220);
@@ -636,6 +643,7 @@ function renderDetail(p){
     </div>
 
     <div class="d-mini">
+      <button id="dBlePrint" class="btn-ble">蓝牙打印</button>
       <button id="dCopy">复制条码</button>
       <button id="dPrint">打印条码</button>
       <button id="dSaveImg">保存条码图</button>
@@ -689,6 +697,7 @@ function renderDetail(p){
   $('#dCopy').onclick = () => copyText(p.barcode, '条码已复制');
   $('#dPrint').onclick = () => printBarcode(p);
   $('#dSaveImg').onclick = () => saveBarcodeImage(p);
+  $('#dBlePrint').onclick = () => blePrint(p);
 }
 
 function copyText(text, msg){
@@ -1004,7 +1013,7 @@ async function scanOnce(onResult){
   }
 }
 
-/* ==================== 打印条码 ==================== */
+/* ==================== 打印条码（系统打印） ==================== */
 function printBarcode(p) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   try {
@@ -1076,6 +1085,117 @@ function printBarcode(p) {
   win.document.close();
 }
 
+/* ==================== 蓝牙打印（精臣 NIMBOT B1） ==================== */
+// 标签尺寸（单位：像素，203dpi 下 1mm ≈ 8px）
+// 默认 50mm × 30mm 标签。若你用的是其他规格，请自行按比例调整
+const B1_LABEL_SIZE = {
+  w_px: 384,    // 标签宽度像素
+  h_px: 240,    // 标签高度像素
+  offset_y_px: 4
+};
+
+async function blePrint(product) {
+  // 浏览器支持检查
+  if (!navigator.bluetooth) {
+    toast('当前浏览器不支持蓝牙，请用安卓 Chrome 或 Edge');
+    return;
+  }
+  if (typeof Niimbot === 'undefined') {
+    toast('蓝牙驱动未加载，请检查网络后刷新页面');
+    return;
+  }
+
+  // 用 Canvas 绘制标签内容
+  const canvas = document.createElement('canvas');
+  canvas.width = B1_LABEL_SIZE.w_px;
+  canvas.height = B1_LABEL_SIZE.h_px;
+  const ctx = canvas.getContext('2d');
+
+  // 白色背景
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 商品名称（顶部）——自动缩小字号保证完整显示
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+
+  const nameText = product.name || '';
+  const nameMaxWidth = canvas.width - 20;
+  let nameFontSize = 26;
+  let nameFont = `bold ${nameFontSize}px sans-serif`;
+  ctx.font = nameFont;
+  while (ctx.measureText(nameText).width > nameMaxWidth && nameFontSize > 12) {
+    nameFontSize -= 1;
+    nameFont = `bold ${nameFontSize}px sans-serif`;
+    ctx.font = nameFont;
+  }
+  ctx.fillText(nameText, canvas.width / 2, 10);
+
+  // 条码（中间）
+  const barcodeCanvas = document.createElement('canvas');
+  try {
+    JsBarcode(barcodeCanvas, product.barcode, {
+      format: 'CODE128',
+      width: 2,
+      height: 80,
+      displayValue: false,
+      margin: 4,
+      background: '#FFFFFF',
+      lineColor: '#000000'
+    });
+  } catch (e) {
+    toast('条码生成失败');
+    return;
+  }
+
+  // 条码等比缩放到合适宽度
+  const bcMaxWidth = canvas.width - 24;
+  const bcRatio = Math.min(bcMaxWidth / barcodeCanvas.width, 1);
+  const bcW = barcodeCanvas.width * bcRatio;
+  const bcH = barcodeCanvas.height * bcRatio;
+  const bcX = (canvas.width - bcW) / 2;
+  const bcY = 44;
+  ctx.drawImage(barcodeCanvas, bcX, bcY, bcW, bcH);
+
+  // 条码数字（底部）
+  ctx.font = '18px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(product.barcode, canvas.width / 2, canvas.height - 8);
+
+  // 转成 dataURL
+  const dataUrl = canvas.toDataURL('image/png');
+
+  toast('正在连接打印机...');
+
+  try {
+    // B1 机型配置
+    const model = {
+      name_prefixes: ['B1'],
+      task: 'b1',
+      density: 3,
+      label_type: 1,
+      speed: 1
+    };
+
+    await Niimbot.printImage(dataUrl, {
+      model: model,
+      size: B1_LABEL_SIZE
+    });
+    toast('打印指令已发送');
+  } catch (e) {
+    console.error('蓝牙打印失败', e);
+    if (e.name === 'NotFoundError') {
+      toast('未选择打印机，已取消');
+    } else if (e.name === 'SecurityError') {
+      toast('需要 HTTPS 才能使用蓝牙，请通过 GitHub Pages 访问');
+    } else {
+      toast('打印失败：' + (e.message || '请重试'));
+    }
+  }
+}
+
 /* ==================== 保存单张条码图 ==================== */
 function saveBarcodeImage(p) {
   const canvas = buildBarcodeCanvas(p);
@@ -1115,22 +1235,18 @@ function buildBarcodeCanvas(p) {
   }
 
   const padding = 16;
-  const nameH = 44;   // 商品名称区域高度
-  const codeH = 32;   // 条码数字区域高度
+  const nameH = 44;
+  const codeH = 32;
 
-  // 用临时画布测量文本宽度
   const measure = document.createElement('canvas').getContext('2d');
   const nameText = p.name || '';
 
-  // 数字用固定字号
   const codeFont = '18px monospace';
   measure.font = codeFont;
   const codeWidth = measure.measureText(p.barcode).width;
 
-  // 商品名最大允许宽度：条码宽度与最低 360px 取最大值
   const maxNameWidth = Math.max(barcodeCanvas.width, 360);
 
-  // 自动缩放商品名字号（从 24px 逐级降到 12px），保证完整放下
   let nameFontSize = 24;
   let nameFont = `bold ${nameFontSize}px sans-serif`;
   measure.font = nameFont;
@@ -1141,7 +1257,6 @@ function buildBarcodeCanvas(p) {
   }
   const nameWidth = measure.measureText(nameText).width;
 
-  // 画布宽度：条码 / 名称 / 数字 三者最宽的 + 左右留白
   const contentWidth = Math.max(barcodeCanvas.width, nameWidth, codeWidth, 360);
   const canvas = document.createElement('canvas');
   canvas.width  = Math.ceil(contentWidth + padding * 2);
@@ -1151,18 +1266,15 @@ function buildBarcodeCanvas(p) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 商品名称（完整显示，居中）
   ctx.fillStyle = '#000000';
   ctx.font = nameFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
-  // 条码居中绘制
   const bx = (canvas.width - barcodeCanvas.width) / 2;
   ctx.drawImage(barcodeCanvas, bx, padding + nameH);
 
-  // 条码数字
   ctx.font = codeFont;
   ctx.fillText(p.barcode, canvas.width / 2, padding + nameH + barcodeCanvas.height + codeH / 2);
 
