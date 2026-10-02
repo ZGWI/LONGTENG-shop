@@ -409,6 +409,23 @@ function changeStock(productId, delta, remark = ''){
   return { ok:true, stock:newStock };
 }
 
+/* ==================== 配置行工具 ==================== */
+/**
+ * 生成商品的配置描述文本，用于标签显示
+ * 例如：「8G+256G · 原色钛金属」或「Apple A3108 · 8G+256G」
+ */
+function buildConfigLine(p){
+  const parts = [];
+  // 优先显示品牌+型号
+  const bm = [p.brand, p.model].filter(Boolean).join(' ');
+  if(bm) parts.push(bm);
+  // 再显示规格
+  if(p.spec) parts.push(p.spec);
+  // 再显示颜色
+  if(p.color) parts.push(p.color);
+  return parts.join(' · ');
+}
+
 /* ==================== 视图管理 ==================== */
 let currentView = 'list';
 let editingId = null;
@@ -1031,6 +1048,7 @@ function printBarcode(p) {
     return;
   }
 
+  const configLine = buildConfigLine(p);
   const svgHtml = svg.outerHTML;
   const win = window.open('', '_blank');
   win.document.write(`
@@ -1054,7 +1072,11 @@ function printBarcode(p) {
           background: #fff;
         }
         .name {
-          font-size: 15px; font-weight: 600; margin-bottom: 6px;
+          font-size: 15px; font-weight: 600; margin-bottom: 3px;
+          white-space: nowrap;
+        }
+        .config {
+          font-size: 12px; color: #555; margin-bottom: 6px;
           white-space: nowrap;
         }
         .barcode svg { display: block; max-width: 100%; height: auto; }
@@ -1071,6 +1093,7 @@ function printBarcode(p) {
     <body>
       <div class="label">
         <div class="name">${esc(p.name)}</div>
+        ${configLine ? `<div class="config">${esc(configLine)}</div>` : ''}
         <div class="barcode">${svgHtml}</div>
         <div class="code">${esc(p.barcode)}</div>
       </div>
@@ -1085,17 +1108,16 @@ function printBarcode(p) {
   win.document.close();
 }
 
-/* ==================== 蓝牙打印（精臣 NIMBOT B1） ==================== */
+/* ==================== 蓝牙打印（精臣 NIMBOT B1，含配置行） ==================== */
 // 标签尺寸（单位：像素，203dpi 下 1mm ≈ 8px）
-// 默认 50mm × 30mm 标签。若你用的是其他规格，请自行按比例调整
+// 默认 50mm × 40mm 标签，因为多了配置行
 const B1_LABEL_SIZE = {
-  w_px: 384,    // 标签宽度像素
-  h_px: 240,    // 标签高度像素
+  w_px: 384,    // 宽度 50mm ≈ 400，取 384 留边距
+  h_px: 320,    // 高度 40mm ≈ 320
   offset_y_px: 4
 };
 
 async function blePrint(product) {
-  // 浏览器支持检查
   if (!navigator.bluetooth) {
     toast('当前浏览器不支持蓝牙，请用安卓 Chrome 或 Edge');
     return;
@@ -1105,7 +1127,7 @@ async function blePrint(product) {
     return;
   }
 
-  // 用 Canvas 绘制标签内容
+  // 绘制标签
   const canvas = document.createElement('canvas');
   canvas.width = B1_LABEL_SIZE.w_px;
   canvas.height = B1_LABEL_SIZE.h_px;
@@ -1115,13 +1137,15 @@ async function blePrint(product) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 商品名称（顶部）——自动缩小字号保证完整显示
+  const nameText = product.name || '';
+  const configLine = buildConfigLine(product);
+  const nameMaxWidth = canvas.width - 20;
+
+  // ---- 第 1 行：商品名称（最大 26px，超长自动缩小） ----
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
 
-  const nameText = product.name || '';
-  const nameMaxWidth = canvas.width - 20;
   let nameFontSize = 26;
   let nameFont = `bold ${nameFontSize}px sans-serif`;
   ctx.font = nameFont;
@@ -1130,15 +1154,32 @@ async function blePrint(product) {
     nameFont = `bold ${nameFontSize}px sans-serif`;
     ctx.font = nameFont;
   }
-  ctx.fillText(nameText, canvas.width / 2, 10);
+  ctx.fillText(nameText, canvas.width / 2, 8);
 
-  // 条码（中间）
+  const nameLineH = nameFontSize + 8;  // 名称行实际占用高度
+
+  // ---- 第 2 行：配置信息（品牌 型号 · 规格 · 颜色）----
+  let configLineH = 0;
+  if (configLine) {
+    let configFontSize = 20;
+    let configFont = `bold ${configFontSize}px sans-serif`;
+    ctx.font = configFont;
+    while (ctx.measureText(configLine).width > nameMaxWidth && configFontSize > 11) {
+      configFontSize -= 1;
+      configFont = `bold ${configFontSize}px sans-serif`;
+      ctx.font = configFont;
+    }
+    ctx.fillText(configLine, canvas.width / 2, 8 + nameLineH);
+    configLineH = configFontSize + 8;
+  }
+
+  // ---- 条码区 ----
   const barcodeCanvas = document.createElement('canvas');
   try {
     JsBarcode(barcodeCanvas, product.barcode, {
       format: 'CODE128',
       width: 2,
-      height: 80,
+      height: 90,
       displayValue: false,
       margin: 4,
       background: '#FFFFFF',
@@ -1149,28 +1190,26 @@ async function blePrint(product) {
     return;
   }
 
-  // 条码等比缩放到合适宽度
+  const bcY = 8 + nameLineH + configLineH + 4;
   const bcMaxWidth = canvas.width - 24;
-  const bcRatio = Math.min(bcMaxWidth / barcodeCanvas.width, 1);
+  const bcMaxHeight = canvas.height - bcY - 30;  // 底部留 30px 给数字
+
+  const bcRatio = Math.min(bcMaxWidth / barcodeCanvas.width, bcMaxHeight / barcodeCanvas.height, 1);
   const bcW = barcodeCanvas.width * bcRatio;
   const bcH = barcodeCanvas.height * bcRatio;
   const bcX = (canvas.width - bcW) / 2;
-  const bcY = 44;
   ctx.drawImage(barcodeCanvas, bcX, bcY, bcW, bcH);
 
-  // 条码数字（底部）
+  // ---- 底部：条码数字 ----
   ctx.font = '18px monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  ctx.fillText(product.barcode, canvas.width / 2, canvas.height - 8);
+  ctx.fillText(product.barcode, canvas.width / 2, canvas.height - 6);
 
-  // 转成 dataURL
   const dataUrl = canvas.toDataURL('image/png');
-
   toast('正在连接打印机...');
 
   try {
-    // B1 机型配置
     const model = {
       name_prefixes: ['B1'],
       task: 'b1',
@@ -1216,7 +1255,7 @@ function saveBarcodeImage(p) {
 }
 
 /** 生成单个商品的条码画布（供单个下载和批量下载复用）
- *  商品名称完整显示，超长自动缩小字号，不会截断
+ *  包含：商品名 + 配置行 + 条码 + 条码数字
  */
 function buildBarcodeCanvas(p) {
   const barcodeCanvas = document.createElement('canvas');
@@ -1236,47 +1275,86 @@ function buildBarcodeCanvas(p) {
 
   const padding = 16;
   const nameH = 44;
+  const configH = 34;   // 配置行高度
   const codeH = 32;
 
   const measure = document.createElement('canvas').getContext('2d');
   const nameText = p.name || '';
+  const configText = buildConfigLine(p);
 
   const codeFont = '18px monospace';
   measure.font = codeFont;
   const codeWidth = measure.measureText(p.barcode).width;
 
-  const maxNameWidth = Math.max(barcodeCanvas.width, 360);
+  const maxContentWidth = Math.max(barcodeCanvas.width, 360);
 
+  // 名称自动缩放
   let nameFontSize = 24;
   let nameFont = `bold ${nameFontSize}px sans-serif`;
   measure.font = nameFont;
-  while (measure.measureText(nameText).width > maxNameWidth && nameFontSize > 12) {
+  while (measure.measureText(nameText).width > maxContentWidth && nameFontSize > 12) {
     nameFontSize -= 1;
     nameFont = `bold ${nameFontSize}px sans-serif`;
     measure.font = nameFont;
   }
   const nameWidth = measure.measureText(nameText).width;
 
-  const contentWidth = Math.max(barcodeCanvas.width, nameWidth, codeWidth, 360);
+  // 配置行自动缩放
+  let configWidth = 0;
+  let configFont = 'bold 18px sans-serif';
+  if (configText) {
+    let configFontSize = 18;
+    configFont = `bold ${configFontSize}px sans-serif`;
+    measure.font = configFont;
+    while (measure.measureText(configText).width > maxContentWidth && configFontSize > 10) {
+      configFontSize -= 1;
+      configFont = `bold ${configFontSize}px sans-serif`;
+      measure.font = configFont;
+    }
+    configWidth = measure.measureText(configText).width;
+  }
+
+  const contentWidth = Math.max(
+    barcodeCanvas.width,
+    nameWidth,
+    configWidth,
+    codeWidth,
+    360
+  );
+
   const canvas = document.createElement('canvas');
   canvas.width  = Math.ceil(contentWidth + padding * 2);
-  canvas.height = nameH + barcodeCanvas.height + codeH + padding;
+  canvas.height = nameH + (configText ? configH : 0) + barcodeCanvas.height + codeH + padding;
 
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = '#000000';
-  ctx.font = nameFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+
+  // 名称
+  ctx.font = nameFont;
   ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
-  const bx = (canvas.width - barcodeCanvas.width) / 2;
-  ctx.drawImage(barcodeCanvas, bx, padding + nameH);
+  // 配置行
+  let currentY = padding + nameH;
+  if (configText) {
+    ctx.font = configFont;
+    ctx.fillStyle = '#333333';
+    ctx.fillText(configText, canvas.width / 2, currentY + configH / 2);
+    ctx.fillStyle = '#000000';
+    currentY += configH;
+  }
 
+  // 条码
+  const bx = (canvas.width - barcodeCanvas.width) / 2;
+  ctx.drawImage(barcodeCanvas, bx, currentY);
+
+  // 数字
   ctx.font = codeFont;
-  ctx.fillText(p.barcode, canvas.width / 2, padding + nameH + barcodeCanvas.height + codeH / 2);
+  ctx.fillText(p.barcode, canvas.width / 2, currentY + barcodeCanvas.height + codeH / 2);
 
   return canvas;
 }
