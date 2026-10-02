@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1565C0">
 <title>龙腾手机库存</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
@@ -75,22 +75,16 @@ body{
 .card:active{transform:scale(.985);}
 .product-item{display:flex;gap:10px;align-items:flex-start;}
 .pi-main{flex:1;min-width:0;}
-.pi-name{font-size:15px;font-weight:600;margin-bottom:3px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:3px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-code{font-size:11.5px;color:#9AA0A6;font-family:monospace;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pi-name{font-size:15px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pi-code{font-size:11.5px;color:#9AA0A6;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pi-right{flex:none;text-align:right;}
 .pi-stock{font-size:14px;font-weight:700;margin-bottom:5px;}
 .pi-stock.ok{color:var(--green);}
 .pi-stock.warn{color:var(--orange);}
 .pi-stock.danger{color:var(--red);}
 .pi-price{font-size:13px;color:var(--primary);font-weight:600;}
-.empty{
-  text-align:center;color:var(--text2);font-size:14px;
-  padding:60px 24px;line-height:1.8;
-}
+.empty{text-align:center;color:var(--text2);font-size:14px;padding:60px 24px;line-height:1.8;}
 .fab{
   position:fixed;right:calc(50% - 320px + 18px);bottom:78px;
   width:56px;height:56px;border-radius:50%;border:0;
@@ -106,8 +100,7 @@ body{
 .field .req{color:var(--red);}
 .field input,.field textarea{
   width:100%;border:1px solid var(--border);border-radius:10px;
-  padding:11px 13px;font-size:15px;background:#fff;outline:none;
-  font-family:inherit;color:var(--text);
+  padding:11px 13px;font-size:15px;background:#fff;outline:none;font-family:inherit;color:var(--text);
 }
 .field input:focus,.field textarea:focus{border-color:var(--primary);}
 .field input:disabled{background:#F0F1F3;color:#9AA0A6;}
@@ -116,14 +109,12 @@ body{
 .input-with-actions input{flex:1;min-width:0;}
 .mini-btn{
   flex:none;height:42px;padding:0 14px;border:1px solid var(--primary);
-  background:#fff;color:var(--primary);border-radius:10px;
-  font-size:13px;cursor:pointer;white-space:nowrap;
+  background:#fff;color:var(--primary);border-radius:10px;font-size:13px;cursor:pointer;white-space:nowrap;
 }
 .mini-btn:active{background:#E8F0FE;}
 .btn-primary{
   width:100%;height:50px;border:0;border-radius:12px;
-  background:var(--primary);color:#fff;font-size:16px;font-weight:600;
-  cursor:pointer;margin-top:8px;
+  background:var(--primary);color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;
 }
 .btn-primary:active{background:var(--primary-dark);}
 .btn-primary:disabled{opacity:.6;}
@@ -131,35 +122,18 @@ body{
   width:100%;height:44px;border:1px solid var(--border);border-radius:10px;
   background:#fff;color:var(--text2);font-size:14px;cursor:pointer;
 }
-.btn-danger{
-  width:100%;height:46px;border:1px solid #F3C6C6;border-radius:12px;
-  background:#FFF5F5;color:var(--red);font-size:15px;cursor:pointer;font-weight:600;
-}
 .detail-body{padding:16px 14px 40px;}
 .d-name{font-size:22px;font-weight:700;margin:0 0 4px;}
 .d-sub{font-size:14px;color:var(--text2);margin-bottom:10px;}
-.d-badge{
-  display:inline-block;font-size:15px;font-weight:700;
-  padding:4px 12px;border-radius:20px;background:#F0F1F3;
-}
+.d-badge{display:inline-block;font-size:15px;font-weight:700;padding:4px 12px;border-radius:20px;background:#F0F1F3;}
 .d-badge.ok{color:var(--green);background:#E8F5E9;}
 .d-badge.warn{color:var(--orange);background:#FFF3E0;}
 .d-badge.danger{color:var(--red);background:#FFEBEE;}
-.barcode-box{
-  background:#fff;border-radius:12px;padding:14px;margin:14px 0;
-  text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);
-}
-.barcode-box img{max-width:100%;height:auto;display:block;margin:0 auto;}
-.barcode-box .qr-loading{color:#9AA0A6;font-size:13px;padding:40px 0;}
-.barcode-text{
-  font-family:monospace;font-size:13px;letter-spacing:1px;
-  margin-top:6px;color:#374151;
-}
+.barcode-box{background:#fff;border-radius:12px;padding:14px;margin:14px 0;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.barcode-box svg{width:100%;height:auto;max-height:130px;display:block;}
+.barcode-text{font-family:monospace;font-size:13px;letter-spacing:1px;margin-top:6px;color:#374151;}
 .d-actions{display:flex;gap:10px;margin-bottom:12px;}
-.d-actions button{
-  flex:1;height:48px;border:0;border-radius:12px;font-size:15px;
-  font-weight:600;cursor:pointer;
-}
+.d-actions button{flex:1;height:48px;border:0;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;}
 .btn-in{background:var(--green);color:#fff;}
 .btn-out{background:#fff;color:var(--red);border:1.5px solid var(--red)!important;}
 .d-mini{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
@@ -167,22 +141,11 @@ body{
   flex:1;min-width:72px;height:38px;border:1px solid var(--border);background:#fff;
   border-radius:9px;font-size:12.5px;color:var(--text2);cursor:pointer;
 }
-.btn-ble{
-  background:#1565C0!important;color:#fff!important;border-color:#1565C0!important;
-  font-weight:600!important;
-}
-.section-title{
-  font-size:14px;font-weight:700;margin:18px 0 8px;color:#374151;
-}
-.info-box{
-  background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;
-  line-height:1.9;box-shadow:0 1px 3px rgba(0,0,0,.06);
-}
+.btn-ble{background:#1565C0!important;color:#fff!important;border-color:#1565C0!important;font-weight:600!important;}
+.section-title{font-size:14px;font-weight:700;margin:18px 0 8px;color:#374151;}
+.info-box{background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.9;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .info-box b{color:var(--text2);font-weight:400;}
-.rec-item{
-  display:flex;align-items:center;gap:10px;padding:10px 0;
-  border-bottom:1px solid #F0F1F3;
-}
+.rec-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F0F1F3;}
 .rec-item:last-child{border-bottom:0;}
 .rec-type{flex:none;width:42px;font-size:12.5px;font-weight:700;}
 .rec-type.in{color:var(--green);}
@@ -193,25 +156,15 @@ body{
 .rec-qty{flex:none;font-size:16px;font-weight:700;}
 .rec-qty.in{color:var(--green);}
 .rec-qty.out{color:var(--red);}
-.scan-tabs{
-  display:flex;gap:8px;padding:12px 14px 8px;
-}
+.scan-tabs{display:flex;gap:8px;padding:12px 14px 8px;}
 .scan-tabs button{
   flex:1;height:40px;border:1px solid var(--border);background:#fff;
   border-radius:10px;font-size:13.5px;color:var(--text2);cursor:pointer;
 }
-.scan-tabs button.active{
-  background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;
-}
-.scan-reader{
-  width:100%;min-height:260px;background:#000;border-radius:12px;
-  overflow:hidden;position:relative;
-}
+.scan-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
+.scan-reader{width:100%;min-height:260px;background:#000;border-radius:12px;overflow:hidden;position:relative;}
 .scan-reader video{width:100%!important;height:auto!important;}
-.scan-tip{
-  text-align:center;font-size:13px;color:var(--text2);
-  padding:12px 20px;line-height:1.7;
-}
+.scan-tip{text-align:center;font-size:13px;color:var(--text2);padding:12px 20px;line-height:1.7;}
 .modal-mask{
   position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
   display:flex;align-items:center;justify-content:center;padding:24px;
@@ -226,60 +179,33 @@ body{
 .modal-mask.show .modal{transform:scale(1);}
 .modal-title{font-size:17px;font-weight:700;margin-bottom:10px;text-align:center;}
 .modal-body{font-size:14px;color:#374151;line-height:1.7;margin-bottom:16px;text-align:center;white-space:pre-line;}
-.modal-input{
-  width:100%;height:46px;border:1px solid var(--border);border-radius:10px;
-  padding:0 13px;font-size:16px;outline:none;margin-bottom:10px;
-}
+.modal-input{width:100%;height:46px;border:1px solid var(--border);border-radius:10px;padding:0 13px;font-size:16px;outline:none;margin-bottom:10px;}
 .modal-input:focus{border-color:var(--primary);}
 .modal-btns{display:flex;gap:10px;margin-top:6px;}
-.modal-btns button{
-  flex:1;height:44px;border-radius:10px;font-size:15px;cursor:pointer;
-  border:1px solid var(--border);background:#fff;color:var(--text2);
-}
-.modal-btns button.primary{
-  background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;
-}
+.modal-btns button{flex:1;height:44px;border-radius:10px;font-size:15px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);}
+.modal-btns button.primary{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
 .toast{
   position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(10px);
   background:rgba(30,30,30,.92);color:#fff;font-size:14px;
-  padding:11px 20px;border-radius:22px;z-index:200;
-  opacity:0;transition:all .25s;pointer-events:none;max-width:80vw;text-align:center;
+  padding:11px 20px;border-radius:22px;z-index:200;opacity:0;transition:all .25s;pointer-events:none;max-width:80vw;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.import-tip{
-  font-size:12px;color:var(--text2);background:#F8FAFC;border-radius:8px;
-  padding:10px 12px;line-height:1.7;margin-bottom:10px;
-}
+.import-tip{font-size:12px;color:var(--text2);background:#F8FAFC;border-radius:8px;padding:10px 12px;line-height:1.7;margin-bottom:10px;}
 .import-tip code{background:#E8F0FE;color:#1565C0;padding:1px 5px;border-radius:3px;font-size:11px;}
-.import-area{
-  width:100%;min-height:140px;max-height:280px;border:1px solid var(--border);
-  border-radius:10px;padding:10px;font-size:12px;font-family:monospace;
-  outline:none;resize:vertical;
-}
+.import-area{width:100%;min-height:140px;max-height:280px;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:12px;font-family:monospace;outline:none;resize:vertical;}
 .import-area:focus{border-color:var(--primary);}
-.import-preview{
-  max-height:200px;overflow-y:auto;border:1px solid var(--border);
-  border-radius:8px;margin-top:10px;font-size:12px;
-}
-.import-preview .row{
-  display:flex;gap:6px;padding:5px 8px;border-bottom:1px solid #F0F1F3;
-}
+.import-preview{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:10px;font-size:12px;}
+.import-preview .row{display:flex;gap:6px;padding:5px 8px;border-bottom:1px solid #F0F1F3;}
 .import-preview .row:last-child{border-bottom:0;}
 .import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .import-preview .row .c{color:var(--text2);font-family:monospace;}
-.import-preview .row .s{color:var(--green);font-weight:600;}
 .import-preview .row.err{background:#FFF5F5;color:var(--red);}
-.tpl-btn{
-  width:100%;height:40px;border:1px dashed #1565C0;border-radius:10px;
-  background:#F0F7FF;color:#1565C0;font-size:13px;font-weight:600;
-  cursor:pointer;margin-bottom:10px;
-}
+.tpl-btn{width:100%;height:40px;border:1px dashed #1565C0;border-radius:10px;background:#F0F7FF;color:#1565C0;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;}
 .tpl-btn:active{background:#E1EFFF;}
 </style>
 </head>
 <body>
 <div id="app">
-
   <header id="topbar">
     <button class="tb-btn hidden" id="btnBack">←</button>
     <h1 id="tbTitle">龙腾手机库存</h1>
@@ -287,7 +213,6 @@ body{
   </header>
 
   <main id="main">
-
     <section id="view-list" class="view active">
       <div class="search-wrap">
         <input id="searchInput" type="search" placeholder="搜索 名称 / 品牌 / 型号 / 条码">
@@ -297,10 +222,7 @@ body{
 
     <section id="view-add" class="view">
       <div class="form-body">
-        <div class="field">
-          <label>商品名称 <span class="req">*</span></label>
-          <input id="fName" type="text" placeholder="如 iPhone 15 Pro Max">
-        </div>
+        <div class="field"><label>商品名称 <span class="req">*</span></label><input id="fName" type="text" placeholder="如 iPhone 15 Pro Max"></div>
         <div class="row2">
           <div class="field"><label>品牌</label><input id="fBrand" placeholder="Apple"></div>
           <div class="field"><label>型号</label><input id="fModel" placeholder="A3108"></div>
@@ -310,7 +232,7 @@ body{
           <div class="field"><label>颜色</label><input id="fColor" placeholder="原色钛金属"></div>
         </div>
         <div class="field">
-          <label>商品二维码内容 <span class="req">*</span></label>
+          <label>商品条码 <span class="req">*</span></label>
           <div class="input-with-actions">
             <input id="fBarcode" placeholder="扫描 / 输入 / 生成">
             <button type="button" class="mini-btn" id="btnScanBarcode">扫描</button>
@@ -340,10 +262,8 @@ body{
         <button data-mode="in">扫码入库</button>
         <button data-mode="out">扫码出库</button>
       </div>
-      <div style="padding:0 14px;">
-        <div id="reader" class="scan-reader"></div>
-      </div>
-      <div class="scan-tip" id="scanTip">将二维码放入取景框内</div>
+      <div style="padding:0 14px;"><div id="reader" class="scan-reader"></div></div>
+      <div class="scan-tip" id="scanTip">将条形码 / 二维码放入取景框内</div>
     </section>
 
     <section id="view-records" class="view">
@@ -355,16 +275,13 @@ body{
         </div>
         <div style="display:flex;gap:8px;margin-bottom:10px;">
           <button class="mini-btn" id="btnBatchImport" style="flex:1;background:#2E7D32;color:#fff;border-color:#2E7D32;">批量导入商品</button>
-          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:#1565C0;color:#fff;border-color:#1565C0;">批量下载二维码</button>
+          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:#1565C0;color:#fff;border-color:#1565C0;">批量下载条码</button>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <div class="section-title">全部出入库流水</div>
-        <div class="card" style="padding:6px 14px;">
-          <div id="recordList"></div>
-        </div>
+        <div class="card" style="padding:6px 14px;"><div id="recordList"></div></div>
       </div>
     </section>
-
   </main>
 
   <nav id="tabbar">
@@ -372,7 +289,6 @@ body{
     <button data-tab="scan"><span class="ic">📷</span>扫码</button>
     <button data-tab="records"><span class="ic">📋</span>记录</button>
   </nav>
-
   <button class="fab" id="fabAdd">+</button>
 </div>
 
@@ -380,7 +296,6 @@ body{
 /* ==================== 工具 ==================== */
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
-
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => (
     {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]
@@ -420,82 +335,26 @@ function changeStock(productId, delta, remark = ''){
   if(!p) return { ok:false, msg:'商品不存在' };
   const newStock = p.stock + delta;
   if(newStock < 0) return { ok:false, msg:`库存不足，当前库存 ${p.stock}` };
-
   p.stock = newStock;
   p.updatedAt = Date.now();
-
   records.unshift({
-    id: uid(),
-    productId: p.id,
-    productName: p.name,
-    barcode: p.barcode,
-    type: delta > 0 ? 1 : -1,
-    quantity: Math.abs(delta),
-    remark: remark || '',
-    time: Date.now()
+    id: uid(), productId: p.id, productName: p.name, barcode: p.barcode,
+    type: delta > 0 ? 1 : -1, quantity: Math.abs(delta),
+    remark: remark || '', time: Date.now()
   });
-
   saveProducts();
   saveRecords();
   return { ok:true, stock:newStock };
 }
 
-/* ==================== 二维码生成 ==================== */
-function generateQRCodeDataURL(text, size = 300){
-  return new Promise((resolve, reject) => {
-    try {
-      if (typeof qrcode !== 'function') {
-        throw new Error('二维码库未加载');
-      }
-      const qr = qrcode(0, 'M');
-      qr.addData(String(text));
-      qr.make();
-
-      const moduleCount = qr.getModuleCount();
-      const margin = 4;
-      const totalModules = moduleCount + margin * 2;
-      const cellSize = size / totalModules;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, size, size);
-
-      ctx.fillStyle = '#000000';
-      for (let r = 0; r < moduleCount; r++) {
-        for (let c = 0; c < moduleCount; c++) {
-          if (qr.isDark(r, c)) {
-            const x = (c + margin) * cellSize;
-            const y = (r + margin) * cellSize;
-            ctx.fillRect(
-              Math.floor(x),
-              Math.floor(y),
-              Math.ceil(cellSize),
-              Math.ceil(cellSize)
-            );
-          }
-        }
-      }
-
-      resolve(canvas.toDataURL('image/png'));
-    } catch (e) {
-      reject(e);
-    }
-  });
-}
-
 /* ==================== 配置行工具 ==================== */
-function buildConfigLines(p){
-  const lines = [];
+function buildConfigLine(p){
+  const parts = [];
   const bm = [p.brand, p.model].filter(Boolean).join(' ');
-  if(bm) lines.push(bm);
-  const sc = [p.spec, p.color].filter(Boolean).join(' / ');
-  if(sc) lines.push(sc);
-  if(p.remark) lines.push('备注：' + p.remark);
-  return lines;
+  if(bm) parts.push(bm);
+  if(p.spec) parts.push(p.spec);
+  if(p.color) parts.push(p.color);
+  return parts.join(' · ');
 }
 
 /* ==================== 视图管理 ==================== */
@@ -503,70 +362,42 @@ let currentView = 'list';
 let editingId = null;
 let currentProductId = null;
 
-const TITLES = {
-  list:'龙腾手机库存', add:'新增商品', edit:'编辑商品',
-  detail:'商品详情', scan:'扫码', records:'出入库记录'
-};
+const TITLES = { list:'龙腾手机库存', add:'新增商品', edit:'编辑商品', detail:'商品详情', scan:'扫码', records:'出入库记录' };
 
 function showView(name){
   if(currentView === 'scan' && name !== 'scan') stopScan();
-
-  const viewName = (name === 'edit') ? 'add' : name;
-
   currentView = name;
   $$('.view').forEach(v => v.classList.remove('active'));
-  const el = $('#view-' + viewName);
+  const el = $('#view-' + name);
   if(el) el.classList.add('active');
-
-  if(name === 'edit'){
-    $('#tbTitle').textContent = '编辑商品';
-  }else if(name === 'add'){
-    $('#tbTitle').textContent = '新增商品';
-  }else{
-    $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
-  }
-
+  $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
   const isRoot = (name === 'list' || name === 'scan' || name === 'records');
   $('#btnBack').classList.toggle('hidden', isRoot);
   $('#tabbar').classList.toggle('hidden', !isRoot);
   $('#fabAdd').style.display = (name === 'list') ? 'flex' : 'none';
-
   $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-
   if(name === 'list') renderProductList();
   if(name === 'records') renderRecords();
   if(name === 'scan') startScan();
 }
-
-$('#btnBack').addEventListener('click', ()=>{
-  showView('list');
-});
+$('#btnBack').addEventListener('click', ()=> showView('list'));
 
 /* ==================== 商品列表 ==================== */
 let searchKeyword = '';
-$('#searchInput').addEventListener('input', e => {
-  searchKeyword = e.target.value;
-  renderProductList();
-});
+$('#searchInput').addEventListener('input', e => { searchKeyword = e.target.value; renderProductList(); });
 
 function renderProductList(){
   const kw = searchKeyword.trim().toLowerCase();
-  const list = products
-    .filter(p => {
-      if(!kw) return true;
-      return (p.name + p.brand + p.model + p.spec + p.color + p.barcode)
-        .toLowerCase().includes(kw);
-    })
-    .sort((a,b) => b.createdAt - a.createdAt);
+  const list = products.filter(p => {
+    if(!kw) return true;
+    return (p.name + p.brand + p.model + p.spec + p.color + p.barcode).toLowerCase().includes(kw);
+  }).sort((a,b) => b.createdAt - a.createdAt);
 
   const el = $('#productList');
   if(list.length === 0){
-    el.innerHTML = `<div class="empty">${products.length === 0
-      ? '还没有商品<br>点击右下角 <b>+</b> 添加第一件商品'
-      : '没有找到匹配的商品'}</div>`;
+    el.innerHTML = `<div class="empty">${products.length === 0 ? '还没有商品<br>点击右下角 <b>+</b> 添加第一件商品' : '没有找到匹配的商品'}</div>`;
     return;
   }
-
   el.innerHTML = list.map(p => {
     const cls = p.stock <= 0 ? 'danger' : (p.stock <= p.warnStock ? 'warn' : 'ok');
     const sub = [p.brand, p.model, p.spec, p.color].filter(Boolean).join(' / ') || '—';
@@ -574,7 +405,7 @@ function renderProductList(){
       <div class="pi-main">
         <div class="pi-name">${esc(p.name)}</div>
         <div class="pi-sub">${esc(sub)}</div>
-        <div class="pi-code">二维码：${esc(p.barcode)}</div>
+        <div class="pi-code">条码：${esc(p.barcode)}</div>
       </div>
       <div class="pi-right">
         <div class="pi-stock ${cls}">库存 ${p.stock}</div>
@@ -605,9 +436,10 @@ function showQuickMenu(id){
     <div class="modal-btns" style="flex-direction:column;gap:8px;">
       <button class="primary" data-act="in">入库</button>
       <button data-act="out">出库</button>
-      <button data-act="ble" style="background:#1565C0;color:#fff;border-color:#1565C0;font-weight:600;">蓝牙打印二维码</button>
-      <button data-act="print">打印二维码</button>
-      <button data-act="saveImg">保存二维码图</button>
+      <button data-act="ble" style="background:#1565C0;color:#fff;border-color:#1565C0;font-weight:600;">蓝牙打印</button>
+      <button data-act="preview" style="color:#1565C0;border-color:#1565C0;">打印预览</button>
+      <button data-act="print">打印条码</button>
+      <button data-act="saveImg">保存条码图</button>
       <button data-act="detail">查看详情</button>
       <button data-act="edit">编辑商品</button>
     </div>
@@ -619,8 +451,9 @@ function showQuickMenu(id){
       if(act === 'in')       setTimeout(()=>promptQuantity(id, 1), 220);
       if(act === 'out')      setTimeout(()=>promptQuantity(id, -1), 220);
       if(act === 'ble')      setTimeout(()=>blePrint(p), 220);
-      if(act === 'print')    setTimeout(()=>printQRCode(p), 220);
-      if(act === 'saveImg')  setTimeout(()=>saveQRCodeImage(p), 220);
+      if(act === 'preview')  setTimeout(()=>showPrintPreview(p), 220);
+      if(act === 'print')    setTimeout(()=>printBarcode(p), 220);
+      if(act === 'saveImg')  setTimeout(()=>saveBarcodeImage(p), 220);
       if(act === 'detail')   setTimeout(()=>openDetail(id), 220);
       if(act === 'edit')     setTimeout(()=>openAdd(id), 220);
     });
@@ -631,9 +464,7 @@ function showQuickMenu(id){
 function openAdd(id = null, presetBarcode = ''){
   editingId = id;
   showView(id ? 'edit' : 'add');
-
   const p = id ? findProduct(id) : null;
-
   $('#fName').value     = p ? p.name : '';
   $('#fBrand').value    = p ? p.brand : '';
   $('#fModel').value    = p ? p.model : '';
@@ -645,9 +476,8 @@ function openAdd(id = null, presetBarcode = ''){
   $('#fStock').value    = p ? p.stock : 0;
   $('#fWarn').value     = p ? p.warnStock : 2;
   $('#fRemark').value   = p ? p.remark : '';
-
-  $('#lbStock').textContent = p ? '库存（可修改，会记录调整流水）' : '初始库存';
-  $('#fStock').disabled = false;
+  $('#lbStock').textContent = p ? '当前库存（通过出入库变更）' : '初始库存';
+  $('#fStock').disabled = !!p;
   $('#btnSaveProduct').disabled = false;
   $('#btnSaveProduct').textContent = p ? '保存修改' : '保存';
 }
@@ -656,33 +486,21 @@ $('#btnGenBarcode').addEventListener('click', ()=>{
   const ts = String(Date.now()).slice(-11);
   const r = Math.floor(Math.random() * 10);
   $('#fBarcode').value = '2' + ts + r;
-  toast('已生成店内二维码内容');
+  toast('已生成店内码');
 });
-
-$('#btnScanBarcode').addEventListener('click', ()=>{
-  scanOnce(code => { $('#fBarcode').value = code; });
-});
+$('#btnScanBarcode').addEventListener('click', ()=>{ scanOnce(code => { $('#fBarcode').value = code; }); });
 
 $('#btnSaveProduct').addEventListener('click', ()=>{
   const name = $('#fName').value.trim();
   const barcode = $('#fBarcode').value.trim();
-
   if(!name){ toast('请输入商品名称'); return; }
-  if(!barcode){ toast('请扫码、输入或生成二维码内容'); return; }
-
+  if(!barcode){ toast('请扫码、输入或生成商品条码'); return; }
   const exist = findByBarcode(barcode);
-  if(exist && exist.id !== editingId){
-    toast(`二维码内容已被「${exist.name}」占用`);
-    return;
-  }
+  if(exist && exist.id !== editingId){ toast(`条码已被「${exist.name}」占用`); return; }
 
   const data = {
-    name,
-    brand: $('#fBrand').value.trim(),
-    model: $('#fModel').value.trim(),
-    spec: $('#fSpec').value.trim(),
-    color: $('#fColor').value.trim(),
-    barcode,
+    name, brand: $('#fBrand').value.trim(), model: $('#fModel').value.trim(),
+    spec: $('#fSpec').value.trim(), color: $('#fColor').value.trim(), barcode,
     priceIn: parseFloat($('#fPriceIn').value) || 0,
     priceOut: parseFloat($('#fPriceOut').value) || 0,
     warnStock: parseInt($('#fWarn').value) || 2,
@@ -691,43 +509,14 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
 
   if(editingId){
     const p = findProduct(editingId);
-    const oldStock = p.stock;
-    const newStock = parseInt($('#fStock').value);
-    const finalStock = isNaN(newStock) ? oldStock : newStock;
-
     Object.assign(p, data, { updatedAt: Date.now() });
-
-    if(finalStock !== oldStock){
-      const delta = finalStock - oldStock;
-      p.stock = finalStock;
-      records.unshift({
-        id: uid(),
-        productId: p.id,
-        productName: p.name,
-        barcode: p.barcode,
-        type: delta > 0 ? 1 : -1,
-        quantity: Math.abs(delta),
-        remark: `库存调整（${oldStock} → ${finalStock}）`,
-        time: Date.now()
-      });
-      saveRecords();
-      toast(`已保存，库存已调整为 ${finalStock}`);
-    }else{
-      toast('已保存');
-    }
-    saveProducts();
+    saveProducts(); toast('已保存');
   }else{
     const stock = parseInt($('#fStock').value) || 0;
-    const p = {
-      id: uid(),
-      ...data,
-      stock: 0,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
+    const p = { id: uid(), ...data, stock: 0, createdAt: Date.now(), updatedAt: Date.now() };
     products.push(p);
     saveProducts();
-    if(stock > 0) changeStock(p.id, stock, '新建商品初始库存');
+    if(stock > 0) changeStock(p.id, stock, '新建商品初始入库');
     toast('已添加');
   }
   showView('list');
@@ -745,31 +534,24 @@ function openDetail(id){
 function renderDetail(p){
   const cls = p.stock <= 0 ? 'danger' : (p.stock <= p.warnStock ? 'warn' : 'ok');
   const recs = records.filter(r => r.productId === p.id).slice(0, 100);
-
   $('#detailBody').innerHTML = `
     <div class="d-name">${esc(p.name)}</div>
     <div class="d-sub">${esc([p.brand, p.model].filter(Boolean).join(' ') || '—')}</div>
     <div class="d-badge ${cls}">库存 ${p.stock}</div>
-
-    <div class="barcode-box">
-      <div id="qrcodeWrap"><div class="qr-loading">二维码生成中...</div></div>
-      <div class="barcode-text">${esc(p.barcode)}</div>
-    </div>
-
+    <div class="barcode-box"><svg id="barcodeSvg"></svg><div class="barcode-text">${esc(p.barcode)}</div></div>
     <div class="d-actions">
       <button class="btn-in"  id="dIn">入库</button>
       <button class="btn-out" id="dOut">出库</button>
     </div>
-
     <div class="d-mini">
-      <button id="dBlePrint" class="btn-ble">蓝牙打印二维码</button>
-      <button id="dCopy">复制内容</button>
-      <button id="dPrint">打印二维码</button>
-      <button id="dSaveImg">保存二维码图</button>
+      <button id="dBlePrint" class="btn-ble">蓝牙打印</button>
+      <button id="dPreview" style="color:#1565C0;border-color:#1565C0;">打印预览</button>
+      <button id="dCopy">复制条码</button>
+      <button id="dPrint">打印条码</button>
+      <button id="dSaveImg">保存条码图</button>
       <button id="dEdit">编辑</button>
       <button id="dDel" style="color:var(--red);border-color:#F3C6C6;">删除</button>
     </div>
-
     <div class="section-title">商品信息</div>
     <div class="info-box">
       <div><b>规格：</b>${esc(p.spec || '—')}</div>
@@ -780,49 +562,34 @@ function renderDetail(p){
       <div><b>创建时间：</b>${fmtTime(p.createdAt)}</div>
       ${p.remark ? `<div><b>备注：</b>${esc(p.remark)}</div>` : ''}
     </div>
-
     <div class="section-title">出入库记录（${recs.length}）</div>
     <div class="card" style="padding:6px 14px;">
       ${recs.length ? recs.map(r => `
         <div class="rec-item">
           <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
-          <div class="rec-main">
-            <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div>
-          </div>
+          <div class="rec-main"><div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div></div>
           <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
-        </div>
-      `).join('') : '<div class="empty" style="padding:20px;">暂无记录</div>'}
-    </div>
-  `;
+        </div>`).join('') : '<div class="empty" style="padding:20px;">暂无记录</div>'}
+    </div>`;
+  try{
+    JsBarcode('#barcodeSvg', p.barcode, { format: 'CODE128', width: 2, height: 80, displayValue: false, margin: 6, background: '#FFFFFF', lineColor: '#000000' });
+  }catch(e){ $('#barcodeSvg').outerHTML = '<div class="empty">条码格式不支持生成图片</div>'; }
 
-  const wrap = document.getElementById('qrcodeWrap');
-  if(wrap){
-    generateQRCodeDataURL(p.barcode, 300)
-      .then(url => {
-        wrap.innerHTML = `<img src="${url}" alt="二维码" style="width:220px;height:220px;">`;
-      })
-      .catch(err => {
-        console.error('二维码生成失败', err);
-        wrap.innerHTML = `<div class="empty">二维码生成失败<br><small style="color:#9AA0A6;">${esc(err.message || '未知错误')}</small></div>`;
-      });
-  }
-
-  $('#dIn').onclick  = () => promptQuantity(p.id, 1);
+  $('#dIn').onclick = () => promptQuantity(p.id, 1);
   $('#dOut').onclick = () => promptQuantity(p.id, -1);
   $('#dEdit').onclick = () => openAdd(p.id);
   $('#dDel').onclick = () => confirmDelete(p);
-  $('#dCopy').onclick = () => copyText(p.barcode, '二维码内容已复制');
-  $('#dPrint').onclick = () => printQRCode(p);
-  $('#dSaveImg').onclick = () => saveQRCodeImage(p);
+  $('#dCopy').onclick = () => copyText(p.barcode, '条码已复制');
+  $('#dPrint').onclick = () => printBarcode(p);
+  $('#dSaveImg').onclick = () => saveBarcodeImage(p);
   $('#dBlePrint').onclick = () => blePrint(p);
+  $('#dPreview').onclick = () => showPrintPreview(p);
 }
 
 function copyText(text, msg){
   if(navigator.clipboard && window.isSecureContext){
     navigator.clipboard.writeText(text).then(()=>toast(msg)).catch(()=>fallbackCopy(text, msg));
-  }else{
-    fallbackCopy(text, msg);
-  }
+  }else{ fallbackCopy(text, msg); }
 }
 function fallbackCopy(text, msg){
   const ta = document.createElement('textarea');
@@ -839,15 +606,11 @@ function confirmDelete(p){
     <div class="modal-btns">
       <button data-act="cancel">取消</button>
       <button class="primary" data-act="ok" style="background:var(--red);border-color:var(--red);">删除</button>
-    </div>
-  `);
+    </div>`);
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     products = products.filter(x => x.id !== p.id);
-    saveProducts();
-    close();
-    toast('已删除');
-    showView('list');
+    saveProducts(); close(); toast('已删除'); showView('list');
   };
 }
 
@@ -855,40 +618,30 @@ function confirmDelete(p){
 function promptQuantity(productId, sign){
   const p = findProduct(productId);
   if(!p) return;
-
   const isIn = sign > 0;
   const { mask, close } = showModal(`
     <div class="modal-title">${isIn ? '商品入库' : '商品出库'}</div>
     <div class="modal-body">${esc(p.name)}\n当前库存：${p.stock}</div>
     <input class="modal-input" id="mqQty" type="number" inputmode="numeric" value="1" placeholder="数量">
-    <input class="modal-input" id="mqRemark" type="text" placeholder="备注（可选，如客户/供应商）">
+    <input class="modal-input" id="mqRemark" type="text" placeholder="备注（可选）">
     <div class="modal-btns">
       <button data-act="cancel">取消</button>
       <button class="primary" data-act="ok">确定</button>
-    </div>
-  `);
-
+    </div>`);
   const qtyEl = mask.querySelector('#mqQty');
   const rmkEl = mask.querySelector('#mqRemark');
   setTimeout(()=>{ qtyEl.focus(); qtyEl.select(); }, 120);
-
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     const qty = parseInt(qtyEl.value) || 0;
     if(qty <= 0){ toast('请输入正确的数量'); return; }
     if(!isIn && qty > p.stock){ toast(`库存不足，当前 ${p.stock}`); return; }
-
     const res = changeStock(p.id, sign * qty, rmkEl.value.trim());
     if(!res.ok){ toast(res.msg); return; }
-
     close();
     toast(`${isIn ? '入库' : '出库'}成功，当前库存 ${res.stock}`);
-
-    if(currentView === 'detail' && currentProductId === p.id){
-      renderDetail(findProduct(p.id));
-    }else{
-      renderProductList();
-    }
+    if(currentView === 'detail' && currentProductId === p.id) renderDetail(findProduct(p.id));
+    else renderProductList();
   };
 }
 
@@ -902,10 +655,7 @@ $$('.scan-tabs button').forEach(btn => {
     $$('.scan-tabs button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     scanMode = btn.dataset.mode;
-    $('#scanTip').textContent =
-      scanMode === 'query' ? '将二维码放入取景框内' :
-      scanMode === 'in'    ? '扫描二维码 → 快速入库' :
-                             '扫描二维码 → 快速出库';
+    $('#scanTip').textContent = scanMode === 'query' ? '将条形码 / 二维码放入取景框内' : scanMode === 'in' ? '扫描商品条码 → 快速入库' : '扫描商品条码 → 快速出库';
     await stopScan();
     startScan();
   });
@@ -914,104 +664,60 @@ $$('.scan-tabs button').forEach(btn => {
 async function startScan(){
   if(scanning) return;
   const readerEl = $('#reader');
-  if(!window.Html5Qrcode){
-    readerEl.innerHTML = '<div class="empty" style="color:#fff;">扫码组件加载失败<br>请检查网络后刷新</div>';
-    return;
-  }
+  if(!window.Html5Qrcode){ readerEl.innerHTML = '<div class="empty" style="color:#fff;">扫码组件加载失败<br>请检查网络后刷新</div>'; return; }
   readerEl.innerHTML = '';
   scanner = new Html5Qrcode('reader', { verbose: false });
   scanning = true;
   try{
-    await scanner.start(
-      { facingMode: 'environment' },
-      {
-        fps: 12,
-        qrbox: (w, h) => ({ width: Math.floor(w * 0.9), height: Math.floor(h * 0.5) }),
-        aspectRatio: 1.0
-      },
-      onScanSuccess,
-      () => {}
-    );
+    await scanner.start({ facingMode: 'environment' },
+      { fps: 12, qrbox: (w, h) => ({ width: Math.floor(w * 0.9), height: Math.floor(h * 0.5) }), aspectRatio: 1.0 },
+      onScanSuccess, () => {});
   }catch(e){
     scanning = false;
-    readerEl.innerHTML = `<div class="empty" style="color:#fff;padding:30px 16px;">
-      无法启动摄像头<br><br>
-      请确认：<br>
-      1. 使用 <b>HTTPS</b> 访问本页面<br>
-      2. 浏览器已允许摄像头权限<br>
-      3. 设备有可用摄像头
-    </div>`;
+    readerEl.innerHTML = `<div class="empty" style="color:#fff;padding:30px 16px;">无法启动摄像头<br><br>请确认：<br>1. 使用 <b>HTTPS</b> 访问<br>2. 浏览器已允许摄像头权限<br>3. 设备有可用摄像头</div>`;
   }
 }
-
 async function stopScan(){
   if(!scanner) return;
   scanning = false;
   try{ await scanner.stop(); scanner.clear(); }catch(e){}
   scanner = null;
 }
-
 function onScanSuccess(text){
   if(!scanning) return;
   scanning = false;
   const code = String(text).trim();
-
-  if(scanner){
-    scanner.stop().then(()=>{ try{ scanner.clear(); }catch(e){} scanner = null; })
-      .catch(()=>{ scanner = null; });
-  }
-
+  if(scanner){ scanner.stop().then(()=>{ try{ scanner.clear(); }catch(e){} scanner = null; }).catch(()=>{ scanner = null; }); }
   setTimeout(() => handleScanResult(code), 120);
 }
-
 function handleScanResult(code){
   const p = findByBarcode(code);
-
   if(!p){
     const { mask, close } = showModal(`
       <div class="modal-title">未找到商品</div>
-      <div class="modal-body">二维码 ${esc(code)} 尚未录入\n是否立即新增？</div>
+      <div class="modal-body">条码 ${esc(code)} 尚未录入\n是否立即新增？</div>
       <div class="modal-btns">
         <button data-act="cancel">取消</button>
         <button class="primary" data-act="add">新增商品</button>
-      </div>
-    `);
-    mask.querySelector('[data-act="cancel"]').onclick = () => {
-      close();
-      setTimeout(startScan, 250);
-    };
-    mask.querySelector('[data-act="add"]').onclick = () => {
-      close();
-      setTimeout(()=>openAdd(null, code), 220);
-    };
+      </div>`);
+    mask.querySelector('[data-act="cancel"]').onclick = () => { close(); setTimeout(startScan, 250); };
+    mask.querySelector('[data-act="add"]').onclick = () => { close(); setTimeout(()=>openAdd(null, code), 220); };
     return;
   }
-
-  if(scanMode === 'query'){
-    openDetail(p.id);
-  }else{
-    const sign = scanMode === 'in' ? 1 : -1;
-    promptQuantity(p.id, sign);
-  }
+  if(scanMode === 'query') openDetail(p.id);
+  else promptQuantity(p.id, scanMode === 'in' ? 1 : -1);
 }
 
 /* ==================== 出入库记录页 ==================== */
 function renderRecords(){
   const el = $('#recordList');
-  if(records.length === 0){
-    el.innerHTML = '<div class="empty" style="padding:30px;">暂无出入库记录</div>';
-    return;
-  }
+  if(records.length === 0){ el.innerHTML = '<div class="empty" style="padding:30px;">暂无出入库记录</div>'; return; }
   el.innerHTML = records.slice(0, 500).map(r => `
     <div class="rec-item">
       <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
-      <div class="rec-main">
-        <div class="rec-name">${esc(r.productName)}</div>
-        <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div>
-      </div>
+      <div class="rec-main"><div class="rec-name">${esc(r.productName)}</div><div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div></div>
       <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 $('#btnExport').addEventListener('click', ()=>{
@@ -1020,17 +726,12 @@ $('#btnExport').addEventListener('click', ()=>{
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const d = new Date(), p = n => String(n).padStart(2,'0');
-  a.href = url;
-  a.download = `库存备份_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
-  toast('已导出备份文件');
+  a.href = url; a.download = `库存备份_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000); toast('已导出备份文件');
 });
-
 $('#btnImport').addEventListener('click', ()=> $('#importFile').click());
 $('#importFile').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if(!file) return;
+  const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = () => {
     try{
@@ -1039,77 +740,47 @@ $('#importFile').addEventListener('change', e => {
       const { mask, close } = showModal(`
         <div class="modal-title">导入备份</div>
         <div class="modal-body">将导入 ${data.products.length} 件商品、${(data.records||[]).length} 条流水。\n当前数据会被覆盖，是否继续？</div>
-        <div class="modal-btns">
-          <button data-act="cancel">取消</button>
-          <button class="primary" data-act="ok">覆盖导入</button>
-        </div>
-      `);
+        <div class="modal-btns"><button data-act="cancel">取消</button><button class="primary" data-act="ok">覆盖导入</button></div>`);
       mask.querySelector('[data-act="cancel"]').onclick = close;
       mask.querySelector('[data-act="ok"]').onclick = () => {
-        products = data.products || [];
-        records  = data.records  || [];
-        saveProducts(); saveRecords();
-        close();
-        toast('导入成功');
-        renderProductList();
-        renderRecords();
+        products = data.products || []; records = data.records || [];
+        saveProducts(); saveRecords(); close(); toast('导入成功'); renderProductList(); renderRecords();
       };
-    }catch(err){
-      toast('文件格式不正确');
-    }
+    }catch(err){ toast('文件格式不正确'); }
     e.target.value = '';
   };
   reader.readAsText(file);
 });
-
 $('#btnClearAll').addEventListener('click', ()=>{
   const { mask, close } = showModal(`
     <div class="modal-title">清空全部数据</div>
     <div class="modal-body">将删除所有商品和出入库记录，且不可恢复。\n建议先导出备份。</div>
-    <div class="modal-btns">
-      <button data-act="cancel">取消</button>
-      <button class="primary" data-act="ok" style="background:var(--red);border-color:var(--red);">确认清空</button>
-    </div>
-  `);
+    <div class="modal-btns"><button data-act="cancel">取消</button><button class="primary" data-act="ok" style="background:var(--red);border-color:var(--red);">确认清空</button></div>`);
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
-    products = []; records = [];
-    localStorage.removeItem('ss_products');
-    localStorage.removeItem('ss_records');
-    close();
-    toast('已清空');
-    renderProductList();
-    renderRecords();
+    products = []; records = []; saveProducts(); saveRecords(); close(); toast('已清空'); renderProductList(); renderRecords();
   };
 });
 
 /* ==================== 下载 CSV 导入模板 ==================== */
 function downloadImportTemplate(){
   const rows = [
-    ['商品名称','品牌','型号','规格','颜色','二维码内容','进货价','销售价','初始库存','预警值','备注'],
-    ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','10','2','示例：可以删除本行'],
-    ['华为 Mate 60 Pro','华为','ALN-AL00','12+512G','雅川青','','6500','6999','5','2','二维码内容留空会自动生成'],
-    ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','0','2','']
+    ['商品名称','品牌','型号','规格','颜色','条码','进货价','销售价','预警值','备注'],
+    ['iPhone 15 Pro Max','Apple','A3108','8+256G','原色钛金属','6901234567890','8000','8999','2','示例：可以删除本行'],
+    ['华为 Mate 60 Pro','华为','ALN-AL00','12+512G','雅川青','','6500','6999','2','条码留空会自动生成'],
+    ['小米 14','小米','23127PN0CC','12+256G','黑色','','3899','4299','2','']
   ];
-
-  const csv = '\uFEFF' + rows.map(r =>
-    r.map(cell => {
-      const s = String(cell ?? '');
-      if(/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-      return s;
-    }).join(',')
-  ).join('\r\n');
-
+  const csv = '\uFEFF' + rows.map(r => r.map(cell => {
+    const s = String(cell ?? '');
+    if(/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }).join(',')).join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = '商品批量导入模板.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = url; a.download = '商品批量导入模板.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-
   toast('模板已下载，用 Excel 打开填写后另存为 CSV');
 }
 
@@ -1119,193 +790,79 @@ function generateInternalBarcode(){
   const r = Math.floor(Math.random() * 10);
   return '2' + ts + r;
 }
-
 function parseImportText(text){
   const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
   if(lines.length === 0) return { rows: [], errors: [] };
-
   const firstLine = lines[0];
   let sep = ',';
-  if(firstLine.includes('\t')) sep = '\t';
-  else if(firstLine.includes('，')) sep = '，';
-
+  if(firstLine.includes('\t')) sep = '\t'; else if(firstLine.includes('，')) sep = '，';
   const firstCells = firstLine.split(sep).map(c => c.trim().toLowerCase());
-  let startIdx = 0;
-  if(firstCells.some(c => c.includes('名称') || c === 'name' || c.includes('商品'))){
-    startIdx = 1;
-  }
-
-  const rows = [];
-  const errors = [];
-
+  let startIdx = firstCells.some(c => c.includes('名称') || c === 'name' || c.includes('商品')) ? 1 : 0;
+  const rows = []; const errors = [];
   for(let i = startIdx; i < lines.length; i++){
-    const rawCells = lines[i].split(sep);
-    const cells = rawCells.map(c => c.replace(/^\uFEFF/, '').trim());
-
+    const cells = lines[i].split(sep).map(c => c.replace(/^\uFEFF/, '').trim());
     if(cells.length < 1 || !cells[0]) continue;
-
-    const [name, brand, model, spec, color, barcode, priceIn, priceOut, initStock, warnStock, remark] = cells;
-
-    if(!name){
-      errors.push({ line: i + 1, msg: '商品名称为空', raw: lines[i] });
-      continue;
-    }
-
-    const finalBarcode = (barcode && barcode.trim())
-      ? barcode.trim()
-      : generateInternalBarcode();
-
-    rows.push({
-      lineNo: i + 1,
-      name,
-      brand: brand || '',
-      model: model || '',
-      spec: spec || '',
-      color: color || '',
-      barcode: finalBarcode,
-      priceIn: parseFloat(priceIn) || 0,
-      priceOut: parseFloat(priceOut) || 0,
-      stock: parseInt(initStock) || 0,
-      warnStock: parseInt(warnStock) || 2,
-      remark: remark || '',
-      autoBarcode: !(barcode && barcode.trim())
-    });
+    const [name, brand, model, spec, color, barcode, priceIn, priceOut, warnStock, remark] = cells;
+    if(!name){ errors.push({ line: i + 1, msg: '商品名称为空', raw: lines[i] }); continue; }
+    const finalBarcode = (barcode && barcode.trim()) ? barcode.trim() : generateInternalBarcode();
+    rows.push({ lineNo: i + 1, name, brand: brand || '', model: model || '', spec: spec || '', color: color || '', barcode: finalBarcode, priceIn: parseFloat(priceIn) || 0, priceOut: parseFloat(priceOut) || 0, warnStock: parseInt(warnStock) || 2, remark: remark || '', autoBarcode: !(barcode && barcode.trim()) });
   }
-
   return { rows, errors };
 }
-
 function openBatchImport(){
   const { mask, close } = showModal(`
     <div class="modal-title">批量导入商品</div>
     <button class="tpl-btn" id="btnDownloadTpl">⬇ 下载 CSV 导入模板（用 Excel 填写）</button>
-    <div class="import-tip">
-      每行一件商品，用逗号或制表符分隔。列顺序：<br>
-      <code>名称,品牌,型号,规格,颜色,二维码内容,进货价,销售价,初始库存,预警值,备注</code><br>
-      除<b>名称</b>外，其他列都可以省略；不填二维码内容会自动生成。<br>
-      支持从 Excel 另存为 CSV 后直接粘贴或选文件。
-    </div>
-    <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,10,2&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,5,2&#10;小米 14,小米,,12+256G,黑色,,,,0,2"></textarea>
+    <div class="import-tip">每行一件商品，用逗号或制表符分隔。列顺序：<br><code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,备注</code><br>除<b>名称</b>外，其他列都可以省略；不填条码会自动生成。</div>
+    <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,2&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,2&#10;小米 14,小米,,12+256G,黑色"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;">
       <input type="file" id="batchFile" accept=".csv,.txt" style="display:none">
       <button class="mini-btn" id="btnPickFile" style="flex:1;">选择 CSV 文件</button>
       <button class="mini-btn" id="btnParsePreview" style="flex:1;background:#2E7D32;color:#fff;border-color:#2E7D32;">解析预览</button>
     </div>
-    <div id="importPreviewWrap" style="display:none;">
-      <div class="import-preview" id="importPreview"></div>
-    </div>
-    <div class="modal-btns" style="margin-top:12px;">
-      <button data-act="cancel">取消</button>
-      <button class="primary" data-act="ok" id="btnConfirmImport" disabled>确认导入</button>
-    </div>
-  `);
-
+    <div id="importPreviewWrap" style="display:none;"><div class="import-preview" id="importPreview"></div></div>
+    <div class="modal-btns" style="margin-top:12px;"><button data-act="cancel">取消</button><button class="primary" data-act="ok" id="btnConfirmImport" disabled>确认导入</button></div>`);
   let parsedRows = [];
-
   const textarea = mask.querySelector('#importText');
   const previewWrap = mask.querySelector('#importPreviewWrap');
   const preview = mask.querySelector('#importPreview');
   const fileInput = mask.querySelector('#batchFile');
-
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('#btnDownloadTpl').onclick = downloadImportTemplate;
-
   mask.querySelector('#btnPickFile').onclick = () => fileInput.click();
-  fileInput.onchange = e => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      textarea.value = String(reader.result || '');
-      toast('已读取文件，点「解析预览」查看');
-    };
-    reader.readAsText(file, 'UTF-8');
-    e.target.value = '';
-  };
-
+  fileInput.onchange = e => { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = () => { textarea.value = String(reader.result || ''); toast('已读取文件，点「解析预览」查看'); }; reader.readAsText(file, 'UTF-8'); e.target.value = ''; };
   mask.querySelector('#btnParsePreview').onclick = () => {
     const text = textarea.value.trim();
     if(!text){ toast('请先粘贴文本或选择文件'); return; }
-
     const result = parseImportText(text);
     parsedRows = result.rows;
-
-    if(parsedRows.length === 0 && result.errors.length === 0){
-      toast('没有解析到任何商品');
-      return;
-    }
-
+    if(parsedRows.length === 0 && result.errors.length === 0){ toast('没有解析到任何商品'); return; }
     const existingCodes = new Set(products.map(p => p.barcode));
     const newCodes = new Set();
     let conflictCount = 0;
-
     const previewRows = parsedRows.map(r => {
-      const isDup =
-        existingCodes.has(r.barcode) || newCodes.has(r.barcode);
+      const isDup = existingCodes.has(r.barcode) || newCodes.has(r.barcode);
       if(isDup) conflictCount++;
       if(!isDup) newCodes.add(r.barcode);
       return { ...r, conflict: isDup };
     });
-
     previewWrap.style.display = 'block';
-    preview.innerHTML = previewRows.slice(0, 50).map(r => `
-      <div class="row ${r.conflict ? 'err' : ''}">
-        <span class="n">${esc(r.name)}</span>
-        <span class="s">库存 ${r.stock}</span>
-        <span class="c">${esc(r.barcode)}</span>
-        ${r.conflict ? '<span style="color:var(--red);">二维码冲突</span>' : ''}
-      </div>
-    `).join('') + (previewRows.length > 50
-      ? `<div class="row" style="justify-content:center;color:var(--text2);">... 还有 ${previewRows.length - 50} 件未显示</div>`
-      : '') + (result.errors.length > 0
-      ? `<div class="row err">跳过 ${result.errors.length} 行无效数据</div>`
-      : '');
-
+    preview.innerHTML = previewRows.slice(0, 50).map(r => `<div class="row ${r.conflict ? 'err' : ''}"><span class="n">${esc(r.name)}</span><span class="c">${esc(r.barcode)}</span>${r.conflict ? '<span style="color:var(--red);">条码冲突</span>' : ''}</div>`).join('') + (previewRows.length > 50 ? `<div class="row" style="justify-content:center;color:var(--text2);">... 还有 ${previewRows.length - 50} 件未显示</div>` : '') + (result.errors.length > 0 ? `<div class="row err">跳过 ${result.errors.length} 行无效数据</div>` : '');
     parsedRows = previewRows.filter(r => !r.conflict);
-
     const okBtn = mask.querySelector('#btnConfirmImport');
     okBtn.disabled = parsedRows.length === 0;
     okBtn.textContent = `确认导入 ${parsedRows.length} 件` + (conflictCount ? ` (跳过 ${conflictCount} 件冲突)` : '');
   };
-
   mask.querySelector('#btnConfirmImport').onclick = () => {
     if(parsedRows.length === 0) return;
-
-    const now = Date.now();
-    let added = 0;
-
+    const now = Date.now(); let added = 0;
     parsedRows.forEach(r => {
-      const p = {
-        id: uid(),
-        name: r.name,
-        brand: r.brand,
-        model: r.model,
-        spec: r.spec,
-        color: r.color,
-        barcode: r.barcode,
-        priceIn: r.priceIn,
-        priceOut: r.priceOut,
-        warnStock: r.warnStock,
-        remark: r.remark,
-        stock: 0,
-        createdAt: now,
-        updatedAt: now
-      };
-      products.push(p);
-      if(r.stock > 0){
-        changeStock(p.id, r.stock, '批量导入初始库存');
-      }
+      products.push({ id: uid(), name: r.name, brand: r.brand, model: r.model, spec: r.spec, color: r.color, barcode: r.barcode, priceIn: r.priceIn, priceOut: r.priceOut, warnStock: r.warnStock, remark: r.remark, stock: 0, createdAt: now, updatedAt: now });
       added++;
     });
-
-    saveProducts();
-    close();
-    toast(`成功导入 ${added} 件商品`);
-    renderProductList();
-    showView('list');
+    saveProducts(); close(); toast(`成功导入 ${added} 件商品`); renderProductList(); showView('list');
   };
 }
-
 $('#btnBatchImport').addEventListener('click', openBatchImport);
 
 /* ==================== 通用弹窗 ==================== */
@@ -1315,11 +872,7 @@ function showModal(html){
   mask.innerHTML = `<div class="modal">${html}</div>`;
   document.body.appendChild(mask);
   requestAnimationFrame(()=> mask.classList.add('show'));
-
-  const close = () => {
-    mask.classList.remove('show');
-    setTimeout(()=> mask.remove(), 200);
-  };
+  const close = () => { mask.classList.remove('show'); setTimeout(()=> mask.remove(), 200); };
   mask.addEventListener('click', e => { if(e.target === mask) close(); });
   return { mask, close };
 }
@@ -1327,244 +880,139 @@ function showModal(html){
 /* ==================== 单次扫码 ==================== */
 async function scanOnce(onResult){
   const { mask, close } = showModal(`
-    <div class="modal-title">扫描二维码</div>
+    <div class="modal-title">扫描条码</div>
     <div id="scanOnceReader" style="width:100%;min-height:220px;background:#000;border-radius:10px;overflow:hidden;"></div>
     <div style="height:12px;"></div>
-    <button class="btn-plain" id="scanOnceCancel">取消</button>
-  `);
-
+    <button class="btn-plain" id="scanOnceCancel">取消</button>`);
   const q = new Html5Qrcode('scanOnceReader', { verbose:false });
   let done = false;
-  const stop = async () => {
-    if(done) return; done = true;
-    try{ await q.stop(); q.clear(); }catch(e){}
-  };
-
+  const stop = async () => { if(done) return; done = true; try{ await q.stop(); q.clear(); }catch(e){} };
   mask.querySelector('#scanOnceCancel').onclick = async () => { await stop(); close(); };
-
   try{
-    await q.start(
-      { facingMode:'environment' },
-      { fps:12, qrbox:(w,h)=>({width:Math.floor(w*0.9),height:Math.floor(h*0.5)}), aspectRatio:1.0 },
-      async (text) => { await stop(); close(); setTimeout(()=>onResult(String(text).trim()), 200); },
-      () => {}
-    );
+    await q.start({ facingMode:'environment' }, { fps:12, qrbox:(w,h)=>({width:Math.floor(w*0.9),height:Math.floor(h*0.5)}), aspectRatio:1.0 },
+      async (text) => { await stop(); close(); setTimeout(()=>onResult(String(text).trim()), 200); }, () => {});
   }catch(e){
-    mask.querySelector('#scanOnceReader').innerHTML =
-      '<div class="empty" style="color:#fff;padding:30px 16px;">无法启动摄像头<br>请使用 HTTPS 访问并允许权限</div>';
+    mask.querySelector('#scanOnceReader').innerHTML = '<div class="empty" style="color:#fff;padding:30px 16px;">无法启动摄像头<br>请使用 HTTPS 访问并允许权限</div>';
   }
 }
 
-/* ==================== 打印二维码（系统打印，左右布局） ==================== */
-async function printQRCode(p) {
-  let qrDataUrl;
+/* ==================== 打印条码（系统打印） ==================== */
+function printBarcode(p) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   try {
-    qrDataUrl = await generateQRCodeDataURL(p.barcode, 300);
-  } catch (e) {
-    toast('二维码生成失败');
-    return;
-  }
-
-  const bm = [p.brand, p.model].filter(Boolean).join(' ');
-  const sc = [p.spec, p.color].filter(Boolean).join(' / ');
-  const rmk = p.remark || '';
-
+    JsBarcode(svg, p.barcode, { format: 'CODE128', width: 2, height: 80, displayValue: false, margin: 6, background: '#FFFFFF', lineColor: '#000000' });
+  } catch (e) { toast('条码格式不支持生成'); return; }
+  const configLine = buildConfigLine(p);
+  const svgHtml = svg.outerHTML;
   const win = window.open('', '_blank');
   win.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>打印二维码 - ${esc(p.name)}</title>
-      <style>
-        * { box-sizing: border-box; }
-        body {
-          font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-          text-align: center; padding: 20px; margin: 0;
-        }
-        .label {
-          display: inline-block;
-          border: 1px dashed #ccc;
-          padding: 8px 14px;
-          margin: 10px;
-          border-radius: 6px;
-          background: #fff;
-          width: 384px;
-        }
-        .name {
-          font-size: 17px; font-weight: 700;
-          text-align: center;
-          margin-bottom: 6px;
-          white-space: nowrap;
-          overflow: hidden;
-        }
-        .body {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .qr { flex: none; }
-        .qr img { display: block; width: 130px; height: 130px; }
-        .info {
-          flex: 1; min-width: 0;
-          text-align: left;
-          font-size: 13px;
-          line-height: 1.6;
-          color: #333;
-        }
-        .info .line {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .code {
-          font-family: monospace;
-          font-size: 12px;
-          letter-spacing: 1px;
-          margin-top: 4px;
-          color: #555;
-          text-align: center;
-        }
-        @media print { body { padding: 0; } .label { border: none; margin: 0; padding: 4px; } }
-      </style>
-    </head>
-    <body>
-      <div class="label">
-        <div class="name">${esc(p.name)}</div>
-        <div class="body">
-          <div class="qr"><img src="${qrDataUrl}" alt="二维码"></div>
-          <div class="info">
-            ${bm ? `<div class="line">${esc(bm)}</div>` : ''}
-            ${sc ? `<div class="line">${esc(sc)}</div>` : ''}
-            ${rmk ? `<div class="line">备注：${esc(rmk)}</div>` : ''}
-          </div>
-        </div>
-        <div class="code">${esc(p.barcode)}</div>
-      </div>
-      <script>
-        window.onload = function() { setTimeout(function() { window.print(); }, 200); };
-      <\/script>
-    </body>
-    </html>
-  `);
+    <!DOCTYPE html><html><head><meta charset="UTF-8"><title>打印条码 - ${esc(p.name)}</title>
+    <style>* { box-sizing: border-box; } body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; text-align: center; padding: 20px; margin: 0; }
+    .label { display: inline-block; border: 1px dashed #ccc; padding: 12px 24px; margin: 10px; border-radius: 6px; background: #fff; }
+    .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
+    .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
+    .barcode svg { display: block; max-width: 100%; height: auto; }
+    .code { font-family: monospace; font-size: 13px; letter-spacing: 1px; margin-top: 4px; color: #333; }
+    @media print { body { padding: 0; } .label { border: none; margin: 0; padding: 8px; } }</style>
+    </head><body><div class="label"><div class="name">${esc(p.name)}</div>${configLine ? `<div class="config">${esc(configLine)}</div>` : ''}<div class="barcode">${svgHtml}</div><div class="code">${esc(p.barcode)}</div></div>
+    <script>window.onload = function() { setTimeout(function() { window.print(); }, 200); };<\/script></body></html>`);
   win.document.close();
 }
 
-/* ==================== 蓝牙打印（精臣 NIMBOT B1，左右布局） ==================== */
+/* ==================== 生成标签 Canvas（供预览和打印共用） ==================== */
+// ⚠️ 请根据你的实际标签纸尺寸修改以下参数（1mm ≈ 8px）
+// 40mm × 30mm：w_px = 320, h_px = 240
+// 50mm × 30mm：w_px = 384, h_px = 240
+// 50mm × 40mm：w_px = 384, h_px = 320
 const B1_LABEL_SIZE = { w_px: 384, h_px: 240, offset_y_px: 0 };
 
-async function blePrint(product) {
-  if (!navigator.bluetooth) {
-    toast('当前浏览器不支持蓝牙，请用安卓 Chrome 或 Edge');
-    return;
-  }
-  if (typeof Niimbot === 'undefined') {
-    toast('蓝牙驱动未加载，请检查网络后刷新页面');
-    return;
-  }
-
-  let qrDataUrl;
-  try {
-    qrDataUrl = await generateQRCodeDataURL(product.barcode, 300);
-  } catch (e) {
-    toast('二维码生成失败');
-    return;
-  }
-
-  const W = B1_LABEL_SIZE.w_px;
-  const H = B1_LABEL_SIZE.h_px;
-
+function generateLabelCanvas(product) {
   const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = B1_LABEL_SIZE.w_px;
+  canvas.height = B1_LABEL_SIZE.h_px;
   const ctx = canvas.getContext('2d');
 
-  // 白色背景
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // ===== 布局参数 =====
-  const padX = 8;
-  const padY = 4;
-  const nameH = 32;      // 顶部名称行高度
-  const codeH = 22;      // 底部数字行高度
-  const bodyTop = padY + nameH;
-  const bodyBottom = H - codeH - padY;
-  const bodyH = bodyBottom - bodyTop;
-
-  // ===== 顶部：商品名称 =====
-  ctx.fillStyle = '#000000';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  let nameFontSize = 22;
-  let nameFont = `bold ${nameFontSize}px sans-serif`;
-  ctx.font = nameFont;
   const nameText = product.name || '';
-  while (ctx.measureText(nameText).width > W - padX * 2 && nameFontSize > 12) {
-    nameFontSize -= 1;
-    nameFont = `bold ${nameFontSize}px sans-serif`;
-    ctx.font = nameFont;
-  }
-  ctx.fillText(nameText, W / 2, padY + nameH / 2);
-
-  // ===== 底部：二维码内容数字 =====
-  let codeFontSize = 14;
-  let codeFont = `${codeFontSize}px monospace`;
-  ctx.font = codeFont;
-  while (ctx.measureText(product.barcode).width > W - padX * 2 && codeFontSize > 8) {
-    codeFontSize -= 1;
-    codeFont = `${codeFontSize}px monospace`;
-    ctx.font = codeFont;
-  }
-  ctx.fillText(product.barcode, W / 2, H - codeH / 2 - 1);
-
-  // ===== 主体：左侧二维码 =====
-  const qrSize = Math.min(bodyH - 4, 130);
-  const qrX = padX;
-  const qrY = bodyTop + (bodyH - qrSize) / 2;
-
-  const qrImg = new Image();
-  qrImg.src = qrDataUrl;
-  await new Promise(resolve => { qrImg.onload = resolve; });
-  ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-
-  // ===== 主体：右侧文字 =====
-  const textX = qrX + qrSize + 8;
-  const textW = W - textX - padX;
-  const textCenterX = textX + textW / 2;
-
-  // 构建右侧文字行
+  const barcodeText = product.barcode || '1234567890';
+  
   const infoLines = [];
   const bm = [product.brand, product.model].filter(Boolean).join(' ');
-  if (bm) infoLines.push({ text: bm, maxSize: 15 });
+  if (bm) infoLines.push(bm);
   const sc = [product.spec, product.color].filter(Boolean).join(' / ');
-  if (sc) infoLines.push({ text: sc, maxSize: 15 });
-  if (product.remark) infoLines.push({ text: '备注：' + product.remark, maxSize: 12 });
+  if (sc) infoLines.push(sc);
+  if (product.remark) infoLines.push('备注: ' + product.remark);
 
-  if (infoLines.length > 0) {
-    // 每行高度：根据行数分配，居中垂直排列
-    const lineH = bodyH / Math.max(infoLines.length, 1);
-    let ly = bodyTop + lineH / 2;
-
-    infoLines.forEach(line => {
-      let fs = line.maxSize;
-      let f = `bold ${fs}px sans-serif`;
-      ctx.font = f;
-      while (ctx.measureText(line.text).width > textW && fs > 9) {
-        fs -= 1;
-        f = `bold ${fs}px sans-serif`;
-        ctx.font = f;
+  function fitTextToBox(text, maxWidth, maxHeight, fontWeight = 'normal') {
+    let fontSize = Math.min(maxHeight, 50);
+    let font = `${fontWeight} ${fontSize}px sans-serif`;
+    ctx.font = font;
+    while (fontSize > 8) {
+      if (ctx.measureText(text).width <= maxWidth && fontSize <= maxHeight) {
+        return { font: `${fontWeight} ${fontSize}px sans-serif`, size: fontSize };
       }
-      ctx.fillStyle = '#000000';
-      ctx.fillText(line.text, textCenterX, ly);
-      ly += lineH;
-    });
+      fontSize--;
+      ctx.font = `${fontWeight} ${fontSize}px sans-serif`;
+    }
+    return { font: `${fontWeight} 8px sans-serif`, size: 8 };
   }
 
-  const dataUrl = canvas.toDataURL('image/png');
-  toast('正在连接打印机...');
+  // 1. 顶部：商品名称
+  const nameMaxWidth = canvas.width - 20;
+  const nameMaxHeight = Math.floor(canvas.height * 0.28);
+  const nameFit = fitTextToBox(nameText, nameMaxWidth, nameMaxHeight, 'bold');
+  ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = nameFit.font;
+  ctx.fillText(nameText, canvas.width / 2, nameMaxHeight / 2 + 5);
 
+  // 2. 底部：条码数字
+  const codeMaxHeight = Math.floor(canvas.height * 0.18);
+  const codeFit = fitTextToBox(barcodeText, canvas.width - 20, codeMaxHeight);
+  ctx.font = codeFit.font; ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText(barcodeText, canvas.width / 2, canvas.height - 5);
+
+  // 3. 中间：左侧条码 + 右侧文字
+  const midY = nameMaxHeight;
+  const midH = canvas.height - nameMaxHeight - codeMaxHeight - 5;
+  const leftWidth = Math.floor(canvas.width * 0.40);
+  const rightWidth = canvas.width - leftWidth - 15;
+  const rightX = leftWidth + 5;
+
+  const barcodeCanvas = document.createElement('canvas');
+  try {
+    JsBarcode(barcodeCanvas, barcodeText, { format: 'CODE128', width: 2, height: 100, displayValue: false, margin: 0, background: '#FFFFFF', lineColor: '#000000' });
+  } catch (e) { return canvas; }
+
+  const bcRatio = Math.min(leftWidth / barcodeCanvas.width, midH / barcodeCanvas.height);
+  const bcW = barcodeCanvas.width * bcRatio;
+  const bcH = barcodeCanvas.height * bcRatio;
+  const bcX = (leftWidth - bcW) / 2;
+  const bcY = midY + (midH - bcH) / 2;
+  ctx.drawImage(barcodeCanvas, bcX, bcY, bcW, bcH);
+
+  if (infoLines.length > 0) {
+    const lineHeight = midH / infoLines.length;
+    infoLines.forEach((lineText, index) => {
+      const lineY = midY + index * lineHeight;
+      const textFit = fitTextToBox(lineText, rightWidth, lineHeight * 0.8);
+      ctx.font = textFit.font; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000000';
+      ctx.fillText(lineText, rightX, lineY + lineHeight / 2);
+    });
+  }
+  return canvas;
+}
+
+/* ==================== 蓝牙打印（精臣 NIMBOT B1） ==================== */
+async function blePrint(product) {
+  if (!navigator.bluetooth) { toast('当前浏览器不支持蓝牙，请用安卓 Chrome 或 Edge'); return; }
+  if (typeof Niimbot === 'undefined') { toast('蓝牙驱动未加载，请检查网络后刷新页面'); return; }
+
+  const canvas = generateLabelCanvas(product);
+  const dataUrl = canvas.toDataURL('image/png');
+
+  toast('正在连接打印机...');
   try {
     const model = { name_prefixes: ['B1'], task: 'b1', density: 3, label_type: 1, speed: 1 };
     await Niimbot.printImage(dataUrl, { model: model, size: B1_LABEL_SIZE });
@@ -1577,205 +1025,135 @@ async function blePrint(product) {
   }
 }
 
-/* ==================== 保存单张二维码图（左右布局） ==================== */
-async function saveQRCodeImage(p) {
-  const canvas = await buildQRCodeCanvas(p);
-  if (!canvas) { toast('二维码生成失败'); return; }
+/* ==================== 打印预览弹窗 ==================== */
+function showPrintPreview(product) {
+  const canvas = generateLabelCanvas(product);
+  const dataUrl = canvas.toDataURL('image/png');
 
+  const { mask, close } = showModal(`
+    <div class="modal-title">打印预览</div>
+    <div style="text-align:center; padding:10px 0; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; margin-bottom:16px;">
+      <img src="${dataUrl}" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+    </div>
+    <div style="font-size:12px; color:#6B7280; text-align:center; margin-bottom:16px;">
+      当前标签尺寸：50mm × 30mm<br>如果预览显示正常，可直接打印
+    </div>
+    <div class="modal-btns">
+      <button data-act="cancel">取消</button>
+      <button class="primary" data-act="print">立即打印</button>
+    </div>`);
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+  mask.querySelector('[data-act="print"]').onclick = () => {
+    close();
+    setTimeout(() => blePrint(product), 200);
+  };
+}
+
+/* ==================== 保存单张条码图 ==================== */
+function saveBarcodeImage(p) {
+  const canvas = buildBarcodeCanvas(p);
+  if (!canvas) { toast('条码格式不支持生成'); return; }
   canvas.toBlob(blob => {
     if (!blob) { toast('生成图片失败'); return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `二维码_${(p.name||'').replace(/[\\/:*?"<>|]/g,'_')}_${p.barcode}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.download = `条码_${(p.name||'').replace(/[\\/:*?"<>|]/g,'_')}_${p.barcode}.png`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast('已下载二维码图片');
+    toast('已下载条码图片');
   }, 'image/png');
 }
 
-async function buildQRCodeCanvas(p) {
-  let qrDataUrl;
+function buildBarcodeCanvas(p) {
+  const barcodeCanvas = document.createElement('canvas');
   try {
-    qrDataUrl = await generateQRCodeDataURL(p.barcode, 300);
-  } catch (e) {
-    return null;
-  }
-
-  // 与蓝牙打印保持一致的布局
-  const W = 384;
-  const padX = 8;
-  const padY = 4;
-  const nameH = 32;
-  const codeH = 22;
-  const bodyTop = padY + nameH;
-  const bodyBottom = 240 - codeH - padY;
-  const bodyH = bodyBottom - bodyTop;
-  const H = 240;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, W, H);
-
-  // 顶部名称
-  ctx.fillStyle = '#000000';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  let nameFontSize = 22;
-  let nameFont = `bold ${nameFontSize}px sans-serif`;
-  ctx.font = nameFont;
+    JsBarcode(barcodeCanvas, p.barcode, { format: 'CODE128', width: 3, height: 100, displayValue: false, margin: 10, background: '#FFFFFF', lineColor: '#000000' });
+  } catch (e) { return null; }
+  const padding = 16; const nameH = 44; const configH = 34; const codeH = 32;
+  const measure = document.createElement('canvas').getContext('2d');
   const nameText = p.name || '';
-  while (ctx.measureText(nameText).width > W - padX * 2 && nameFontSize > 12) {
-    nameFontSize -= 1;
-    nameFont = `bold ${nameFontSize}px sans-serif`;
-    ctx.font = nameFont;
+  const configText = buildConfigLine(p);
+  const codeFont = '18px monospace';
+  measure.font = codeFont;
+  const codeWidth = measure.measureText(p.barcode).width;
+  const maxContentWidth = Math.max(barcodeCanvas.width, 360);
+  let nameFontSize = 24;
+  let nameFont = `bold ${nameFontSize}px sans-serif`;
+  measure.font = nameFont;
+  while (measure.measureText(nameText).width > maxContentWidth && nameFontSize > 12) {
+    nameFontSize -= 1; nameFont = `bold ${nameFontSize}px sans-serif`; measure.font = nameFont;
   }
-  ctx.fillText(nameText, W / 2, padY + nameH / 2);
-
-  // 底部数字
-  let codeFontSize = 14;
-  let codeFont = `${codeFontSize}px monospace`;
-  ctx.font = codeFont;
-  while (ctx.measureText(p.barcode).width > W - padX * 2 && codeFontSize > 8) {
-    codeFontSize -= 1;
-    codeFont = `${codeFontSize}px monospace`;
-    ctx.font = codeFont;
+  const nameWidth = measure.measureText(nameText).width;
+  let configWidth = 0; let configFont = 'bold 18px sans-serif';
+  if (configText) {
+    let configFontSize = 18; configFont = `bold ${configFontSize}px sans-serif`;
+    measure.font = configFont;
+    while (measure.measureText(configText).width > maxContentWidth && configFontSize > 10) {
+      configFontSize -= 1; configFont = `bold ${configFontSize}px sans-serif`; measure.font = configFont;
+    }
+    configWidth = measure.measureText(configText).width;
   }
-  ctx.fillText(p.barcode, W / 2, H - codeH / 2 - 1);
-
-  // 二维码
-  const qrSize = Math.min(bodyH - 4, 130);
-  const qrX = padX;
-  const qrY = bodyTop + (bodyH - qrSize) / 2;
-
-  const qrImg = new Image();
-  qrImg.src = qrDataUrl;
-  await new Promise(resolve => { qrImg.onload = resolve; });
-  ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-
-  // 右侧文字
-  const textX = qrX + qrSize + 8;
-  const textW = W - textX - padX;
-  const textCenterX = textX + textW / 2;
-
-  const infoLines = [];
-  const bm = [p.brand, p.model].filter(Boolean).join(' ');
-  if (bm) infoLines.push({ text: bm, maxSize: 15 });
-  const sc = [p.spec, p.color].filter(Boolean).join(' / ');
-  if (sc) infoLines.push({ text: sc, maxSize: 15 });
-  if (p.remark) infoLines.push({ text: '备注：' + p.remark, maxSize: 12 });
-
-  if (infoLines.length > 0) {
-    const lineH = bodyH / Math.max(infoLines.length, 1);
-    let ly = bodyTop + lineH / 2;
-
-    infoLines.forEach(line => {
-      let fs = line.maxSize;
-      let f = `bold ${fs}px sans-serif`;
-      ctx.font = f;
-      while (ctx.measureText(line.text).width > textW && fs > 9) {
-        fs -= 1;
-        f = `bold ${fs}px sans-serif`;
-        ctx.font = f;
-      }
-      ctx.fillStyle = '#000000';
-      ctx.fillText(line.text, textCenterX, ly);
-      ly += lineH;
-    });
+  const contentWidth = Math.max(barcodeCanvas.width, nameWidth, configWidth, codeWidth, 360);
+  const canvas = document.createElement('canvas');
+  canvas.width  = Math.ceil(contentWidth + padding * 2);
+  canvas.height = nameH + (configText ? configH : 0) + barcodeCanvas.height + codeH + padding;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = nameFont; ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
+  let currentY = padding + nameH;
+  if (configText) {
+    ctx.font = configFont; ctx.fillStyle = '#333333';
+    ctx.fillText(configText, canvas.width / 2, currentY + configH / 2);
+    ctx.fillStyle = '#000000'; currentY += configH;
   }
-
+  const bx = (canvas.width - barcodeCanvas.width) / 2;
+  ctx.drawImage(barcodeCanvas, bx, currentY);
+  ctx.font = codeFont; ctx.fillText(p.barcode, canvas.width / 2, currentY + barcodeCanvas.height + codeH / 2);
   return canvas;
 }
 
-/* ==================== 批量下载所有二维码（ZIP） ==================== */
+/* ==================== 批量下载所有条码（ZIP） ==================== */
 async function batchDownloadBarcodes() {
-  if (products.length === 0) {
-    toast('还没有商品，无法下载');
-    return;
-  }
-  if (typeof JSZip === 'undefined') {
-    toast('打包组件未加载，请检查网络后刷新');
-    return;
-  }
-
+  if (products.length === 0) { toast('还没有商品，无法下载'); return; }
+  if (typeof JSZip === 'undefined') { toast('打包组件未加载，请检查网络后刷新'); return; }
   const nameCount = {};
-
   const { mask, close } = showModal(`
-    <div class="modal-title">批量下载二维码</div>
-    <div class="modal-body">
-      正在生成 ${products.length} 张二维码图片...
-      <div id="batchProgress" style="margin-top:10px;font-size:13px;color:#6B7280;">准备中</div>
-    </div>
-  `);
-
+    <div class="modal-title">批量下载条码</div>
+    <div class="modal-body">正在生成 ${products.length} 张条码图片...<div id="batchProgress" style="margin-top:10px;font-size:13px;color:#6B7280;">准备中</div></div>`);
   const progressEl = mask.querySelector('#batchProgress');
-  const zip = new JSZip();
-  const folder = zip.folder('二维码图片');
-
+  const zip = new JSZip(); const folder = zip.folder('条码图片');
   let ok = 0, fail = 0;
-
   for (let i = 0; i < products.length; i++) {
     const p = products[i];
     progressEl.textContent = `正在处理 ${i + 1} / ${products.length}：${p.name}`;
-
-    const canvas = await buildQRCodeCanvas(p);
+    const canvas = buildBarcodeCanvas(p);
     if (!canvas) { fail++; continue; }
-
     const safeName = (p.name || '未命名').replace(/[\\/:*?"<>|]/g, '_').slice(0, 30);
     const safeCode = (p.barcode || 'nocode').replace(/[\\/:*?"<>|]/g, '_');
     let baseName = `${safeName}_${safeCode}`;
-    if (nameCount[baseName]) {
-      nameCount[baseName]++;
-      baseName = `${baseName}(${nameCount[baseName]})`;
-    } else {
-      nameCount[baseName] = 1;
-    }
-
+    if (nameCount[baseName]) { nameCount[baseName]++; baseName = `${baseName}(${nameCount[baseName]})`; } else { nameCount[baseName] = 1; }
     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     if (blob) { folder.file(`${baseName}.png`, blob); ok++; } else { fail++; }
-
     if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
   }
-
   progressEl.textContent = '正在打包 ZIP...';
-
   try {
-    const zipBlob = await zip.generateAsync({ type: 'blob' }, meta => {
-      progressEl.textContent = `正在打包... ${Math.round(meta.percent)}%`;
-    });
-
+    const zipBlob = await zip.generateAsync({ type: 'blob' }, meta => { progressEl.textContent = `正在打包... ${Math.round(meta.percent)}%`; });
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
     const d = new Date(), pad = n => String(n).padStart(2, '0');
-    a.href = url;
-    a.download = `二维码打包_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.zip`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = `条码打包_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.zip`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-    close();
-    toast(`已完成：成功 ${ok} 张${fail ? `，失败 ${fail} 张` : ''}`);
-  } catch (e) {
-    console.error(e);
-    close();
-    toast('打包失败，请重试');
-  }
+    close(); toast(`已完成：成功 ${ok} 张${fail ? `，失败 ${fail} 张` : ''}`);
+  } catch (e) { console.error(e); close(); toast('打包失败，请重试'); }
 }
-
 $('#btnBatchBarcode').addEventListener('click', batchDownloadBarcodes);
 
 /* ==================== 底部 tab / FAB ==================== */
-$$('#tabbar button').forEach(btn => {
-  btn.addEventListener('click', () => showView(btn.dataset.tab));
-});
+$$('#tabbar button').forEach(btn => { btn.addEventListener('click', () => showView(btn.dataset.tab)); });
 $('#fabAdd').addEventListener('click', () => openAdd(null));
 
 /* ==================== 启动 ==================== */
