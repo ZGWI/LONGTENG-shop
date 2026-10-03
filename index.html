@@ -65,7 +65,7 @@
   <header id="topbar">
     <button class="tb-btn hidden" id="btnBack">‹</button>
     <h1 id="tbTitle"><span class="sync-dot" id="syncDot"></span>龙腾手机库存</h1>
-    <button class="tb-btn" id="btnSyncNow" title="立即同步">⟳</button>
+    <button class="tb-btn" id="btnSyncNow" title="本地模式">⟳</button>
   </header>
   <div id="syncBar"></div>
   <main id="main">
@@ -139,73 +139,25 @@
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
-/* ==================== 云同步配置 ==================== */
-// 前端不再直接请求腾讯云 API，而是请求你刚刚部署的云函数代理地址
-const PG_URL = 'https://stock-prod-d7g5eyxxw0e8e4aa8-1499961833.ap-shanghai.app.tcloudbase.com/api/proxy';
-// 云函数内部已经包含了 apikey，前端保留一个占位符即可（用于跳过部分逻辑检查）
-const PG_KEY = 'via-proxy';
-
-let syncState = 'idle';
+/* ==================== 纯本地模式配置 ==================== */
+let syncState = 'ok'; // 永久设定为 ok
 let lastCloudUpdatedAt = 0;
 let pushTimer = null;
 let isApplyingRemote = false;
 
 function setSyncState(state, msg){
-  syncState = state;
+  syncState = 'ok';
   const dot = $('#syncDot');
-  if(dot){ dot.className = 'sync-dot'; if(state==='ok')dot.classList.add('ok'); else if(state==='syncing')dot.classList.add('syncing'); else if(state==='err')dot.classList.add('err'); }
+  if(dot){ dot.className = 'sync-dot ok'; }
   const bar = $('#syncBar');
   if(!bar) return;
-  if(msg){ bar.textContent = msg; bar.className = 'show' + (state==='err'?' err':(state==='ok'?' ok':'')); if(state==='ok') setTimeout(()=>{ if(bar.textContent===msg) bar.className=''; },1500); }
+  if(msg){ bar.textContent = msg; bar.className = 'show ok'; if(state==='ok') setTimeout(()=>{ if(bar.textContent===msg) bar.className=''; },2000); }
 }
-async function pullFromCloud(){
-  if(!PG_KEY) return null;
-  try{ 
-    // 请求云函数代理
-    const res=await fetch(`${PG_URL}?id=eq.stock_data`); 
-    if(!res.ok) return null; 
-    const json=await res.json(); 
-    if(json&&json.length>0){ lastCloudUpdatedAt=json[0].data.updatedAt||0; return json[0].data; } 
-  }catch(e){ console.log('云端暂无数据或拉取失败', e); } 
-  return null;
-}
-async function pushToCloud(){
-  if(!PG_KEY) return; if(isApplyingRemote) return;
-  try{ 
-    setSyncState('syncing','正在同步到云端...'); 
-    // 请求云函数代理
-    const payload={ id:'stock_data', data:{ products, records, updatedAt:Date.now() } }; 
-    const res=await fetch(PG_URL,{ 
-      method:'POST', 
-      headers:{'Content-Type':'application/json'}, 
-      body:JSON.stringify(payload) 
-    }); 
-    if(res.ok){ lastCloudUpdatedAt=payload.data.updatedAt; localStorage.setItem('ss_cloud_time',String(lastCloudUpdatedAt)); setSyncState('ok','已同步到云端'); } 
-    else throw new Error('HTTP '+res.status); 
-  }catch(e){ console.error('推送云端失败',e); setSyncState('err','云端同步失败，数据已存本地'); }
-}
-function scheduleCloudSync(){ clearTimeout(pushTimer); pushTimer=setTimeout(pushToCloud,1200); }
-async function pullAndMerge(){
-  try{ 
-    const remote=await pullFromCloud(); if(!remote) return; 
-    const remoteTime=remote.updatedAt||0; 
-    if(remoteTime>lastCloudUpdatedAt){ 
-      isApplyingRemote=true; 
-      products=remote.products||[]; 
-      records=remote.records||[]; 
-      lastCloudUpdatedAt=remoteTime; 
-      saveLocal(); 
-      localStorage.setItem('ss_cloud_time',String(remoteTime)); 
-      if(currentView==='list')renderProductList(); 
-      if(currentView==='records')renderRecords(); 
-      if(currentView==='detail'&&currentProductId){ const p=findProduct(currentProductId); if(p)renderDetail(p); else showView('list'); } 
-      if(currentView==='analysis')renderAnalysis(); 
-      isApplyingRemote=false; 
-      setSyncState('ok','已从云端更新'); 
-    } 
-  }catch(e){ setSyncState('err','云端连接失败，请检查网络'); }
-}
-function startPolling(){ setInterval(async()=>{ if(document.hidden) return; await pullAndMerge(); },30000); }
+async function pullFromCloud(){ return null; }
+async function pushToCloud(){ return; }
+function scheduleCloudSync(){ /* 本地模式：不执行云端同步 */ }
+async function pullAndMerge(){ /* 本地模式：不执行云端合并 */ }
+function startPolling(){ /* 本地模式：不开启轮询 */ }
 
 /* ==================== 历史快照 ==================== */
 const SNAPSHOT_KEY = 'ss_history';
@@ -245,46 +197,12 @@ function pushSnapshot(type){
 
 let snapshotPushTimer = null;
 function schedulePushSnapshots(){
+  // 纯本地模式，不执行快照云同步
   clearTimeout(snapshotPushTimer);
-  snapshotPushTimer = setTimeout(() => { pushSnapshotsToCloud(getHistory()); }, 3000);
-}
-
-async function pullSnapshotsFromCloud(){
-  if(!PG_KEY) return [];
-  try{
-    const res = await fetch(`${PG_URL}?id=eq.snapshots`);
-    if(!res.ok) return [];
-    const json = await res.json();
-    if(json && json.length > 0){ return json[0].data.snapshots || []; }
-  }catch(e){ console.log('拉取云端快照失败', e); }
-  return [];
-}
-
-async function pushSnapshotsToCloud(list){
-  if(!PG_KEY) return;
-  try{
-    const payload = { id: 'snapshots', data: { snapshots: list, updatedAt: Date.now() } };
-    await fetch(PG_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    console.log('快照已同步到云端');
-  }catch(e){ console.error('推送云端快照失败', e); }
 }
 
 async function mergeSnapshotsWithCloud(){
-  const local = getHistory();
-  const remote = await pullSnapshotsFromCloud();
-  const map = new Map();
-  local.forEach(s => map.set(s.id, s));
-  remote.forEach(s => { if(!map.has(s.id)) map.set(s.id, s); });
-  const merged = Array.from(map.values()).sort((a,b) => b.time - a.time).slice(0, MAX_SNAPSHOTS);
-  saveHistory(merged);
-  if(merged.length !== remote.length || local.length > remote.length){
-    pushSnapshotsToCloud(merged);
-  }
-  return merged;
+  return getHistory(); // 直接返回本地历史
 }
 
 function restoreSnapshot(snapId){
@@ -334,7 +252,7 @@ async function openHistoryDialog(){
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="manual"]').onclick = () => {
     pushSnapshot('manual');
-    toast('已保存当前快照，正在同步到云端');
+    toast('已保存当前快照（本地）');
     close();
     setTimeout(openHistoryDialog, 500);
   };
@@ -362,7 +280,7 @@ async function openHistoryDialog(){
         const res = restoreSnapshot(id);
         c2();
         if(res.ok){
-          toast('已恢复快照，正在同步到云端');
+          toast('已恢复快照（本地）');
           close();
           refreshCurrentView();
         } else {
@@ -437,7 +355,7 @@ function showView(name){
   currentView=name;$$('.view').forEach(v=>v.classList.remove('active'));
   const el=$('#view-'+name);if(el)el.classList.add('active');
   $('#tbTitle').innerHTML='<span class="sync-dot" id="syncDot"></span>'+(TITLES[name]||'龙腾手机库存');
-  const dot=$('#syncDot');if(dot){dot.className='sync-dot'+(syncState==='ok'?' ok':syncState==='syncing'?' syncing':syncState==='err'?' err':'');}
+  const dot=$('#syncDot');if(dot){dot.className='sync-dot ok';}
   const isRoot=(name==='list'||name==='scan'||name==='analysis'||name==='records');
   $('#btnBack').classList.toggle('hidden',isRoot);$('#tabbar').classList.toggle('hidden',!isRoot);
   $('#fabAdd').style.display=(name==='list')?'flex':'none';
@@ -445,7 +363,7 @@ function showView(name){
   if(name==='list')renderProductList();if(name==='records')renderRecords();if(name==='scan')startScan();if(name==='analysis')renderAnalysis();updateIndexBarVisibility();
 }
 $('#btnBack').addEventListener('click',()=>showView('list'));
-$('#btnSyncNow').addEventListener('click',async()=>{toast('正在从云端拉取...');await pullAndMerge();toast('已同步');});
+$('#btnSyncNow').addEventListener('click',()=>{toast('当前为本地模式，数据已自动保存在本机');});
 
 /* ==================== 商品列表 ==================== */
 let searchKeyword='';let currentCategory='all';let currentSort=localStorage.getItem('ss_sort_mode')||'default';
@@ -484,7 +402,7 @@ function showQuickMenu(id){const p=findProduct(id);if(!p)return;const cat=getPro
 /* ==================== 新增/编辑 ==================== */
 function openAdd(id=null,presetBarcode=''){
   editingId=id;showView('add');$('#tbTitle').innerHTML='<span class="sync-dot" id="syncDot"></span>'+(id?'编辑商品':'新增商品');
-  const dot=$('#syncDot');if(dot){dot.className='sync-dot'+(syncState==='ok'?' ok':syncState==='syncing'?' syncing':syncState==='err'?' err':'');}
+  const dot=$('#syncDot');if(dot){dot.className='sync-dot ok';}
   const p=id?findProduct(id):null;if(id&&!p){toast('商品不存在');showView('list');return;}
   $('#fName').value=p?p.name:'';$('#fBrand').value=p?p.brand:'';$('#fModel').value=p?p.model:'';$('#fSpec').value=p?p.spec:'';$('#fColor').value=p?p.color:'';$('#fBarcode').value=p?p.barcode:(presetBarcode||'');$('#fPriceIn').value=p&&p.priceIn?p.priceIn:'';$('#fPriceOut').value=p&&p.priceOut?p.priceOut:'';$('#fStock').value=p?p.stock:0;$('#fWarn').value=p?p.warnStock:2;$('#fRemark').value=p?p.remark:'';
   $('#lbStock').textContent=p?'当前库存（通过出入库变更）':'初始库存';$('#fStock').disabled=!!p;$('#btnSaveProduct').disabled=false;$('#btnSaveProduct').textContent=p?'保存修改':'保存';
@@ -652,7 +570,7 @@ $('#btnBatchPrint').addEventListener('click',openBatchPrint);
 $$('#tabbar button').forEach(btn=>{btn.addEventListener('click',()=>showView(btn.dataset.tab));});
 $('#fabAdd').addEventListener('click',()=>openAdd(null));
 
-/* ==================== 启动 ==================== */
+/* ==================== 启动（纯本地模式） ==================== */
 (async function boot(){
   loadLocal();
   showView('list');
@@ -660,24 +578,7 @@ $('#fabAdd').addEventListener('click',()=>openAdd(null));
   if(hist.length === 0 && (products.length > 0 || records.length > 0)){
     pushSnapshot('manual');
   }
-  setSyncState('syncing','正在连接云端...');
-
-  // 从云端拉取并合并历史快照
-  try{ await mergeSnapshotsWithCloud(); }catch(e){ console.error('快照同步失败', e); }
-
-  const remote = await pullFromCloud();
-  if(remote){
-    isApplyingRemote = true;
-    products = remote.products || [];
-    records  = remote.records  || [];
-    saveLocal();
-    isApplyingRemote = false;
-    renderProductList();
-    setSyncState('ok', '已从云端加载');
-  } else {
-    await pushToCloud();
-  }
-  startPolling();
+  setSyncState('ok', '本地模式，数据仅保存在本机');
 })();
 </script>
 </body>
