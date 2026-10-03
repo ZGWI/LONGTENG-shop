@@ -11,278 +11,173 @@
 <script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
 <style>
 :root{
-  --ios-blue:#007AFF;
-  --ios-blue-dark:#0051D5;
-  --ios-green:#34C759;
-  --ios-red:#FF3B30;
-  --ios-orange:#FF9500;
-  --ios-purple:#AF52DE;
-  --ios-pink:#FF2D55;
-  --ios-indigo:#5856D6;
-  --ios-teal:#5AC8FA;
-  --ios-yellow:#FFCC00;
-
-  --text:#1C1C1E;
-  --text2:rgba(60,60,67,.6);
-  --text3:rgba(60,60,67,.3);
-
-  --bg-system:#F2F2F7;
-  --bg-elevated:rgba(255,255,255,.72);
-  --bg-card:rgba(255,255,255,.78);
+  --ios-blue:#007AFF;--ios-blue-dark:#0051D5;--ios-green:#34C759;--ios-red:#FF3B30;
+  --ios-orange:#FF9500;--ios-purple:#AF52DE;--ios-pink:#FF2D55;--ios-indigo:#5856D6;
+  --ios-teal:#5AC8FA;--ios-yellow:#FFCC00;
+  --text:#1C1C1E;--text2:rgba(60,60,67,.6);--text3:rgba(60,60,67,.3);
+  --bg-system:#F2F2F7;--bg-elevated:rgba(255,255,255,.72);--bg-card:rgba(255,255,255,.78);
   --bg-input:rgba(120,120,128,.12);
-
-  --separator:rgba(60,60,67,.29);
-  --separator-soft:rgba(60,60,67,.12);
-
+  --separator:rgba(60,60,67,.29);--separator-soft:rgba(60,60,67,.12);
   --glass-border:rgba(255,255,255,.6);
-
-  --radius-lg:28px;
-  --radius:22px;
-  --radius-sm:16px;
-  --radius-xs:12px;
-
-  --shadow-1:0 1px 2px rgba(0,0,0,.04), 0 1px 4px rgba(0,0,0,.04);
-  --shadow-2:0 2px 8px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
-  --shadow-3:0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
-  --shadow-blue:0 8px 24px rgba(0,122,255,.32), 0 2px 6px rgba(0,122,255,.16);
+  --radius-lg:28px;--radius:22px;--radius-sm:16px;--radius-xs:12px;
+  --shadow-1:0 1px 2px rgba(0,0,0,.04),0 1px 4px rgba(0,0,0,.04);
+  --shadow-2:0 2px 8px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.06);
+  --shadow-3:0 8px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);
+  --shadow-blue:0 8px 24px rgba(0,122,255,.32),0 2px 6px rgba(0,122,255,.16);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  background:#C7C7CC;
-  color:var(--text);font-size:15px;overflow:hidden;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  letter-spacing:-.01em;
+  background:#C7C7CC;color:var(--text);font-size:15px;overflow:hidden;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;letter-spacing:-.01em;
 }
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(0,122,255,.15), transparent 60%),
-    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(175,82,222,.12), transparent 60%),
-    radial-gradient(ellipse 50% 30% at 0% 100%, rgba(52,199,89,.08), transparent 60%);
+  background:radial-gradient(ellipse 60% 40% at 20% 0%,rgba(0,122,255,.15),transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 100%,rgba(175,82,222,.12),transparent 60%),
+    radial-gradient(ellipse 50% 30% at 0% 100%,rgba(52,199,89,.08),transparent 60%);
 }
 #app{
   max-width:640px;margin:0 auto;height:100vh;height:100dvh;
-  display:flex;flex-direction:column;
-  position:relative;overflow:hidden;
-  background:linear-gradient(180deg, #F7F8FC 0%, #F2F2F7 100%);
-  box-shadow:0 0 60px rgba(0,0,0,.1);
-  z-index:1;
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#F7F8FC 0%,#F2F2F7 100%);
+  box-shadow:0 0 60px rgba(0,0,0,.1);z-index:1;
 }
 #topbar{
-  height:58px;flex:none;display:flex;align-items:center;
-  padding:0 8px;
+  height:58px;flex:none;display:flex;align-items:center;padding:0 8px;
   background:rgba(255,255,255,.72);
-  backdrop-filter:saturate(180%) blur(24px);
-  -webkit-backdrop-filter:saturate(180%) blur(24px);
-  border-bottom:.5px solid var(--separator-soft);
-  z-index:10;position:relative;
+  backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);
+  border-bottom:.5px solid var(--separator-soft);z-index:10;position:relative;
 }
 #topbar .tb-btn{
-  width:40px;height:40px;border:0;background:transparent;
-  color:var(--ios-blue);font-size:19px;
-  border-radius:50%;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .18s cubic-bezier(.4,0,.2,1);
-  font-weight:500;
+  width:40px;height:40px;border:0;background:transparent;color:var(--ios-blue);
+  font-size:19px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .18s cubic-bezier(.4,0,.2,1);font-weight:500;
 }
 #topbar .tb-btn:active{background:rgba(120,120,128,.12);transform:scale(.94);}
 #topbar .tb-btn.hidden{visibility:hidden;}
 #topbar h1{
-  flex:1;text-align:center;font-size:17px;margin:0;
-  font-weight:600;letter-spacing:-.4px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  color:var(--text);
+  flex:1;text-align:center;font-size:17px;margin:0;font-weight:600;letter-spacing:-.4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);
   display:flex;align-items:center;justify-content:center;gap:6px;
 }
 #main{flex:1;position:relative;overflow:hidden;}
 .view{
   position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  display:none;padding-bottom:24px;
-  animation:viewIn .28s cubic-bezier(.4,0,.2,1);
+  display:none;padding-bottom:24px;animation:viewIn .28s cubic-bezier(.4,0,.2,1);
 }
 .view.active{display:block;}
-@keyframes viewIn{
-  from{opacity:0;transform:translateY(6px);}
-  to{opacity:1;transform:translateY(0);}
-}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 #tabbar{
-  flex:none;height:58px;display:flex;
-  background:rgba(255,255,255,.72);
-  backdrop-filter:saturate(180%) blur(24px);
-  -webkit-backdrop-filter:saturate(180%) blur(24px);
-  border-top:.5px solid var(--separator-soft);
-  z-index:10;position:relative;
+  flex:none;height:58px;display:flex;background:rgba(255,255,255,.72);
+  backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);
+  border-top:.5px solid var(--separator-soft);z-index:10;position:relative;
   padding-bottom:env(safe-area-inset-bottom,0);
 }
 #tabbar.hidden{display:none;}
 #tabbar button{
-  flex:1;border:0;background:transparent;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:2px;
-  font-size:10.5px;color:var(--text2);cursor:pointer;
-  padding:4px 0;position:relative;
-  transition:all .2s cubic-bezier(.4,0,.2,1);
+  flex:1;border:0;background:transparent;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;font-size:10.5px;color:var(--text2);
+  cursor:pointer;padding:4px 0;position:relative;transition:all .2s cubic-bezier(.4,0,.2,1);
   font-weight:500;letter-spacing:-.2px;
 }
 #tabbar button .ic{
-  font-size:22px;line-height:1;
-  transition:transform .25s cubic-bezier(.4,0,.2,1);
-  filter:grayscale(.6);
-  opacity:.7;
+  font-size:22px;line-height:1;transition:transform .25s cubic-bezier(.4,0,.2,1);
+  filter:grayscale(.6);opacity:.7;
 }
 #tabbar button.active{color:var(--ios-blue);font-weight:600;}
-#tabbar button.active .ic{
-  transform:scale(1.08);
-  filter:none;opacity:1;
-}
+#tabbar button.active .ic{transform:scale(1.08);filter:none;opacity:1;}
 .search-wrap{padding:12px 16px 8px;position:relative;}
 .search-wrap input{
-  width:100%;height:38px;
-  border:0;border-radius:12px;
-  padding:0 16px 0 38px;font-size:16px;
-  background:var(--bg-input);
-  outline:none;color:var(--text);
-  transition:all .2s cubic-bezier(.4,0,.2,1);
-  font-weight:400;letter-spacing:-.2px;
+  width:100%;height:38px;border:0;border-radius:12px;padding:0 16px 0 38px;font-size:16px;
+  background:var(--bg-input);outline:none;color:var(--text);
+  transition:all .2s cubic-bezier(.4,0,.2,1);font-weight:400;letter-spacing:-.2px;
 }
 .search-wrap input::placeholder{color:var(--text3);}
-.search-wrap input:focus{
-  background:rgba(120,120,128,.16);
-  box-shadow:0 0 0 4px rgba(0,122,255,.12);
-}
+.search-wrap input:focus{background:rgba(120,120,128,.16);box-shadow:0 0 0 4px rgba(0,122,255,.12);}
 .search-wrap::before{
-  content:"";position:absolute;left:28px;top:50%;
-  transform:translateY(-60%);
-  width:15px;height:15px;
-  background:
-    radial-gradient(circle at 50% 50%, transparent 4.5px, rgba(60,60,67,.5) 4.5px, rgba(60,60,67,.5) 5.5px, transparent 5.5px);
-  pointer-events:none;
-  z-index:1;
+  content:"";position:absolute;left:28px;top:50%;transform:translateY(-60%);width:15px;height:15px;
+  background:radial-gradient(circle at 50% 50%,transparent 4.5px,rgba(60,60,67,.5) 4.5px,rgba(60,60,67,.5) 5.5px,transparent 5.5px);
+  pointer-events:none;z-index:1;
 }
 .search-wrap::after{
   content:"";position:absolute;left:40px;top:58%;width:5px;height:1.5px;
-  background:rgba(60,60,67,.5);transform:rotate(45deg);
-  border-radius:2px;pointer-events:none;z-index:1;
+  background:rgba(60,60,67,.5);transform:rotate(45deg);border-radius:2px;pointer-events:none;z-index:1;
 }
-
-/* ============ 分类标签 ============ */
 .cat-tabs{
-  display:flex;gap:6px;padding:4px 16px 4px;
-  overflow-x:auto;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
+  display:flex;gap:6px;padding:4px 16px 4px;overflow-x:auto;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
 }
 .cat-tabs::-webkit-scrollbar{display:none;}
 .cat-tabs button{
-  flex:none;height:34px;padding:0 16px;border:0;
-  background:rgba(120,120,128,.08);
-  border-radius:100px;
-  font-size:13.5px;color:var(--text);
-  cursor:pointer;font-weight:500;
-  white-space:nowrap;
-  transition:all .2s cubic-bezier(.4,0,.2,1);
-  letter-spacing:-.2px;
+  flex:none;height:34px;padding:0 16px;border:0;background:rgba(120,120,128,.08);
+  border-radius:100px;font-size:13.5px;color:var(--text);cursor:pointer;font-weight:500;
+  white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);letter-spacing:-.2px;
   display:flex;align-items:center;gap:5px;
 }
 .cat-tabs button:active{transform:scale(.96);}
 .cat-tabs button.active{
-  background:linear-gradient(180deg,#3395FF,#007AFF);
-  color:#fff;font-weight:600;
+  background:linear-gradient(180deg,#3395FF,#007AFF);color:#fff;font-weight:600;
   box-shadow:0 4px 12px rgba(0,122,255,.28);
 }
 .cat-tabs button .count{
-  font-size:11.5px;opacity:.65;
-  padding:1px 6px;border-radius:100px;
+  font-size:11.5px;opacity:.65;padding:1px 6px;border-radius:100px;
   background:rgba(255,255,255,.3);
 }
-.cat-tabs button:not(.active) .count{
-  background:rgba(120,120,128,.12);
-}
-
+.cat-tabs button:not(.active) .count{background:rgba(120,120,128,.12);}
 .list{padding:6px 16px 100px;}
 .card{
   background:var(--bg-card);
-  backdrop-filter:saturate(180%) blur(20px);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-radius:var(--radius);
-  padding:14px 16px;
-  margin-bottom:10px;
-  border:.5px solid var(--glass-border);
-  box-shadow:var(--shadow-2);
-  cursor:pointer;
-  transition:all .22s cubic-bezier(.4,0,.2,1);
-  position:relative;overflow:hidden;
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;
+  border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);cursor:pointer;
+  transition:all .22s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
 }
 .card::after{
-  content:"";position:absolute;inset:0;border-radius:inherit;
-  pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 40%);
-  opacity:.5;
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 40%);opacity:.5;
 }
 .card:active{transform:scale(.98);box-shadow:var(--shadow-1);}
 .product-item{display:flex;gap:12px;align-items:flex-start;position:relative;z-index:1;}
 .pi-main{flex:1;min-width:0;}
-.pi-name-row{
-  display:flex;align-items:center;gap:6px;
-  margin-bottom:4px;
-  min-width:0;
-}
+.pi-name-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;min-width:0;}
 .cat-badge{
-  flex:none;
-  display:inline-block;font-size:10.5px;font-weight:700;
-  padding:2px 7px;border-radius:6px;
-  letter-spacing:-.1px;
-  line-height:1.4;
+  flex:none;display:inline-block;font-size:10.5px;font-weight:700;
+  padding:2px 7px;border-radius:6px;letter-spacing:-.1px;line-height:1.4;
 }
-.cat-badge.apple{
-  background:rgba(0,122,255,.14);
-  color:var(--ios-blue);
-}
-.cat-badge.android{
-  background:rgba(52,199,89,.14);
-  color:var(--ios-green);
-}
-.cat-badge.other{
-  background:rgba(120,120,128,.14);
-  color:var(--text2);
-}
+.cat-badge.apple{background:rgba(0,122,255,.14);color:var(--ios-blue);}
+.cat-badge.android{background:rgba(52,199,89,.14);color:var(--ios-green);}
+.cat-badge.other{background:rgba(120,120,128,.14);color:var(--text2);}
 .pi-name{
-  flex:1;min-width:0;
-  font-size:16px;font-weight:600;
-  color:var(--text);letter-spacing:-.3px;line-height:1.25;
+  flex:1;min-width:0;font-size:16px;font-weight:600;color:var(--text);
+  letter-spacing:-.3px;line-height:1.25;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.pi-name mark{
+  background:rgba(255,204,0,.4);
+  color:inherit;
+  padding:0 1px;
+  border-radius:2px;
+}
 .pi-sub{
-  font-size:13px;color:var(--text2);margin-bottom:6px;
-  letter-spacing:-.1px;
+  font-size:13px;color:var(--text2);margin-bottom:6px;letter-spacing:-.1px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .pi-code{
   font-size:11.5px;color:var(--text2);
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  letter-spacing:.2px;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.pi-right{
-  flex:none;display:flex;flex-direction:column;
-  gap:6px;align-items:flex-end;
-}
+.pi-right{flex:none;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
 .pi-stock{
-  font-size:13px;font-weight:600;
-  padding:4px 11px;border-radius:100px;
-  background:rgba(52,199,89,.14);color:var(--ios-green);
-  letter-spacing:-.1px;
+  font-size:13px;font-weight:600;padding:4px 11px;border-radius:100px;
+  background:rgba(52,199,89,.14);color:var(--ios-green);letter-spacing:-.1px;
 }
 .pi-stock.ok{background:rgba(52,199,89,.14);color:var(--ios-green);}
 .pi-stock.warn{background:rgba(255,149,0,.14);color:var(--ios-orange);}
 .pi-stock.danger{background:rgba(255,59,48,.14);color:var(--ios-red);}
-.pi-price{
-  font-size:15px;color:var(--ios-blue);
-  font-weight:700;letter-spacing:-.3px;
-}
+.pi-price{font-size:15px;color:var(--ios-blue);font-weight:700;letter-spacing:-.3px;}
 .empty{
   text-align:center;color:var(--text2);font-size:14px;
   padding:80px 24px;line-height:2;letter-spacing:-.2px;
@@ -293,39 +188,30 @@ body::before{
   width:56px;height:56px;border-radius:50%;border:0;
   background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%);
   color:#fff;font-size:30px;line-height:1;font-weight:300;
-  box-shadow:var(--shadow-blue);
-  cursor:pointer;z-index:9;
+  box-shadow:var(--shadow-blue);cursor:pointer;z-index:9;
   display:flex;align-items:center;justify-content:center;
   transition:all .22s cubic-bezier(.4,0,.2,1);
 }
-@media (max-width:676px){ .fab{right:20px;} }
+@media (max-width:676px){.fab{right:20px;}}
 .fab:active{transform:scale(.9);box-shadow:0 4px 12px rgba(0,122,255,.24);}
 .fab::before{
   content:"";position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 50%);
-  pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 50%);pointer-events:none;
 }
 .form-body{padding:20px 16px 60px;}
 .field{margin-bottom:18px;flex:1;min-width:0;}
 .field label{
-  display:block;font-size:13px;color:var(--text2);
-  margin-bottom:6px;font-weight:500;letter-spacing:-.1px;
-  padding-left:4px;
+  display:block;font-size:13px;color:var(--text2);margin-bottom:6px;
+  font-weight:500;letter-spacing:-.1px;padding-left:4px;
 }
 .field .req{color:var(--ios-red);}
 .field input,.field textarea{
-  width:100%;border:0;border-radius:12px;
-  padding:11px 14px;font-size:16px;
-  background:var(--bg-input);outline:none;
-  font-family:inherit;color:var(--text);
-  transition:all .2s cubic-bezier(.4,0,.2,1);
-  font-weight:400;letter-spacing:-.2px;
+  width:100%;border:0;border-radius:12px;padding:11px 14px;font-size:16px;
+  background:var(--bg-input);outline:none;font-family:inherit;color:var(--text);
+  transition:all .2s cubic-bezier(.4,0,.2,1);font-weight:400;letter-spacing:-.2px;
 }
 .field input::placeholder,.field textarea::placeholder{color:var(--text3);}
-.field input:focus,.field textarea:focus{
-  background:rgba(120,120,128,.16);
-  box-shadow:0 0 0 4px rgba(0,122,255,.12);
-}
+.field input:focus,.field textarea:focus{background:rgba(120,120,128,.16);box-shadow:0 0 0 4px rgba(0,122,255,.12);}
 .field input:disabled{background:rgba(120,120,128,.08);color:var(--text3);cursor:not-allowed;}
 .row2{display:flex;gap:12px;}
 .input-with-actions{display:flex;gap:8px;align-items:center;}
@@ -333,61 +219,44 @@ body::before{
 .mini-btn{
   flex:none;height:38px;padding:0 16px;border:0;
   background:rgba(0,122,255,.1);color:var(--ios-blue);
-  border-radius:12px;font-size:14px;font-weight:500;
-  cursor:pointer;white-space:nowrap;
-  transition:all .18s cubic-bezier(.4,0,.2,1);
-  letter-spacing:-.2px;
+  border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;
+  transition:all .18s cubic-bezier(.4,0,.2,1);letter-spacing:-.2px;
 }
 .mini-btn:active{background:rgba(0,122,255,.2);transform:scale(.96);}
 .btn-primary{
   width:100%;height:50px;border:0;border-radius:14px;
   background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%);
-  color:#fff;font-size:17px;font-weight:600;
-  cursor:pointer;margin-top:14px;
-  letter-spacing:-.3px;
-  box-shadow:var(--shadow-blue);
-  transition:all .2s cubic-bezier(.4,0,.2,1);
-  position:relative;overflow:hidden;
+  color:#fff;font-size:17px;font-weight:600;cursor:pointer;margin-top:14px;
+  letter-spacing:-.3px;box-shadow:var(--shadow-blue);
+  transition:all .2s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
 }
 .btn-primary::before{
   content:"";position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 50%);
-  pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 50%);pointer-events:none;
 }
 .btn-primary:active{transform:scale(.98);box-shadow:0 4px 12px rgba(0,122,255,.24);}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
 .btn-plain{
-  width:100%;height:46px;border:0;
-  background:rgba(120,120,128,.12);
-  color:var(--text);font-size:16px;font-weight:500;
-  border-radius:12px;cursor:pointer;
-  transition:all .18s cubic-bezier(.4,0,.2,1);
-  letter-spacing:-.2px;
+  width:100%;height:46px;border:0;background:rgba(120,120,128,.12);
+  color:var(--text);font-size:16px;font-weight:500;border-radius:12px;cursor:pointer;
+  transition:all .18s cubic-bezier(.4,0,.2,1);letter-spacing:-.2px;
 }
 .btn-plain:active{background:rgba(120,120,128,.2);transform:scale(.98);}
 .detail-body{padding:20px 16px 60px;}
-.d-name{
-  font-size:26px;font-weight:700;
-  margin:0 0 4px;letter-spacing:-.7px;line-height:1.2;
-}
+.d-name{font-size:26px;font-weight:700;margin:0 0 4px;letter-spacing:-.7px;line-height:1.2;}
 .d-sub{font-size:14px;color:var(--text2);margin-bottom:12px;letter-spacing:-.2px;}
 .d-badge{
-  display:inline-block;font-size:14px;font-weight:600;
-  padding:6px 16px;border-radius:100px;
-  background:rgba(52,199,89,.14);color:var(--ios-green);
-  letter-spacing:-.2px;
+  display:inline-block;font-size:14px;font-weight:600;padding:6px 16px;border-radius:100px;
+  background:rgba(52,199,89,.14);color:var(--ios-green);letter-spacing:-.2px;
 }
 .d-badge.ok{background:rgba(52,199,89,.14);color:var(--ios-green);}
 .d-badge.warn{background:rgba(255,149,0,.14);color:var(--ios-orange);}
 .d-badge.danger{background:rgba(255,59,48,.14);color:var(--ios-red);}
 .barcode-box{
-  background:var(--bg-card);
-  backdrop-filter:saturate(180%) blur(20px);
+  background:var(--bg-card);backdrop-filter:saturate(180%) blur(20px);
   -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-radius:var(--radius);padding:22px;
-  margin:18px 0;text-align:center;
-  border:.5px solid var(--glass-border);
-  box-shadow:var(--shadow-2);
+  border-radius:var(--radius);padding:22px;margin:18px 0;text-align:center;
+  border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);
   position:relative;overflow:hidden;
 }
 .barcode-box::after{
@@ -398,135 +267,91 @@ body::before{
 .barcode-box svg{width:100%;height:auto;max-height:140px;display:block;position:relative;z-index:1;}
 .barcode-box img{max-width:160px;height:auto;display:block;margin:0 auto;position:relative;z-index:1;}
 .barcode-text{
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  font-size:13px;letter-spacing:1.5px;
-  margin-top:10px;color:var(--text2);
-  position:relative;z-index:1;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;
+  letter-spacing:1.5px;margin-top:10px;color:var(--text2);position:relative;z-index:1;
 }
 .d-actions{display:flex;gap:12px;margin-bottom:14px;}
 .d-actions button{
-  flex:1;height:50px;border:0;border-radius:14px;
-  font-size:16px;font-weight:600;cursor:pointer;
-  letter-spacing:-.2px;
-  transition:all .2s cubic-bezier(.4,0,.2,1);
+  flex:1;height:50px;border:0;border-radius:14px;font-size:16px;font-weight:600;
+  cursor:pointer;letter-spacing:-.2px;transition:all .2s cubic-bezier(.4,0,.2,1);
   position:relative;overflow:hidden;
 }
 .d-actions button::before{
   content:"";position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 50%);
-  pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 50%);pointer-events:none;
 }
 .d-actions button:active{transform:scale(.98);}
 .btn-in{
-  background:linear-gradient(180deg,#40D86E 0%,#34C759 100%);
-  color:#fff;
+  background:linear-gradient(180deg,#40D86E 0%,#34C759 100%);color:#fff;
   box-shadow:0 8px 24px rgba(52,199,89,.32),0 2px 6px rgba(52,199,89,.16);
 }
 .btn-out{
-  background:rgba(255,255,255,.9);
-  color:var(--ios-red);
-  box-shadow:var(--shadow-1);
-  border:.5px solid rgba(255,59,48,.2)!important;
+  background:rgba(255,255,255,.9);color:var(--ios-red);
+  box-shadow:var(--shadow-1);border:.5px solid rgba(255,59,48,.2)!important;
 }
 .d-mini{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
 .d-mini button{
-  flex:1;min-width:76px;height:40px;
-  border:0;background:rgba(255,255,255,.9);
-  border-radius:12px;
-  font-size:12.5px;color:var(--text);cursor:pointer;
-  font-weight:500;letter-spacing:-.2px;
-  box-shadow:var(--shadow-1);
-  transition:all .18s cubic-bezier(.4,0,.2,1);
+  flex:1;min-width:76px;height:40px;border:0;background:rgba(255,255,255,.9);
+  border-radius:12px;font-size:12.5px;color:var(--text);cursor:pointer;font-weight:500;
+  letter-spacing:-.2px;box-shadow:var(--shadow-1);transition:all .18s cubic-bezier(.4,0,.2,1);
 }
 .d-mini button:active{transform:scale(.96);box-shadow:none;}
 .btn-ble{
   background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%)!important;
-  color:#fff!important;
-  font-weight:600!important;
-  box-shadow:var(--shadow-blue)!important;
+  color:#fff!important;font-weight:600!important;box-shadow:var(--shadow-blue)!important;
 }
 .section-title{
-  font-size:13px;font-weight:600;
-  margin:24px 0 10px;color:var(--text2);
-  letter-spacing:.2px;
-  padding-left:4px;
-  text-transform:uppercase;
+  font-size:13px;font-weight:600;margin:24px 0 10px;color:var(--text2);
+  letter-spacing:.2px;padding-left:4px;text-transform:uppercase;
 }
 .info-box{
-  background:var(--bg-card);
-  backdrop-filter:saturate(180%) blur(20px);
+  background:var(--bg-card);backdrop-filter:saturate(180%) blur(20px);
   -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-radius:var(--radius);padding:16px 18px;
-  font-size:15px;line-height:2;
-  border:.5px solid var(--glass-border);
-  box-shadow:var(--shadow-2);
-  letter-spacing:-.2px;
+  border-radius:var(--radius);padding:16px 18px;font-size:15px;line-height:2;
+  border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);letter-spacing:-.2px;
 }
 .info-box b{color:var(--text2);font-weight:400;display:inline-block;min-width:68px;}
 .info-box > div + div{border-top:.5px solid var(--separator-soft);padding-top:6px;margin-top:6px;}
-
 .rec-item{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 0;
-  border-bottom:.5px solid var(--separator-soft);
-  transition:background .15s;
+  display:flex;align-items:center;gap:12px;padding:12px 0;
+  border-bottom:.5px solid var(--separator-soft);transition:background .15s;
 }
 .rec-item:last-child{border-bottom:0;}
 .rec-item.clickable{cursor:pointer;}
 .rec-item.clickable:active{background:rgba(120,120,128,.06);}
 .rec-type{
-  flex:none;padding:3px 10px;border-radius:8px;
-  font-size:11.5px;font-weight:700;letter-spacing:.2px;
+  flex:none;padding:3px 10px;border-radius:8px;font-size:11.5px;font-weight:700;letter-spacing:.2px;
 }
 .rec-type.in{color:var(--ios-green);background:rgba(52,199,89,.14);}
 .rec-type.out{color:var(--ios-red);background:rgba(255,59,48,.14);}
 .rec-main{flex:1;min-width:0;}
 .rec-name{
-  font-size:14.5px;font-weight:500;
-  letter-spacing:-.2px;
+  font-size:14.5px;font-weight:500;letter-spacing:-.2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .rec-time{font-size:12px;color:var(--text2);margin-top:2px;letter-spacing:-.1px;}
 .rec-time .price-tag{color:var(--ios-green);font-weight:600;}
 .rec-qty{
   flex:none;font-size:16px;font-weight:700;
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  letter-spacing:-.3px;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.3px;
 }
 .rec-qty.in{color:var(--ios-green);}
 .rec-qty.out{color:var(--ios-red);}
-.rec-arrow{
-  flex:none;color:var(--text3);
-  font-size:18px;font-weight:300;
-  margin-left:-4px;
-  line-height:1;
-}
-
+.rec-arrow{flex:none;color:var(--text3);font-size:18px;font-weight:300;margin-left:-4px;line-height:1;}
 .detail-info-box{
-  background:rgba(120,120,128,.06);
-  border-radius:14px;
-  padding:14px 16px;
-  font-size:14.5px;
-  line-height:2;
-  margin-bottom:16px;
-  text-align:left;
-  letter-spacing:-.2px;
+  background:rgba(120,120,128,.06);border-radius:14px;padding:14px 16px;
+  font-size:14.5px;line-height:2;margin-bottom:16px;text-align:left;letter-spacing:-.2px;
 }
 .detail-info-box .di-row{
-  display:flex;justify-content:space-between;
-  align-items:baseline;gap:10px;
-  padding:5px 0;
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;
 }
 .detail-info-box .di-row + .di-row{border-top:.5px solid var(--separator-soft);}
 .detail-info-box .di-label{color:var(--text2);flex:none;font-size:13.5px;}
 .detail-info-box .di-value{
-  color:var(--text);font-weight:500;
-  text-align:right;flex:1;min-width:0;
-  word-break:break-all;
+  color:var(--text);font-weight:500;text-align:right;flex:1;min-width:0;word-break:break-all;
 }
 .detail-info-box .di-value.mono{
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  font-size:13px;color:var(--text2);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;color:var(--text2);
 }
 .detail-info-box .di-value.green{color:var(--ios-green);font-weight:700;}
 .detail-info-box .di-value.red{color:var(--ios-red);font-weight:700;}
@@ -538,281 +363,180 @@ body::before{
 }
 .detail-tag.in{background:rgba(52,199,89,.14);color:var(--ios-green);}
 .detail-tag.out{background:rgba(255,59,48,.14);color:var(--ios-red);}
-
 .scan-tabs{
   display:flex;gap:6px;padding:14px 16px 12px;
-  background:rgba(120,120,128,.08);
-  border-radius:12px;margin:12px 16px 0;
+  background:rgba(120,120,128,.08);border-radius:12px;margin:12px 16px 0;
 }
 .scan-tabs button{
-  flex:1;height:34px;border:0;background:transparent;
-  border-radius:9px;font-size:13.5px;color:var(--text);
-  cursor:pointer;font-weight:500;letter-spacing:-.2px;
-  transition:all .22s cubic-bezier(.4,0,.2,1);
+  flex:1;height:34px;border:0;background:transparent;border-radius:9px;
+  font-size:13.5px;color:var(--text);cursor:pointer;font-weight:500;
+  letter-spacing:-.2px;transition:all .22s cubic-bezier(.4,0,.2,1);
 }
 .scan-tabs button:active{transform:scale(.96);}
 .scan-tabs button.active{
-  background:#fff;
-  color:var(--text);
-  font-weight:600;
+  background:#fff;color:var(--text);font-weight:600;
   box-shadow:0 3px 8px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
 }
 .scan-reader{
-  width:calc(100% - 32px);
-  margin:14px 16px 0;
-  aspect-ratio:1 / 1;
-  max-height:70vh;
-  background:#000;
-  border-radius:var(--radius);
-  overflow:hidden;position:relative;
-  box-shadow:var(--shadow-3);
-  cursor:pointer;
+  width:calc(100% - 32px);margin:14px 16px 0;aspect-ratio:1/1;max-height:70vh;
+  background:#000;border-radius:var(--radius);overflow:hidden;position:relative;
+  box-shadow:var(--shadow-3);cursor:pointer;
 }
 .scan-reader video{width:100%!important;height:100%!important;object-fit:cover;}
 .scan-tip{
   text-align:center;font-size:13.5px;color:var(--text2);
   padding:14px 24px;line-height:1.7;letter-spacing:-.2px;
 }
-.scan-tip .scan-hint{
-  display:block;font-size:11.5px;color:var(--text3);
-  margin-top:4px;letter-spacing:-.1px;
-}
+.scan-tip .scan-hint{display:block;font-size:11.5px;color:var(--text3);margin-top:4px;letter-spacing:-.1px;}
 .scan-tip .focus-btn{
-  display:inline-block;margin-top:8px;
-  padding:6px 14px;border:0;border-radius:100px;
-  background:rgba(0,122,255,.1);color:var(--ios-blue);
-  font-size:12.5px;font-weight:500;cursor:pointer;
-  letter-spacing:-.2px;
+  display:inline-block;margin-top:8px;padding:6px 14px;border:0;border-radius:100px;
+  background:rgba(0,122,255,.1);color:var(--ios-blue);font-size:12.5px;font-weight:500;
+  cursor:pointer;letter-spacing:-.2px;
 }
 .scan-tip .focus-btn:active{background:rgba(0,122,255,.2);}
 .modal-mask{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.32);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  z-index:100;
-  display:flex;align-items:center;justify-content:center;
-  padding:20px;
+  position:fixed;inset:0;background:rgba(0,0,0,.32);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;
   opacity:0;transition:opacity .24s cubic-bezier(.4,0,.2,1);
 }
 .modal-mask.show{opacity:1;}
 .modal{
-  width:100%;max-width:360px;
-  background:rgba(255,255,255,.92);
-  backdrop-filter:saturate(180%) blur(30px);
-  -webkit-backdrop-filter:saturate(180%) blur(30px);
-  border-radius:24px;
-  padding:22px;
-  transform:scale(.92);
-  transition:transform .28s cubic-bezier(.4,0,.2,1);
-  max-height:85vh;overflow-y:auto;
+  width:100%;max-width:360px;background:rgba(255,255,255,.92);
+  backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);
+  border-radius:24px;padding:22px;transform:scale(.92);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:85vh;overflow-y:auto;
   box-shadow:0 24px 60px rgba(0,0,0,.24),0 0 0 .5px rgba(255,255,255,.6) inset;
   border:.5px solid rgba(255,255,255,.6);
 }
 .modal-mask.show .modal{transform:scale(1);}
-.modal-title{
-  font-size:17px;font-weight:600;
-  margin-bottom:10px;text-align:center;
-  color:var(--text);letter-spacing:-.3px;
-}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:10px;text-align:center;color:var(--text);letter-spacing:-.3px;}
 .modal-body{
-  font-size:14px;color:var(--text2);
-  line-height:1.7;margin-bottom:18px;
-  text-align:center;white-space:pre-line;
-  letter-spacing:-.2px;
+  font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:18px;
+  text-align:center;white-space:pre-line;letter-spacing:-.2px;
 }
 .modal-input{
-  width:100%;height:44px;border:0;border-radius:12px;
-  padding:0 14px;font-size:16px;
-  background:var(--bg-input);
-  outline:none;margin-bottom:10px;
-  transition:all .2s;color:var(--text);
-  font-family:inherit;letter-spacing:-.2px;
+  width:100%;height:44px;border:0;border-radius:12px;padding:0 14px;font-size:16px;
+  background:var(--bg-input);outline:none;margin-bottom:10px;
+  transition:all .2s;color:var(--text);font-family:inherit;letter-spacing:-.2px;
 }
-.modal-input:focus{
-  background:rgba(120,120,128,.16);
-  box-shadow:0 0 0 4px rgba(0,122,255,.12);
-}
+.modal-input:focus{background:rgba(120,120,128,.16);box-shadow:0 0 0 4px rgba(0,122,255,.12);}
 .modal-input-label{
-  font-size:12.5px;color:var(--text2);
-  margin:-6px 0 6px;padding-left:4px;
-  letter-spacing:-.1px;
+  font-size:12.5px;color:var(--text2);margin:-6px 0 6px;padding-left:4px;letter-spacing:-.1px;
 }
 .modal-input-label .tag{
-  display:inline-block;
-  background:rgba(0,122,255,.1);
-  color:var(--ios-blue);
-  padding:1px 6px;border-radius:5px;
-  font-size:11px;margin-left:4px;
-  font-weight:500;
+  display:inline-block;background:rgba(0,122,255,.1);color:var(--ios-blue);
+  padding:1px 6px;border-radius:5px;font-size:11px;margin-left:4px;font-weight:500;
 }
 .modal-btns{display:flex;gap:8px;margin-top:8px;}
 .modal-btns button{
-  flex:1;height:46px;border-radius:12px;font-size:16px;
-  cursor:pointer;border:0;
-  background:rgba(120,120,128,.12);
-  color:var(--text);font-weight:500;
-  transition:all .18s cubic-bezier(.4,0,.2,1);
-  letter-spacing:-.3px;
+  flex:1;height:46px;border-radius:12px;font-size:16px;cursor:pointer;border:0;
+  background:rgba(120,120,128,.12);color:var(--text);font-weight:500;
+  transition:all .18s cubic-bezier(.4,0,.2,1);letter-spacing:-.3px;
 }
 .modal-btns button:active{transform:scale(.97);background:rgba(120,120,128,.2);}
 .modal-btns button.primary{
-  background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%);
-  color:#fff;font-weight:600;
+  background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%);color:#fff;font-weight:600;
   box-shadow:0 6px 16px rgba(0,122,255,.28);
 }
 .modal-btns button.primary:active{box-shadow:0 2px 8px rgba(0,122,255,.2);}
 .modal-btns button.danger{
-  background:linear-gradient(180deg,#FF6961 0%,#FF3B30 100%);
-  color:#fff;font-weight:600;
+  background:linear-gradient(180deg,#FF6961 0%,#FF3B30 100%);color:#fff;font-weight:600;
   box-shadow:0 6px 16px rgba(255,59,48,.28);
 }
 .modal-btns button.danger:active{box-shadow:0 2px 8px rgba(255,59,48,.2);}
 .toast{
   position:fixed;left:50%;bottom:110px;
   transform:translateX(-50%) translateY(16px) scale(.94);
-  background:rgba(30,30,32,.92);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  color:#fff;font-size:14px;font-weight:500;
-  padding:12px 22px;border-radius:100px;
-  z-index:200;opacity:0;
-  transition:all .3s cubic-bezier(.4,0,.2,1);
-  pointer-events:none;
-  max-width:80vw;text-align:center;
-  box-shadow:0 12px 40px rgba(0,0,0,.32);
-  letter-spacing:-.2px;
+  background:rgba(30,30,32,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  color:#fff;font-size:14px;font-weight:500;padding:12px 22px;border-radius:100px;
+  z-index:200;opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);pointer-events:none;
+  max-width:80vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.32);letter-spacing:-.2px;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
 .import-tip{
-  font-size:12.5px;color:var(--text2);
-  background:rgba(0,122,255,.08);
-  border-radius:12px;padding:12px 14px;
-  line-height:1.7;margin-bottom:12px;
-  letter-spacing:-.1px;
+  font-size:12.5px;color:var(--text2);background:rgba(0,122,255,.08);
+  border-radius:12px;padding:12px 14px;line-height:1.7;margin-bottom:12px;letter-spacing:-.1px;
 }
 .import-tip code{
-  background:rgba(255,255,255,.9);
-  color:var(--ios-blue);
-  padding:2px 6px;border-radius:5px;
-  font-size:11px;
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  background:rgba(255,255,255,.9);color:var(--ios-blue);padding:2px 6px;border-radius:5px;
+  font-size:11px;font-family:ui-monospace,"SF Mono",Menlo,monospace;
 }
 .import-area{
-  width:100%;min-height:140px;max-height:280px;
-  border:0;border-radius:12px;
-  padding:12px;font-size:12.5px;
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  background:var(--bg-input);
-  outline:none;resize:vertical;
-  transition:all .2s;
+  width:100%;min-height:140px;max-height:280px;border:0;border-radius:12px;
+  padding:12px;font-size:12.5px;font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  background:var(--bg-input);outline:none;resize:vertical;transition:all .2s;
   letter-spacing:-.1px;line-height:1.6;
 }
-.import-area:focus{
-  background:rgba(120,120,128,.16);
-  box-shadow:0 0 0 4px rgba(0,122,255,.12);
-}
+.import-area:focus{background:rgba(120,120,128,.16);box-shadow:0 0 0 4px rgba(0,122,255,.12);}
 .import-preview{
-  max-height:220px;overflow-y:auto;
-  border:0;border-radius:12px;
-  margin-top:12px;font-size:12.5px;
-  background:rgba(120,120,128,.06);
+  max-height:220px;overflow-y:auto;border:0;border-radius:12px;margin-top:12px;
+  font-size:12.5px;background:rgba(120,120,128,.06);
 }
 .import-preview .row{
   display:flex;gap:8px;padding:8px 12px;
-  border-bottom:.5px solid var(--separator-soft);
-  align-items:center;
+  border-bottom:.5px solid var(--separator-soft);align-items:center;
 }
 .import-preview .row:last-child{border-bottom:0;}
 .import-preview .row .n{
-  flex:1;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;font-weight:500;letter-spacing:-.1px;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-weight:500;letter-spacing:-.1px;
 }
 .import-preview .row .c{
-  color:var(--text2);
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  font-size:11px;
+  color:var(--text2);font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;
 }
 .import-preview .row.err{background:rgba(255,59,48,.08);color:var(--ios-red);}
 .tpl-btn{
-  width:100%;height:44px;border:0;
-  border-radius:12px;
-  background:rgba(0,122,255,.1);
-  color:var(--ios-blue);
-  font-size:14px;font-weight:600;
-  cursor:pointer;margin-bottom:12px;
-  transition:all .18s cubic-bezier(.4,0,.2,1);
-  letter-spacing:-.2px;
+  width:100%;height:44px;border:0;border-radius:12px;background:rgba(0,122,255,.1);
+  color:var(--ios-blue);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px;
+  transition:all .18s cubic-bezier(.4,0,.2,1);letter-spacing:-.2px;
 }
 .tpl-btn:active{background:rgba(0,122,255,.2);transform:scale(.98);}
 .bp-toolbar{
-  display:flex;gap:8px;align-items:center;
-  padding:10px 14px;
-  background:rgba(120,120,128,.08);
-  border-radius:12px;margin-bottom:10px;
-  font-size:13.5px;
+  display:flex;gap:8px;align-items:center;padding:10px 14px;
+  background:rgba(120,120,128,.08);border-radius:12px;margin-bottom:10px;font-size:13.5px;
 }
 .bp-toolbar label{
-  display:flex;align-items:center;gap:6px;
-  cursor:pointer;user-select:none;
+  display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;
   font-weight:500;letter-spacing:-.2px;
 }
 .bp-list{
-  max-height:320px;overflow-y:auto;
-  border-radius:12px;
-  background:rgba(120,120,128,.06);
+  max-height:320px;overflow-y:auto;border-radius:12px;background:rgba(120,120,128,.06);
 }
 .bp-item{
-  display:flex;align-items:center;gap:10px;
-  padding:11px 14px;
-  border-bottom:.5px solid var(--separator-soft);
-  font-size:14px;transition:background .15s;
-  letter-spacing:-.2px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;padding:11px 14px;
+  border-bottom:.5px solid var(--separator-soft);font-size:14px;
+  transition:background .15s;letter-spacing:-.2px;cursor:pointer;
 }
 .bp-item:hover{background:rgba(120,120,128,.06);}
 .bp-item:last-child{border-bottom:0;}
 .bp-item input[type="checkbox"]{
-  width:20px;height:20px;flex:none;
-  cursor:pointer;accent-color:var(--ios-blue);
-  border-radius:50%;
+  width:20px;height:20px;flex:none;cursor:pointer;accent-color:var(--ios-blue);border-radius:50%;
 }
 .bp-item .bp-name{
-  flex:1;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;font-weight:500;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;
 }
 .bp-item .bp-code{
-  font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  font-size:11px;color:var(--text2);flex:none;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;color:var(--text2);flex:none;
 }
 .bp-progress{
-  text-align:center;padding:20px 0;
-  font-size:14.5px;color:var(--text);line-height:1.8;
-  letter-spacing:-.2px;font-weight:500;
+  text-align:center;padding:20px 0;font-size:14.5px;color:var(--text);
+  line-height:1.8;letter-spacing:-.2px;font-weight:500;
 }
 .bp-progress .bp-bar{
-  height:6px;background:rgba(120,120,128,.16);
-  border-radius:3px;overflow:hidden;margin-top:14px;
+  height:6px;background:rgba(120,120,128,.16);border-radius:3px;overflow:hidden;margin-top:14px;
 }
 .bp-progress .bp-bar-inner{
-  height:100%;
-  background:linear-gradient(90deg,#3395FF,#007AFF);
-  width:0;transition:width .4s cubic-bezier(.4,0,.2,1);
-  border-radius:3px;
+  height:100%;background:linear-gradient(90deg,#3395FF,#007AFF);
+  width:0;transition:width .4s cubic-bezier(.4,0,.2,1);border-radius:3px;
 }
-
 .analysis-body{padding:16px 16px 100px;}
-.stats-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;
-  margin-bottom:14px;
-}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .stat-card{
-  background:var(--bg-card);
-  backdrop-filter:saturate(180%) blur(20px);
+  background:var(--bg-card);backdrop-filter:saturate(180%) blur(20px);
   -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-radius:var(--radius);
-  padding:14px 16px;
-  border:.5px solid var(--glass-border);
-  box-shadow:var(--shadow-2);
+  border-radius:var(--radius);padding:14px 16px;
+  border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);
   position:relative;overflow:hidden;
 }
 .stat-card::after{
@@ -820,18 +544,14 @@ body::before{
   background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 50%);
   pointer-events:none;opacity:.5;
 }
-.stat-card.full{grid-column:1 / -1;}
+.stat-card.full{grid-column:1/-1;}
 .stat-label{
-  font-size:12px;color:var(--text2);
-  font-weight:500;letter-spacing:-.1px;
-  margin-bottom:6px;position:relative;z-index:1;
-  display:flex;align-items:center;gap:4px;
+  font-size:12px;color:var(--text2);font-weight:500;letter-spacing:-.1px;
+  margin-bottom:6px;position:relative;z-index:1;display:flex;align-items:center;gap:4px;
 }
 .stat-value{
-  font-size:24px;font-weight:700;
-  color:var(--text);letter-spacing:-.5px;
-  position:relative;z-index:1;
-  font-variant-numeric:tabular-nums;
+  font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.5px;
+  position:relative;z-index:1;font-variant-numeric:tabular-nums;
 }
 .stat-value.small{font-size:20px;}
 .stat-value.blue{color:var(--ios-blue);}
@@ -839,25 +559,14 @@ body::before{
 .stat-value.orange{color:var(--ios-orange);}
 .stat-value.red{color:var(--ios-red);}
 .stat-value.purple{color:var(--ios-purple);}
-.stat-unit{
-  font-size:13px;font-weight:500;
-  color:var(--text2);margin-left:4px;
-}
-.stat-sub{
-  font-size:11.5px;color:var(--text2);
-  margin-top:4px;position:relative;z-index:1;
-  letter-spacing:-.1px;
-}
+.stat-unit{font-size:13px;font-weight:500;color:var(--text2);margin-left:4px;}
+.stat-sub{font-size:11.5px;color:var(--text2);margin-top:4px;position:relative;z-index:1;letter-spacing:-.1px;}
 .analysis-block{
-  background:var(--bg-card);
-  backdrop-filter:saturate(180%) blur(20px);
+  background:var(--bg-card);backdrop-filter:saturate(180%) blur(20px);
   -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-radius:var(--radius);
-  padding:16px;
-  border:.5px solid var(--glass-border);
-  box-shadow:var(--shadow-2);
-  margin-bottom:14px;
-  position:relative;overflow:hidden;
+  border-radius:var(--radius);padding:16px;
+  border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);
+  margin-bottom:14px;position:relative;overflow:hidden;
 }
 .analysis-block::after{
   content:"";position:absolute;inset:0;border-radius:inherit;
@@ -865,124 +574,88 @@ body::before{
   pointer-events:none;opacity:.5;
 }
 .analysis-title{
-  font-size:14px;font-weight:600;
-  margin:0 0 14px;color:var(--text);
+  font-size:14px;font-weight:600;margin:0 0 14px;color:var(--text);
   letter-spacing:-.2px;position:relative;z-index:1;
   display:flex;align-items:center;justify-content:space-between;
 }
 .analysis-title .tag{
-  font-size:11px;font-weight:500;
-  color:var(--text2);
-  background:rgba(120,120,128,.1);
-  padding:3px 8px;border-radius:8px;
-  letter-spacing:-.1px;
+  font-size:11px;font-weight:500;color:var(--text2);background:rgba(120,120,128,.1);
+  padding:3px 8px;border-radius:8px;letter-spacing:-.1px;
 }
 .rank-list{position:relative;z-index:1;}
 .rank-item{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 0;
+  display:flex;align-items:center;gap:10px;padding:10px 0;
   border-bottom:.5px solid var(--separator-soft);
 }
 .rank-item:last-child{border-bottom:0;}
 .rank-no{
-  flex:none;width:24px;height:24px;
-  border-radius:8px;
+  flex:none;width:24px;height:24px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;
-  background:rgba(120,120,128,.1);color:var(--text2);
-  letter-spacing:-.2px;
+  font-size:12px;font-weight:700;background:rgba(120,120,128,.1);
+  color:var(--text2);letter-spacing:-.2px;
 }
 .rank-item:nth-child(1) .rank-no{background:rgba(255,204,0,.2);color:#B8860B;}
 .rank-item:nth-child(2) .rank-no{background:rgba(192,192,192,.3);color:#666;}
 .rank-item:nth-child(3) .rank-no{background:rgba(205,127,50,.2);color:#A0522D;}
 .rank-info{flex:1;min-width:0;}
 .rank-name{
-  font-size:14px;font-weight:500;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  letter-spacing:-.2px;
+  font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;letter-spacing:-.2px;
 }
 .rank-sub{
-  font-size:11.5px;color:var(--text2);
-  margin-top:2px;letter-spacing:-.1px;
+  font-size:11.5px;color:var(--text2);margin-top:2px;letter-spacing:-.1px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .rank-value{
-  flex:none;font-size:14px;font-weight:700;
-  color:var(--ios-blue);
-  font-variant-numeric:tabular-nums;
-  letter-spacing:-.3px;
+  flex:none;font-size:14px;font-weight:700;color:var(--ios-blue);
+  font-variant-numeric:tabular-nums;letter-spacing:-.3px;
 }
 .chart-bars{
-  display:flex;align-items:flex-end;gap:4px;
-  height:100px;margin-top:8px;
-  position:relative;z-index:1;
-  padding-bottom:20px;
+  display:flex;align-items:flex-end;gap:4px;height:100px;
+  margin-top:8px;position:relative;z-index:1;padding-bottom:20px;
 }
-.chart-bar-wrap{
-  flex:1;display:flex;flex-direction:column;
-  align-items:center;gap:4px;position:relative;
-}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;}
 .chart-bar{
-  width:100%;border-radius:4px 4px 0 0;
-  background:linear-gradient(180deg,#3395FF,#007AFF);
-  transition:all .3s cubic-bezier(.4,0,.2,1);
-  min-height:2px;
-  box-shadow:0 2px 6px rgba(0,122,255,.2);
-  position:relative;
+  width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#3395FF,#007AFF);
+  transition:all .3s cubic-bezier(.4,0,.2,1);min-height:2px;
+  box-shadow:0 2px 6px rgba(0,122,255,.2);position:relative;
 }
-.chart-bar.out{
-  background:linear-gradient(180deg,#FF6961,#FF3B30);
-  box-shadow:0 2px 6px rgba(255,59,48,.2);
-}
+.chart-bar.out{background:linear-gradient(180deg,#FF6961,#FF3B30);box-shadow:0 2px 6px rgba(255,59,48,.2);}
 .chart-bar-label{
-  font-size:9.5px;color:var(--text2);
-  position:absolute;bottom:-18px;
+  font-size:9.5px;color:var(--text2);position:absolute;bottom:-18px;
   white-space:nowrap;letter-spacing:-.1px;
 }
 .chart-legend{
-  display:flex;gap:16px;justify-content:center;
-  margin-top:8px;font-size:12px;
-  color:var(--text2);position:relative;z-index:1;
+  display:flex;gap:16px;justify-content:center;margin-top:8px;
+  font-size:12px;color:var(--text2);position:relative;z-index:1;
 }
-.chart-legend span{
-  display:flex;align-items:center;gap:5px;
-}
-.chart-legend .dot{
-  width:8px;height:8px;border-radius:2px;
-}
+.chart-legend span{display:flex;align-items:center;gap:5px;}
+.chart-legend .dot{width:8px;height:8px;border-radius:2px;}
 .chart-legend .dot.blue{background:#007AFF;}
 .chart-legend .dot.red{background:#FF3B30;}
 .progress-line{
-  height:8px;background:rgba(120,120,128,.1);
-  border-radius:4px;overflow:hidden;
-  margin-top:6px;position:relative;z-index:1;
+  height:8px;background:rgba(120,120,128,.1);border-radius:4px;
+  overflow:hidden;margin-top:6px;position:relative;z-index:1;
 }
 .progress-line-inner{
-  height:100%;border-radius:4px;
-  background:linear-gradient(90deg,#3395FF,#007AFF);
+  height:100%;border-radius:4px;background:linear-gradient(90deg,#3395FF,#007AFF);
   transition:width .4s cubic-bezier(.4,0,.2,1);
 }
 .progress-line-inner.green{background:linear-gradient(90deg,#40D86E,#34C759);}
 .progress-line-inner.orange{background:linear-gradient(90deg,#FFB340,#FF9500);}
 .progress-line-inner.red{background:linear-gradient(90deg,#FF6961,#FF3B30);}
 .time-tabs{
-  display:flex;gap:6px;
-  background:rgba(120,120,128,.08);
-  border-radius:10px;padding:3px;
-  margin-bottom:14px;position:relative;z-index:1;
+  display:flex;gap:6px;background:rgba(120,120,128,.08);border-radius:10px;
+  padding:3px;margin-bottom:14px;position:relative;z-index:1;
 }
 .time-tabs button{
-  flex:1;height:30px;border:0;background:transparent;
-  border-radius:7px;font-size:12.5px;color:var(--text);
-  cursor:pointer;font-weight:500;letter-spacing:-.2px;
-  transition:all .18s;
+  flex:1;height:30px;border:0;background:transparent;border-radius:7px;
+  font-size:12.5px;color:var(--text);cursor:pointer;font-weight:500;
+  letter-spacing:-.2px;transition:all .18s;
 }
 .time-tabs button.active{
-  background:#fff;color:var(--text);
-  font-weight:600;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  background:#fff;color:var(--text);font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
-
 @media (max-width:480px){
   .d-name{font-size:24px;}
   .field input,.field textarea{font-size:16px;}
@@ -1002,7 +675,7 @@ body::before{
   <main id="main">
     <section id="view-list" class="view active">
       <div class="search-wrap">
-        <input id="searchInput" type="search" placeholder="搜索">
+        <input id="searchInput" type="search" placeholder="搜索 名称 / 品牌 / 型号 / 条码">
       </div>
       <div class="cat-tabs" id="catTabs">
         <button data-cat="all" class="active">全部 <span class="count" id="catCountAll">0</span></button>
@@ -1126,50 +799,87 @@ function toast(msg){
   requestAnimationFrame(()=>t.classList.add('show'));
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),320); }, 2200);
 }
-
-/* ==================== 分类识别 ==================== */
-/**
- * 根据品牌/名称/型号自动识别商品分类
- * 返回 'apple' | 'android' | 'other'
- */
-function getProductCategory(p){
-  const text = ((p.brand || '') + ' ' + (p.name || '') + ' ' + (p.model || '')).toLowerCase();
-
-  // 苹果关键词
-  const appleKeywords = [
-    'apple', '苹果',
-    'iphone', 'ipad', 'macbook', 'airpods', 'apple watch',
-    'imac', 'mac mini', 'mac pro', 'mac studio'
-  ];
-  if(appleKeywords.some(k => text.includes(k))) return 'apple';
-
-  // 安卓关键词
-  const androidKeywords = [
-    '华为', 'huawei', '小米', 'xiaomi', '红米', 'redmi',
-    'oppo', 'vivo', '荣耀', 'honor',
-    '三星', 'samsung', 'galaxy',
-    '一加', 'oneplus', 'realme', '真我',
-    '魅族', 'meizu', '努比亚', 'nubia',
-    '联想', 'lenovo', '摩托罗拉', 'motorola',
-    '诺基亚', 'nokia', '索尼', 'sony',
-    '谷歌', 'google pixel', 'pixel',
-    '中兴', 'zte', '传音', 'tecno', 'infinix'
-  ];
-  if(androidKeywords.some(k => text.includes(k))) return 'android';
-
-  return 'other';
+/** 高亮关键词（大小写不敏感） */
+function highlight(text, kw){
+  const s = String(text ?? '');
+  if(!kw) return esc(s);
+  const lower = s.toLowerCase();
+  const idx = lower.indexOf(kw);
+  if(idx === -1) return esc(s);
+  const before = s.slice(0, idx);
+  const match = s.slice(idx, idx + kw.length);
+  const after = s.slice(idx + kw.length);
+  return esc(before) + '<mark>' + esc(match) + '</mark>' + esc(after);
 }
 
+/* ==================== 分类识别 ==================== */
+function getProductCategory(p){
+  const text = ((p.brand || '') + ' ' + (p.name || '') + ' ' + (p.model || '')).toLowerCase();
+  const appleKeywords = ['apple','苹果','iphone','ipad','macbook','airpods','apple watch','imac','mac mini','mac pro','mac studio'];
+  if(appleKeywords.some(k => text.includes(k))) return 'apple';
+  const androidKeywords = ['华为','huawei','小米','xiaomi','红米','redmi','oppo','vivo','荣耀','honor','三星','samsung','galaxy','一加','oneplus','realme','真我','魅族','meizu','努比亚','nubia','联想','lenovo','摩托罗拉','motorola','诺基亚','nokia','索尼','sony','谷歌','google pixel','pixel','中兴','zte','传音','tecno','infinix'];
+  if(androidKeywords.some(k => text.includes(k))) return 'android';
+  return 'other';
+}
 function getCategoryLabel(cat){
   if(cat === 'apple') return { text:'苹果', cls:'apple' };
   if(cat === 'android') return { text:'安卓', cls:'android' };
   return { text:'其他', cls:'other' };
 }
 
+/* ==================== 搜索匹配打分（名称优先） ==================== */
+/**
+ * 根据关键词返回匹配分数，分数越高越靠前
+ * 100 - 名称完全匹配
+ * 90  - 名称开头匹配
+ * 80  - 名称包含
+ * 70  - 名称模糊包含
+ * 60  - 品牌匹配
+ * 50  - 型号匹配
+ * 40  - 条码匹配
+ * 30  - 规格/颜色匹配
+ * 0   - 不匹配
+ */
+function getMatchScore(p, kw){
+  const name = (p.name || '').toLowerCase();
+  const brand = (p.brand || '').toLowerCase();
+  const model = (p.model || '').toLowerCase();
+  const barcode = (p.barcode || '').toLowerCase();
+  const spec = (p.spec || '').toLowerCase();
+  const color = (p.color || '').toLowerCase();
+
+  // 名称优先
+  if(name === kw) return 100;
+  if(name.startsWith(kw)) return 90;
+  if(name.includes(kw)) return 80;
+
+  // 名称拆词匹配（如搜 "苹果15" 匹配 "iPhone 15"）
+  const kwParts = kw.split(/\s+/).filter(Boolean);
+  if(kwParts.length > 1 && kwParts.every(part => name.includes(part))) return 75;
+
+  // 品牌
+  if(brand === kw) return 65;
+  if(brand.startsWith(kw)) return 62;
+  if(brand.includes(kw)) return 60;
+
+  // 型号
+  if(model === kw) return 55;
+  if(model.includes(kw)) return 50;
+
+  // 条码
+  if(barcode === kw) return 45;
+  if(barcode.includes(kw)) return 40;
+
+  // 规格 / 颜色
+  if(spec.includes(kw)) return 30;
+  if(color.includes(kw)) return 25;
+
+  return 0;
+}
+
 /* ==================== 摄像头优化 ==================== */
 function getVideoTrack(){
-  const video = document.querySelector('#reader video') ||
-                document.querySelector('#scanOnceReader video');
+  const video = document.querySelector('#reader video') || document.querySelector('#scanOnceReader video');
   if(!video) return null;
   const stream = video.srcObject;
   if(!stream) return null;
@@ -1182,12 +892,8 @@ async function applyCameraOptimization(){
   try{
     const caps = track.getCapabilities?.() || {};
     const constraints = {};
-    if(caps.focusMode && caps.focusMode.includes('continuous')){
-      constraints.focusMode = 'continuous';
-    }
-    if(caps.whiteBalanceMode && caps.whiteBalanceMode.includes('continuous')){
-      constraints.whiteBalanceMode = 'continuous';
-    }
+    if(caps.focusMode && caps.focusMode.includes('continuous')) constraints.focusMode = 'continuous';
+    if(caps.whiteBalanceMode && caps.whiteBalanceMode.includes('continuous')) constraints.whiteBalanceMode = 'continuous';
     if(caps.exposureCompensation){
       const r = caps.exposureCompensation;
       constraints.exposureCompensation = Math.max(r.min, Math.min(r.max, -1));
@@ -1236,21 +942,17 @@ function changeStock(productId, delta, remark = '', actualPrice = null){
   if(!p) return { ok:false, msg:'商品不存在' };
   const newStock = p.stock + delta;
   if(newStock < 0) return { ok:false, msg:`库存不足，当前库存 ${p.stock}` };
-
   p.stock = newStock;
   p.updatedAt = Date.now();
-
   const rec = {
     id: uid(), productId: p.id, productName: p.name, barcode: p.barcode,
     type: delta > 0 ? 1 : -1, quantity: Math.abs(delta),
     remark: remark || '', time: Date.now()
   };
-
   if(delta < 0 && actualPrice != null && !isNaN(actualPrice)){
     rec.actualPrice = actualPrice;
     rec.priceIn = p.priceIn || 0;
   }
-
   records.unshift(rec);
   saveProducts();
   saveRecords();
@@ -1260,10 +962,8 @@ function changeStock(productId, delta, remark = '', actualPrice = null){
 function undoRecord(recId){
   const idx = records.findIndex(r => r.id === recId);
   if(idx === -1) return { ok:false, msg:'记录不存在' };
-
   const rec = records[idx];
   const p = findProduct(rec.productId);
-
   let newStock = 0;
   if(p){
     const delta = rec.type > 0 ? -rec.quantity : rec.quantity;
@@ -1274,7 +974,6 @@ function undoRecord(recId){
     p.stock = newStock;
     p.updatedAt = Date.now();
   }
-
   records.splice(idx, 1);
   saveProducts();
   saveRecords();
@@ -1285,7 +984,6 @@ function undoRecord(recId){
 let currentView = 'list';
 let editingId = null;
 let currentProductId = null;
-
 const TITLES = {
   list:'龙腾手机库存', add:'新增商品', detail:'商品详情',
   scan:'扫码', analysis:'数据分析', records:'出入库记录'
@@ -1314,9 +1012,11 @@ $('#btnBack').addEventListener('click', ()=> showView('list'));
 let searchKeyword = '';
 let currentCategory = 'all';
 
-$('#searchInput').addEventListener('input', e => { searchKeyword = e.target.value; renderProductList(); });
+$('#searchInput').addEventListener('input', e => {
+  searchKeyword = e.target.value;
+  renderProductList();
+});
 
-// 分类切换
 $$('#catTabs button').forEach(btn => {
   btn.addEventListener('click', () => {
     $$('#catTabs button').forEach(b => b.classList.remove('active'));
@@ -1345,11 +1045,12 @@ function updateCategoryCounts(){
 }
 
 function renderProductList(){
-  // 先更新分类计数
   updateCategoryCounts();
 
-  const kw = searchKeyword.trim().toLowerCase();
+  const rawKw = searchKeyword.trim();
+  const kw = rawKw.toLowerCase();
 
+  // 过滤
   let list = products.filter(p => {
     // 分类筛选
     if(currentCategory !== 'all'){
@@ -1358,14 +1059,30 @@ function renderProductList(){
     }
     // 关键词筛选
     if(!kw) return true;
-    return (p.name + p.brand + p.model + p.spec + p.color + p.barcode).toLowerCase().includes(kw);
-  }).sort((a,b) => b.createdAt - a.createdAt);
+    return getMatchScore(p, kw) > 0;
+  });
+
+  // 排序
+  if(kw){
+    // 有搜索词：按匹配分排序（名称优先），相同分数再按创建时间
+    list.sort((a,b) => {
+      const sa = getMatchScore(a, kw);
+      const sb = getMatchScore(b, kw);
+      if(sb !== sa) return sb - sa;
+      return b.createdAt - a.createdAt;
+    });
+  }else{
+    // 无搜索词：按创建时间
+    list.sort((a,b) => b.createdAt - a.createdAt);
+  }
 
   const el = $('#productList');
   if(list.length === 0){
     let emptyMsg = '';
     if(products.length === 0){
       emptyMsg = '还没有商品<br>点击右下角 <b>+</b> 添加第一件商品';
+    }else if(rawKw){
+      emptyMsg = `没有找到「${esc(rawKw)}」相关的商品<br>试试搜索名称、品牌或型号`;
     }else if(currentCategory === 'apple'){
       emptyMsg = '苹果区暂无商品<br>添加 Apple/iPhone 相关商品后会自动归入';
     }else if(currentCategory === 'android'){
@@ -1384,11 +1101,13 @@ function renderProductList(){
     const sub = [p.brand, p.model, p.spec, p.color].filter(Boolean).join(' / ') || '—';
     const cat = getProductCategory(p);
     const catLabel = getCategoryLabel(cat);
+    // 名称搜索时高亮关键词
+    const nameHtml = kw ? highlight(p.name, kw) : esc(p.name);
     return `<div class="card product-item" data-id="${esc(p.id)}">
       <div class="pi-main">
         <div class="pi-name-row">
           <span class="cat-badge ${catLabel.cls}">${catLabel.text}</span>
-          <span class="pi-name">${esc(p.name)}</span>
+          <span class="pi-name">${nameHtml}</span>
         </div>
         <div class="pi-sub">${esc(sub)}</div>
         <div class="pi-code">${esc(p.barcode)}</div>
@@ -1453,10 +1172,8 @@ function openAdd(id = null, presetBarcode = ''){
   editingId = id;
   showView('add');
   $('#tbTitle').textContent = id ? '编辑商品' : '新增商品';
-
   const p = id ? findProduct(id) : null;
   if(id && !p){ toast('商品不存在'); showView('list'); return; }
-
   $('#fName').value     = p ? p.name : '';
   $('#fBrand').value    = p ? p.brand : '';
   $('#fModel').value    = p ? p.model : '';
@@ -1631,7 +1348,6 @@ function promptQuantity(productId, sign){
   const p = findProduct(productId);
   if(!p) return;
   const isIn = sign > 0;
-
   const priceField = isIn ? '' : `
     <input class="modal-input" id="mqPrice" type="number" inputmode="decimal"
       value="${p.priceOut || 0}" placeholder="实际销售价">
@@ -1639,7 +1355,6 @@ function promptQuantity(productId, sign){
       标价 ¥${fmtMoney(p.priceOut)} <span class="tag">可修改为成交价</span>
     </div>
   `;
-
   const { mask, close } = showModal(`
     <div class="modal-title">${isIn ? '商品入库' : '商品出库'}</div>
     <div class="modal-body">${esc(p.name)}\n当前库存：${p.stock}</div>
@@ -1650,19 +1365,15 @@ function promptQuantity(productId, sign){
       <button data-act="cancel">取消</button>
       <button class="primary" data-act="ok">确定</button>
     </div>`);
-
   const qtyEl = mask.querySelector('#mqQty');
   const rmkEl = mask.querySelector('#mqRemark');
   const priceEl = mask.querySelector('#mqPrice');
-
   setTimeout(()=>{ qtyEl.focus(); qtyEl.select(); }, 200);
-
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     const qty = parseInt(qtyEl.value) || 0;
     if(qty <= 0){ toast('请输入正确的数量'); return; }
     if(!isIn && qty > p.stock){ toast(`库存不足，当前 ${p.stock}`); return; }
-
     let actualPrice = null;
     if(!isIn && priceEl){
       actualPrice = parseFloat(priceEl.value);
@@ -1670,18 +1381,15 @@ function promptQuantity(productId, sign){
         toast('请输入正确的销售价'); return;
       }
     }
-
     const res = changeStock(p.id, sign * qty, rmkEl.value.trim(), actualPrice);
     if(!res.ok){ toast(res.msg); return; }
     close();
-
     if(isIn){
       toast(`入库成功，当前库存 ${res.stock}`);
     }else{
       const total = actualPrice != null ? `，销售 ¥${fmtMoney(actualPrice * qty)}` : '';
       toast(`出库成功，当前库存 ${res.stock}${total}`);
     }
-
     if(currentView === 'detail' && currentProductId === p.id) renderDetail(findProduct(p.id));
     else renderProductList();
   };
@@ -1691,22 +1399,17 @@ function promptQuantity(productId, sign){
 function showRecordDetail(recId){
   const rec = records.find(r => r.id === recId);
   if(!rec){ toast('记录不存在'); return; }
-
   const isIn = rec.type > 0;
   const p = findProduct(rec.productId);
   const totalPrice = (rec.actualPrice != null) ? rec.actualPrice * rec.quantity : null;
   const profit = (rec.actualPrice != null && rec.priceIn != null)
-    ? (rec.actualPrice - rec.priceIn) * rec.quantity
-    : null;
-
+    ? (rec.actualPrice - rec.priceIn) * rec.quantity : null;
   const { mask, close } = showModal(`
     <div class="modal-title">${isIn ? '入库' : '出库'}记录详情</div>
     <div class="detail-info-box">
       <div class="di-row">
         <span class="di-label">类型</span>
-        <span class="di-value">
-          <span class="detail-tag ${isIn ? 'in' : 'out'}">${isIn ? '入库' : '出库'}</span>
-        </span>
+        <span class="di-value"><span class="detail-tag ${isIn ? 'in' : 'out'}">${isIn ? '入库' : '出库'}</span></span>
       </div>
       <div class="di-row">
         <span class="di-label">商品名称</span>
@@ -1763,7 +1466,6 @@ function showRecordDetail(recId){
       <button class="danger" data-act="undo">撤销此记录</button>
       <button data-act="cancel">关闭</button>
     </div>`);
-
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="undo"]').onclick = () => {
     close();
@@ -1776,24 +1478,16 @@ function confirmUndoRecord(recId){
   if(!rec){ toast('记录不存在'); return; }
   const isIn = rec.type > 0;
   const p = findProduct(rec.productId);
-
   const actionText = isIn ? '撤销入库' : '撤销出库';
-  const effectText = isIn
-    ? `库存将减少 ${rec.quantity} 台`
-    : `库存将增加 ${rec.quantity} 台`;
+  const effectText = isIn ? `库存将减少 ${rec.quantity} 台` : `库存将增加 ${rec.quantity} 台`;
 
   if(isIn && p){
     const newStock = p.stock - rec.quantity;
     if(newStock < 0){
       const { mask, close } = showModal(`
         <div class="modal-title">无法撤销</div>
-        <div class="modal-body">
-          撤销该入库记录会导致库存变为 ${newStock} 台（负数）。\n\n
-          说明该批货物已部分或全部售出，请先处理相关的出库记录。
-        </div>
-        <div class="modal-btns">
-          <button class="primary" data-act="ok">知道了</button>
-        </div>`);
+        <div class="modal-body">撤销该入库记录会导致库存变为 ${newStock} 台（负数）。\n\n说明该批货物已部分或全部售出，请先处理相关的出库记录。</div>
+        <div class="modal-btns"><button class="primary" data-act="ok">知道了</button></div>`);
       mask.querySelector('[data-act="ok"]').onclick = close;
       return;
     }
@@ -1802,9 +1496,7 @@ function confirmUndoRecord(recId){
   if(!p){
     const { mask, close } = showModal(`
       <div class="modal-title">${actionText}</div>
-      <div class="modal-body">
-        该商品已被删除，撤销操作只会删除这条记录，不会影响库存。
-      </div>
+      <div class="modal-body">该商品已被删除，撤销操作只会删除这条记录，不会影响库存。</div>
       <div class="modal-btns">
         <button data-act="cancel">取消</button>
         <button class="danger" data-act="ok">确认删除记录</button>
@@ -1813,29 +1505,19 @@ function confirmUndoRecord(recId){
     mask.querySelector('[data-act="ok"]').onclick = () => {
       const result = undoRecord(recId);
       close();
-      if(result.ok){
-        toast(`已${actionText}`);
-        refreshCurrentView();
-      }else{
-        toast(result.msg || '撤销失败');
-      }
+      if(result.ok){ toast(`已${actionText}`); refreshCurrentView(); }
+      else toast(result.msg || '撤销失败');
     };
     return;
   }
 
   const { mask, close } = showModal(`
     <div class="modal-title">${actionText}</div>
-    <div class="modal-body">
-      商品：${esc(rec.productName)}\n
-      数量：${rec.quantity} 台\n
-      ${effectText}\n\n
-      撤销后该记录将被删除，无法恢复。
-    </div>
+    <div class="modal-body">商品：${esc(rec.productName)}\n数量：${rec.quantity} 台\n${effectText}\n\n撤销后该记录将被删除，无法恢复。</div>
     <div class="modal-btns">
       <button data-act="cancel">取消</button>
       <button class="danger" data-act="ok">确认撤销</button>
     </div>`);
-
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     const result = undoRecord(recId);
@@ -1843,9 +1525,7 @@ function confirmUndoRecord(recId){
     if(result.ok){
       toast(`已${actionText}，当前库存 ${result.stock} 台`);
       refreshCurrentView();
-    }else{
-      toast(result.msg || '撤销失败');
-    }
+    }else toast(result.msg || '撤销失败');
   };
 }
 
@@ -1964,8 +1644,6 @@ let analysisRange = 7;
 
 function renderAnalysis(){
   const el = $('#analysisBody');
-
-  // 分类统计
   let appleCount = 0, androidCount = 0, otherCount = 0;
   let appleStock = 0, androidStock = 0, otherStock = 0;
   products.forEach(p => {
@@ -1974,7 +1652,6 @@ function renderAnalysis(){
     else if(cat === 'android'){ androidCount++; androidStock += p.stock || 0; }
     else { otherCount++; otherStock += p.stock || 0; }
   });
-
   const totalProducts = products.length;
   const totalStock = products.reduce((s, p) => s + (p.stock || 0), 0);
   const costValue = products.reduce((s, p) => s + (p.stock || 0) * (p.priceIn || 0), 0);
@@ -1982,25 +1659,16 @@ function renderAnalysis(){
   const lowStockProducts = products.filter(p => p.stock <= p.warnStock);
   const outOfStockProducts = products.filter(p => p.stock <= 0);
 
-  const topByValue = [...products]
-    .map(p => ({ ...p, value: (p.stock || 0) * (p.priceIn || 0) }))
-    .filter(p => p.value > 0)
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5);
+  const topByValue = [...products].map(p => ({ ...p, value: (p.stock || 0) * (p.priceIn || 0) }))
+    .filter(p => p.value > 0).sort((a, b) => b.value - a.value).slice(0, 5);
   const maxValue = topByValue[0]?.value || 1;
-
-  const topByStock = [...products]
-    .filter(p => p.stock > 0)
-    .sort((a, b) => b.stock - a.stock)
-    .slice(0, 5);
+  const topByStock = [...products].filter(p => p.stock > 0).sort((a, b) => b.stock - a.stock).slice(0, 5);
   const maxStock = topByStock[0]?.stock || 1;
-
   const lowList = lowStockProducts.slice(0, 5);
 
   const now = Date.now();
   const rangeMs = analysisRange * 24 * 60 * 60 * 1000;
   const rangeRecords = records.filter(r => now - r.time <= rangeMs);
-
   const totalIn = rangeRecords.filter(r => r.type > 0).reduce((s, r) => s + r.quantity, 0);
   const totalOut = rangeRecords.filter(r => r.type < 0).reduce((s, r) => s + r.quantity, 0);
 
@@ -2029,14 +1697,10 @@ function renderAnalysis(){
   records.filter(r => r.type < 0).forEach(r => {
     outMap[r.productId] = (outMap[r.productId] || 0) + r.quantity;
   });
-  const topOut = Object.keys(outMap)
-    .map(pid => {
-      const p = findProduct(pid);
-      return p ? { name: p.name, barcode: p.barcode, qty: outMap[pid] } : null;
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.qty - a.qty)
-    .slice(0, 5);
+  const topOut = Object.keys(outMap).map(pid => {
+    const p = findProduct(pid);
+    return p ? { name: p.name, barcode: p.barcode, qty: outMap[pid] } : null;
+  }).filter(Boolean).sort((a, b) => b.qty - a.qty).slice(0, 5);
 
   const profitMap = {};
   saleRecords.forEach(r => {
@@ -2047,9 +1711,7 @@ function renderAnalysis(){
     profitMap[r.productId].profit += ((r.actualPrice || 0) - (r.priceIn || 0)) * r.quantity;
     profitMap[r.productId].qty += r.quantity;
   });
-  const topProfit = Object.values(profitMap)
-    .sort((a, b) => b.profit - a.profit)
-    .slice(0, 5);
+  const topProfit = Object.values(profitMap).sort((a, b) => b.profit - a.profit).slice(0, 5);
 
   el.innerHTML = `
     <div class="stats-grid">
@@ -2077,29 +1739,20 @@ function renderAnalysis(){
     </div>
 
     <div class="analysis-block">
-      <div class="analysis-title">
-        分类库存
-        <span class="tag">苹果 / 安卓 / 其他</span>
-      </div>
+      <div class="analysis-title">分类库存<span class="tag">苹果 / 安卓 / 其他</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1;">
         <div style="text-align:center;">
-          <div class="stat-label" style="justify-content:center;">
-            <span class="cat-badge apple">苹果</span>
-          </div>
+          <div class="stat-label" style="justify-content:center;"><span class="cat-badge apple">苹果</span></div>
           <div class="stat-value small blue">${fmtNum(appleStock)}<span class="stat-unit">台</span></div>
           <div class="stat-sub">${appleCount} 款</div>
         </div>
         <div style="text-align:center;">
-          <div class="stat-label" style="justify-content:center;">
-            <span class="cat-badge android">安卓</span>
-          </div>
+          <div class="stat-label" style="justify-content:center;"><span class="cat-badge android">安卓</span></div>
           <div class="stat-value small green">${fmtNum(androidStock)}<span class="stat-unit">台</span></div>
           <div class="stat-sub">${androidCount} 款</div>
         </div>
         <div style="text-align:center;">
-          <div class="stat-label" style="justify-content:center;">
-            <span class="cat-badge other">其他</span>
-          </div>
+          <div class="stat-label" style="justify-content:center;"><span class="cat-badge other">其他</span></div>
           <div class="stat-value small">${fmtNum(otherStock)}<span class="stat-unit">台</span></div>
           <div class="stat-sub">${otherCount} 款</div>
         </div>
@@ -2107,10 +1760,7 @@ function renderAnalysis(){
     </div>
 
     <div class="analysis-block">
-      <div class="analysis-title">
-        销售收入
-        <span class="tag">近 ${analysisRange} 天</span>
-      </div>
+      <div class="analysis-title">销售收入<span class="tag">近 ${analysisRange} 天</span></div>
       <div class="time-tabs" id="timeTabs">
         <button data-range="7" class="${analysisRange === 7 ? 'active' : ''}">近 7 天</button>
         <button data-range="30" class="${analysisRange === 30 ? 'active' : ''}">近 30 天</button>
@@ -2132,10 +1782,7 @@ function renderAnalysis(){
     </div>
 
     <div class="analysis-block">
-      <div class="analysis-title">
-        出入库汇总
-        <span class="tag">近 ${analysisRange} 天</span>
-      </div>
+      <div class="analysis-title">出入库汇总<span class="tag">近 ${analysisRange} 天</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;">
         <div>
           <div class="stat-label">总入库</div>
@@ -2169,10 +1816,7 @@ function renderAnalysis(){
 
     ${topProfit.length > 0 ? `
     <div class="analysis-block">
-      <div class="analysis-title">
-        💰 销售毛利 TOP 5
-        <span class="tag">近 ${analysisRange} 天</span>
-      </div>
+      <div class="analysis-title">💰 销售毛利 TOP 5<span class="tag">近 ${analysisRange} 天</span></div>
       <div class="rank-list">
         ${topProfit.map((p, i) => `
           <div class="rank-item">
@@ -2189,10 +1833,7 @@ function renderAnalysis(){
 
     ${lowList.length > 0 ? `
     <div class="analysis-block">
-      <div class="analysis-title">
-        ⚠️ 库存预警
-        <span class="tag">${lowList.length} 款需补货</span>
-      </div>
+      <div class="analysis-title">⚠️ 库存预警<span class="tag">${lowList.length} 款需补货</span></div>
       <div class="rank-list">
         ${lowList.map((p, i) => {
           const danger = p.stock <= 0;
@@ -2201,9 +1842,7 @@ function renderAnalysis(){
           return `<div class="rank-item">
             <div class="rank-no" style="${danger ? 'background:rgba(255,59,48,.15);color:var(--ios-red);' : ''}">${i + 1}</div>
             <div class="rank-info">
-              <div class="rank-name">
-                <span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}
-              </div>
+              <div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div>
               <div class="rank-sub">${esc(p.barcode)} · 预警值 ${p.warnStock}</div>
             </div>
             <div class="rank-value" style="color:${danger ? 'var(--ios-red)' : 'var(--ios-orange)'};">${p.stock} 台</div>
@@ -2214,10 +1853,7 @@ function renderAnalysis(){
 
     ${topByValue.length > 0 ? `
     <div class="analysis-block">
-      <div class="analysis-title">
-        💎 库存价值 TOP 5
-        <span class="tag">按进货价</span>
-      </div>
+      <div class="analysis-title">💎 库存价值 TOP 5<span class="tag">按进货价</span></div>
       <div class="rank-list">
         ${topByValue.map((p, i) => {
           const pct = Math.round((p.value / maxValue) * 100);
@@ -2227,16 +1863,12 @@ function renderAnalysis(){
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
               <div class="rank-no">${i + 1}</div>
               <div class="rank-info">
-                <div class="rank-name">
-                  <span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}
-                </div>
+                <div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div>
                 <div class="rank-sub">库存 ${p.stock} 台 × ¥${fmtMoney(p.priceIn)}</div>
               </div>
               <div class="rank-value">¥${fmtNum(p.value.toFixed(0))}</div>
             </div>
-            <div class="progress-line">
-              <div class="progress-line-inner" style="width:${pct}%;"></div>
-            </div>
+            <div class="progress-line"><div class="progress-line-inner" style="width:${pct}%;"></div></div>
           </div>`;
         }).join('')}
       </div>
@@ -2244,10 +1876,7 @@ function renderAnalysis(){
 
     ${topByStock.length > 0 ? `
     <div class="analysis-block">
-      <div class="analysis-title">
-        📦 库存数量 TOP 5
-        <span class="tag">按数量</span>
-      </div>
+      <div class="analysis-title">📦 库存数量 TOP 5<span class="tag">按数量</span></div>
       <div class="rank-list">
         ${topByStock.map((p, i) => {
           const pct = Math.round((p.stock / maxStock) * 100);
@@ -2257,16 +1886,12 @@ function renderAnalysis(){
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
               <div class="rank-no">${i + 1}</div>
               <div class="rank-info">
-                <div class="rank-name">
-                  <span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}
-                </div>
+                <div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div>
                 <div class="rank-sub">${esc(p.barcode)}</div>
               </div>
               <div class="rank-value">${p.stock} 台</div>
             </div>
-            <div class="progress-line">
-              <div class="progress-line-inner green" style="width:${pct}%;"></div>
-            </div>
+            <div class="progress-line"><div class="progress-line-inner green" style="width:${pct}%;"></div></div>
           </div>`;
         }).join('')}
       </div>
@@ -2274,10 +1899,7 @@ function renderAnalysis(){
 
     ${topOut.length > 0 ? `
     <div class="analysis-block">
-      <div class="analysis-title">
-        🔥 出库最多 TOP 5
-        <span class="tag">历史累计</span>
-      </div>
+      <div class="analysis-title">🔥 出库最多 TOP 5<span class="tag">历史累计</span></div>
       <div class="rank-list">
         ${topOut.map((p, i) => `
           <div class="rank-item">
@@ -2322,7 +1944,6 @@ function renderRecords(){
       <span class="rec-arrow">›</span>
     </div>`;
   }).join('');
-
   el.querySelectorAll('.rec-item[data-rec-id]').forEach(node => {
     node.onclick = () => showRecordDetail(node.dataset.recId);
   });
@@ -2581,7 +2202,6 @@ function generateLabelCanvas(product) {
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   function fitTextToBox(text, maxWidth, maxHeight, fontWeight = 'normal', maxFontSize = 100) {
     let fontSize = Math.min(maxHeight, maxFontSize);
     let font = `${fontWeight} ${fontSize}px sans-serif`;
@@ -2595,7 +2215,6 @@ function generateLabelCanvas(product) {
     }
     return { font: `${fontWeight} 8px sans-serif`, size: 8 };
   }
-
   const padding = 8;
   const nameText = product.name || '';
   const nameH = 36;
@@ -2605,7 +2224,6 @@ function generateLabelCanvas(product) {
   ctx.textBaseline = 'middle';
   ctx.font = nameFit.font;
   ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
-
   const barcodeText = product.barcode || '';
   const codeH = 24;
   const codeY = canvas.height - codeH - padding;
@@ -2615,7 +2233,6 @@ function generateLabelCanvas(product) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(barcodeText, canvas.width / 2, codeY + codeH / 2);
-
   const midY = padding + nameH;
   const midH = codeY - midY;
   const infoLines = [];
@@ -2624,11 +2241,9 @@ function generateLabelCanvas(product) {
   const sc = [product.spec, product.color].filter(Boolean).join(' / ');
   if (sc) infoLines.push(sc);
   if (product.remark) infoLines.push(product.remark);
-
   const qrSize = 110;
   const qrX = padding;
   const qrY = midY + (midH - qrSize) / 2;
-
   try {
     const qr = qrcode(0, 'M');
     qr.addData(barcodeText);
@@ -2654,7 +2269,6 @@ function generateLabelCanvas(product) {
     }
     ctx.drawImage(qrCanvas, offsetX, offsetY);
   } catch (e) {}
-
   if (infoLines.length > 0) {
     const textX = qrX + qrSize + 8;
     const textW = canvas.width - textX - padding;
