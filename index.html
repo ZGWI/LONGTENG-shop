@@ -423,6 +423,9 @@ body::before{
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .rec-time{font-size:12px;color:var(--text2);margin-top:2px;letter-spacing:-.1px;}
+.rec-time .price-tag{
+  color:var(--ios-green);font-weight:600;
+}
 .rec-qty{
   flex:none;font-size:16px;font-weight:700;
   font-family:ui-monospace,"SF Mono",Menlo,monospace;
@@ -523,6 +526,19 @@ body::before{
 .modal-input:focus{
   background:rgba(120,120,128,.16);
   box-shadow:0 0 0 4px rgba(0,122,255,.12);
+}
+.modal-input-label{
+  font-size:12.5px;color:var(--text2);
+  margin:-6px 0 6px;padding-left:4px;
+  letter-spacing:-.1px;
+}
+.modal-input-label .tag{
+  display:inline-block;
+  background:rgba(0,122,255,.1);
+  color:var(--ios-blue);
+  padding:1px 6px;border-radius:5px;
+  font-size:11px;margin-left:4px;
+  font-weight:500;
 }
 .modal-btns{display:flex;gap:8px;margin-top:8px;}
 .modal-btns button{
@@ -1000,14 +1016,12 @@ function getVideoTrack(){
   const tracks = stream.getVideoTracks();
   return tracks[0] || null;
 }
-
 async function applyCameraOptimization(){
   const track = getVideoTrack();
   if(!track) return;
   try{
     const caps = track.getCapabilities?.() || {};
     const constraints = {};
-
     if(caps.focusMode && caps.focusMode.includes('continuous')){
       constraints.focusMode = 'continuous';
     }
@@ -1018,16 +1032,12 @@ async function applyCameraOptimization(){
       const r = caps.exposureCompensation;
       constraints.exposureCompensation = Math.max(r.min, Math.min(r.max, -1));
     }
-
     if(Object.keys(constraints).length > 0){
       await track.applyConstraints({ advanced: [constraints] });
       console.log('摄像头优化已应用:', constraints);
     }
-  }catch(e){
-    console.warn('摄像头优化应用失败', e);
-  }
+  }catch(e){ console.warn('摄像头优化应用失败', e); }
 }
-
 async function triggerRefocus(){
   const track = getVideoTrack();
   if(!track) return;
@@ -1043,9 +1053,7 @@ async function triggerRefocus(){
     }else if(caps.focusMode.includes('single-shot')){
       await track.applyConstraints({ advanced: [{ focusMode: 'single-shot' }] });
     }
-  }catch(e){
-    console.warn('重新对焦失败', e);
-  }
+  }catch(e){ console.warn('重新对焦失败', e); }
 }
 
 /* ==================== 数据层 ==================== */
@@ -1062,19 +1070,35 @@ function saveRecords(){ localStorage.setItem('ss_records',  JSON.stringify(recor
 function findProduct(id){ return products.find(p => p.id === id); }
 function findByBarcode(code){ return products.find(p => p.barcode === code); }
 
-function changeStock(productId, delta, remark = ''){
+/**
+ * 出入库核心
+ * @param delta 正数入库，负数出库
+ * @param remark 备注
+ * @param actualPrice 出库时的实际销售价（入库忽略）
+ */
+function changeStock(productId, delta, remark = '', actualPrice = null){
   if(!delta) return { ok:false, msg:'数量不能为 0' };
   const p = findProduct(productId);
   if(!p) return { ok:false, msg:'商品不存在' };
   const newStock = p.stock + delta;
   if(newStock < 0) return { ok:false, msg:`库存不足，当前库存 ${p.stock}` };
+
   p.stock = newStock;
   p.updatedAt = Date.now();
-  records.unshift({
+
+  const rec = {
     id: uid(), productId: p.id, productName: p.name, barcode: p.barcode,
     type: delta > 0 ? 1 : -1, quantity: Math.abs(delta),
     remark: remark || '', time: Date.now()
-  });
+  };
+
+  // 出库时记录实际销售价
+  if(delta < 0 && actualPrice != null && !isNaN(actualPrice)){
+    rec.actualPrice = actualPrice;
+    rec.priceIn = p.priceIn || 0; // 记录进货价用于毛利计算
+  }
+
+  records.unshift(rec);
   saveProducts();
   saveRecords();
   return { ok:true, stock:newStock };
@@ -1296,12 +1320,20 @@ function renderDetail(p){
     </div>
     <div class="section-title">出入库记录（${recs.length}）</div>
     <div class="card" style="padding:6px 16px;cursor:default;position:relative;z-index:1;">
-      ${recs.length ? recs.map(r => `
+      ${recs.length ? recs.map(r => {
+        const priceInfo = (r.type < 0 && r.actualPrice != null)
+          ? ` · <span class="price-tag">¥${fmtMoney(r.actualPrice)} × ${r.quantity} = ¥${fmtMoney(r.actualPrice * r.quantity)}</span>`
+          : '';
+        return `
         <div class="rec-item">
           <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
-          <div class="rec-main"><div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div></div>
+          <div class="rec-main">
+            <div class="rec-name">${r.type > 0 ? '入库' : '出库'} ${r.quantity} 台</div>
+            <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}${priceInfo}</div>
+          </div>
           <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
-        </div>`).join('') : '<div class="empty" style="padding:24px;">暂无记录</div>'}
+        </div>`;
+      }).join('') : '<div class="empty" style="padding:24px;">暂无记录</div>'}
     </div>`;
   try{
     const qr = qrcode(0, 'M');
@@ -1349,32 +1381,64 @@ function confirmDelete(p){
   };
 }
 
-/* ==================== 出入库数量弹窗 ==================== */
+/* ==================== 出入库数量弹窗（含实际销售价） ==================== */
 function promptQuantity(productId, sign){
   const p = findProduct(productId);
   if(!p) return;
   const isIn = sign > 0;
+
+  // 出库时增加实际销售价字段
+  const priceField = isIn ? '' : `
+    <input class="modal-input" id="mqPrice" type="number" inputmode="decimal"
+      value="${p.priceOut || 0}" placeholder="实际销售价">
+    <div class="modal-input-label">
+      标价 ¥${fmtMoney(p.priceOut)} <span class="tag">可修改为成交价</span>
+    </div>
+  `;
+
   const { mask, close } = showModal(`
     <div class="modal-title">${isIn ? '商品入库' : '商品出库'}</div>
     <div class="modal-body">${esc(p.name)}\n当前库存：${p.stock}</div>
     <input class="modal-input" id="mqQty" type="number" inputmode="numeric" value="1" placeholder="数量">
+    ${priceField}
     <input class="modal-input" id="mqRemark" type="text" placeholder="备注（可选）">
     <div class="modal-btns">
       <button data-act="cancel">取消</button>
       <button class="primary" data-act="ok">确定</button>
     </div>`);
+
   const qtyEl = mask.querySelector('#mqQty');
   const rmkEl = mask.querySelector('#mqRemark');
+  const priceEl = mask.querySelector('#mqPrice');
+
   setTimeout(()=>{ qtyEl.focus(); qtyEl.select(); }, 200);
+
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     const qty = parseInt(qtyEl.value) || 0;
     if(qty <= 0){ toast('请输入正确的数量'); return; }
     if(!isIn && qty > p.stock){ toast(`库存不足，当前 ${p.stock}`); return; }
-    const res = changeStock(p.id, sign * qty, rmkEl.value.trim());
+
+    // 出库时读取实际销售价
+    let actualPrice = null;
+    if(!isIn && priceEl){
+      actualPrice = parseFloat(priceEl.value);
+      if(isNaN(actualPrice) || actualPrice < 0){
+        toast('请输入正确的销售价'); return;
+      }
+    }
+
+    const res = changeStock(p.id, sign * qty, rmkEl.value.trim(), actualPrice);
     if(!res.ok){ toast(res.msg); return; }
     close();
-    toast(`${isIn ? '入库' : '出库'}成功，当前库存 ${res.stock}`);
+
+    if(isIn){
+      toast(`入库成功，当前库存 ${res.stock}`);
+    }else{
+      const total = actualPrice != null ? `，销售 ¥${fmtMoney(actualPrice * qty)}` : '';
+      toast(`出库成功，当前库存 ${res.stock}${total}`);
+    }
+
     if(currentView === 'detail' && currentProductId === p.id) renderDetail(findProduct(p.id));
     else renderProductList();
   };
@@ -1432,8 +1496,6 @@ async function startScan(){
       onScanSuccess,
       () => {}
     );
-
-    // 启动成功后应用摄像头优化
     setTimeout(() => applyCameraOptimization(), 500);
     setTimeout(() => applyCameraOptimization(), 1500);
   }catch(e){
@@ -1473,7 +1535,6 @@ function handleScanResult(code){
   else promptQuantity(p.id, scanMode === 'in' ? 1 : -1);
 }
 
-// 点击取景框触发重新对焦
 document.addEventListener('click', (e) => {
   if(e.target && e.target.closest && e.target.closest('#reader')){
     triggerRefocus();
@@ -1517,6 +1578,12 @@ function renderAnalysis(){
   const totalIn = rangeRecords.filter(r => r.type > 0).reduce((s, r) => s + r.quantity, 0);
   const totalOut = rangeRecords.filter(r => r.type < 0).reduce((s, r) => s + r.quantity, 0);
 
+  // 销售统计：只统计有 actualPrice 的出库记录
+  const saleRecords = rangeRecords.filter(r => r.type < 0 && r.actualPrice != null);
+  const totalRevenue = saleRecords.reduce((s, r) => s + (r.actualPrice || 0) * r.quantity, 0);
+  const totalCost = saleRecords.reduce((s, r) => s + (r.priceIn || 0) * r.quantity, 0);
+  const grossProfit = totalRevenue - totalCost;
+
   const dayBuckets = [];
   const dayLabels = [];
   for (let i = analysisRange - 1; i >= 0; i--){
@@ -1546,6 +1613,20 @@ function renderAnalysis(){
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 5);
 
+  // 销售毛利 TOP 5
+  const profitMap = {};
+  saleRecords.forEach(r => {
+    if(!profitMap[r.productId]){
+      profitMap[r.productId] = { name: r.productName, barcode: r.barcode, revenue: 0, profit: 0, qty: 0 };
+    }
+    profitMap[r.productId].revenue += (r.actualPrice || 0) * r.quantity;
+    profitMap[r.productId].profit += ((r.actualPrice || 0) - (r.priceIn || 0)) * r.quantity;
+    profitMap[r.productId].qty += r.quantity;
+  });
+  const topProfit = Object.values(profitMap)
+    .sort((a, b) => b.profit - a.profit)
+    .slice(0, 5);
+
   el.innerHTML = `
     <div class="stats-grid">
       <div class="stat-card">
@@ -1573,13 +1654,33 @@ function renderAnalysis(){
 
     <div class="analysis-block">
       <div class="analysis-title">
-        出入库汇总
+        销售收入
         <span class="tag">近 ${analysisRange} 天</span>
       </div>
       <div class="time-tabs" id="timeTabs">
         <button data-range="7" class="${analysisRange === 7 ? 'active' : ''}">近 7 天</button>
         <button data-range="30" class="${analysisRange === 30 ? 'active' : ''}">近 30 天</button>
         <button data-range="90" class="${analysisRange === 90 ? 'active' : ''}">近 90 天</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;">
+        <div>
+          <div class="stat-label">销售总额</div>
+          <div class="stat-value small green">¥${fmtNum(totalRevenue.toFixed(0))}</div>
+        </div>
+        <div>
+          <div class="stat-label">毛利</div>
+          <div class="stat-value small ${grossProfit >= 0 ? 'blue' : 'red'}">¥${fmtNum(grossProfit.toFixed(0))}</div>
+        </div>
+      </div>
+      <div class="stat-sub" style="margin-top:8px;text-align:center;position:relative;z-index:1;">
+        共售出 ${fmtNum(saleRecords.reduce((s, r) => s + r.quantity, 0))} 台 · 成本 ¥${fmtNum(totalCost.toFixed(0))}
+      </div>
+    </div>
+
+    <div class="analysis-block">
+      <div class="analysis-title">
+        出入库汇总
+        <span class="tag">近 ${analysisRange} 天</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;">
         <div>
@@ -1611,6 +1712,26 @@ function renderAnalysis(){
         <span><span class="dot red"></span>出库</span>
       </div>
     </div>
+
+    ${topProfit.length > 0 ? `
+    <div class="analysis-block">
+      <div class="analysis-title">
+        💰 销售毛利 TOP 5
+        <span class="tag">近 ${analysisRange} 天</span>
+      </div>
+      <div class="rank-list">
+        ${topProfit.map((p, i) => `
+          <div class="rank-item">
+            <div class="rank-no">${i + 1}</div>
+            <div class="rank-info">
+              <div class="rank-name">${esc(p.name)}</div>
+              <div class="rank-sub">售出 ${p.qty} 台 · 收入 ¥${fmtNum(p.revenue.toFixed(0))}</div>
+            </div>
+            <div class="rank-value" style="color:var(--ios-green);">¥${fmtNum(p.profit.toFixed(0))}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>` : ''}
 
     ${lowList.length > 0 ? `
     <div class="analysis-block">
@@ -1720,12 +1841,20 @@ function renderAnalysis(){
 function renderRecords(){
   const el = $('#recordList');
   if(records.length === 0){ el.innerHTML = '<div class="empty" style="padding:30px;">暂无出入库记录</div>'; return; }
-  el.innerHTML = records.slice(0, 500).map(r => `
+  el.innerHTML = records.slice(0, 500).map(r => {
+    const priceInfo = (r.type < 0 && r.actualPrice != null)
+      ? ` · <span class="price-tag">¥${fmtMoney(r.actualPrice)} × ${r.quantity} = ¥${fmtMoney(r.actualPrice * r.quantity)}</span>`
+      : '';
+    return `
     <div class="rec-item">
       <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
-      <div class="rec-main"><div class="rec-name">${esc(r.productName)}</div><div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div></div>
+      <div class="rec-main">
+        <div class="rec-name">${esc(r.productName)}</div>
+        <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}${priceInfo}</div>
+      </div>
       <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 $('#btnExport').addEventListener('click', ()=>{
@@ -1921,7 +2050,6 @@ async function scanOnce(onResult){
       },
       async (text) => { await stop(); close(); setTimeout(()=>onResult(String(text).trim()), 220); },
       () => {});
-
     setTimeout(() => applyCameraOptimization(), 500);
     setTimeout(() => applyCameraOptimization(), 1500);
   }catch(e){
