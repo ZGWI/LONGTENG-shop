@@ -404,12 +404,17 @@ body::before{
 }
 .info-box b{color:var(--text2);font-weight:400;display:inline-block;min-width:68px;}
 .info-box > div + div{border-top:.5px solid var(--separator-soft);padding-top:6px;margin-top:6px;}
+
+/* 流水记录 */
 .rec-item{
   display:flex;align-items:center;gap:12px;
   padding:12px 0;
   border-bottom:.5px solid var(--separator-soft);
+  transition:background .15s;
 }
 .rec-item:last-child{border-bottom:0;}
+.rec-item.clickable{cursor:pointer;}
+.rec-item.clickable:active{background:rgba(120,120,128,.06);}
 .rec-type{
   flex:none;padding:3px 10px;border-radius:8px;
   font-size:11.5px;font-weight:700;letter-spacing:.2px;
@@ -423,9 +428,7 @@ body::before{
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .rec-time{font-size:12px;color:var(--text2);margin-top:2px;letter-spacing:-.1px;}
-.rec-time .price-tag{
-  color:var(--ios-green);font-weight:600;
-}
+.rec-time .price-tag{color:var(--ios-green);font-weight:600;}
 .rec-qty{
   flex:none;font-size:16px;font-weight:700;
   font-family:ui-monospace,"SF Mono",Menlo,monospace;
@@ -433,6 +436,51 @@ body::before{
 }
 .rec-qty.in{color:var(--ios-green);}
 .rec-qty.out{color:var(--ios-red);}
+.rec-arrow{
+  flex:none;color:var(--text3);
+  font-size:18px;font-weight:300;
+  margin-left:-4px;
+  line-height:1;
+}
+
+/* 详情弹窗信息 */
+.detail-info-box{
+  background:rgba(120,120,128,.06);
+  border-radius:14px;
+  padding:14px 16px;
+  font-size:14.5px;
+  line-height:2;
+  margin-bottom:16px;
+  text-align:left;
+  letter-spacing:-.2px;
+}
+.detail-info-box .di-row{
+  display:flex;justify-content:space-between;
+  align-items:baseline;gap:10px;
+  padding:5px 0;
+}
+.detail-info-box .di-row + .di-row{border-top:.5px solid var(--separator-soft);}
+.detail-info-box .di-label{color:var(--text2);flex:none;font-size:13.5px;}
+.detail-info-box .di-value{
+  color:var(--text);font-weight:500;
+  text-align:right;flex:1;min-width:0;
+  word-break:break-all;
+}
+.detail-info-box .di-value.mono{
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  font-size:13px;color:var(--text2);
+}
+.detail-info-box .di-value.green{color:var(--ios-green);font-weight:700;}
+.detail-info-box .di-value.red{color:var(--ios-red);font-weight:700;}
+.detail-info-box .di-value.blue{color:var(--ios-blue);font-weight:700;}
+.detail-info-box .di-value.big{font-size:17px;}
+.detail-tag{
+  display:inline-block;padding:2px 8px;border-radius:6px;
+  font-size:12px;font-weight:600;letter-spacing:-.2px;
+}
+.detail-tag.in{background:rgba(52,199,89,.14);color:var(--ios-green);}
+.detail-tag.out{background:rgba(255,59,48,.14);color:var(--ios-red);}
+
 .scan-tabs{
   display:flex;gap:6px;padding:14px 16px 12px;
   background:rgba(120,120,128,.08);
@@ -556,6 +604,12 @@ body::before{
   box-shadow:0 6px 16px rgba(0,122,255,.28);
 }
 .modal-btns button.primary:active{box-shadow:0 2px 8px rgba(0,122,255,.2);}
+.modal-btns button.danger{
+  background:linear-gradient(180deg,#FF6961 0%,#FF3B30 100%);
+  color:#fff;font-weight:600;
+  box-shadow:0 6px 16px rgba(255,59,48,.28);
+}
+.modal-btns button.danger:active{box-shadow:0 2px 8px rgba(255,59,48,.2);}
 .toast{
   position:fixed;left:50%;bottom:110px;
   transform:translateX(-50%) translateY(16px) scale(.94);
@@ -965,7 +1019,7 @@ body::before{
           <button class="mini-btn" id="btnBatchPrint" style="flex:1;height:42px;background:rgba(175,82,222,.12);color:var(--ios-purple);font-weight:600;">🖨 批量打印标签</button>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none">
-        <div class="section-title">全部出入库流水</div>
+        <div class="section-title">全部出入库流水（点击可查看详情）</div>
         <div class="card" style="padding:6px 16px;cursor:default;position:relative;z-index:1;">
           <div id="recordList"></div>
         </div>
@@ -997,6 +1051,10 @@ function fmtNum(n){ return (Number(n)||0).toLocaleString('zh-CN'); }
 function fmtTime(ts){
   const d = new Date(ts), p = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fmtTimeFull(ts){
+  const d = new Date(ts), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 function toast(msg){
   const t = document.createElement('div');
@@ -1070,12 +1128,6 @@ function saveRecords(){ localStorage.setItem('ss_records',  JSON.stringify(recor
 function findProduct(id){ return products.find(p => p.id === id); }
 function findByBarcode(code){ return products.find(p => p.barcode === code); }
 
-/**
- * 出入库核心
- * @param delta 正数入库，负数出库
- * @param remark 备注
- * @param actualPrice 出库时的实际销售价（入库忽略）
- */
 function changeStock(productId, delta, remark = '', actualPrice = null){
   if(!delta) return { ok:false, msg:'数量不能为 0' };
   const p = findProduct(productId);
@@ -1092,16 +1144,46 @@ function changeStock(productId, delta, remark = '', actualPrice = null){
     remark: remark || '', time: Date.now()
   };
 
-  // 出库时记录实际销售价
   if(delta < 0 && actualPrice != null && !isNaN(actualPrice)){
     rec.actualPrice = actualPrice;
-    rec.priceIn = p.priceIn || 0; // 记录进货价用于毛利计算
+    rec.priceIn = p.priceIn || 0;
   }
 
   records.unshift(rec);
   saveProducts();
   saveRecords();
   return { ok:true, stock:newStock };
+}
+
+/**
+ * 撤销一条出入库记录
+ * - 出库 → 撤销 → 加回库存
+ * - 入库 → 撤销 → 扣减库存（需保证库存充足）
+ */
+function undoRecord(recId){
+  const idx = records.findIndex(r => r.id === recId);
+  if(idx === -1) return { ok:false, msg:'记录不存在' };
+
+  const rec = records[idx];
+  const p = findProduct(rec.productId);
+
+  let newStock = 0;
+  if(p){
+    // 出库时 rec.type = -1，撤销时加回库存
+    // 入库时 rec.type = 1，撤销时扣减库存
+    const delta = rec.type > 0 ? -rec.quantity : rec.quantity;
+    newStock = p.stock + delta;
+    if(newStock < 0){
+      return { ok:false, msg:`无法撤销：库存将变为负数（当前 ${p.stock} 台）` };
+    }
+    p.stock = newStock;
+    p.updatedAt = Date.now();
+  }
+
+  records.splice(idx, 1);
+  saveProducts();
+  saveRecords();
+  return { ok:true, stock:newStock, product: p, record: rec };
 }
 
 /* ==================== 视图管理 ==================== */
@@ -1325,13 +1407,14 @@ function renderDetail(p){
           ? ` · <span class="price-tag">¥${fmtMoney(r.actualPrice)} × ${r.quantity} = ¥${fmtMoney(r.actualPrice * r.quantity)}</span>`
           : '';
         return `
-        <div class="rec-item">
+        <div class="rec-item clickable" data-rec-id="${esc(r.id)}">
           <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
           <div class="rec-main">
             <div class="rec-name">${r.type > 0 ? '入库' : '出库'} ${r.quantity} 台</div>
             <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}${priceInfo}</div>
           </div>
           <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
+          <span class="rec-arrow">›</span>
         </div>`;
       }).join('') : '<div class="empty" style="padding:24px;">暂无记录</div>'}
     </div>`;
@@ -1351,6 +1434,11 @@ function renderDetail(p){
   $('#dSaveImg').onclick = () => saveBarcodeImage(p);
   $('#dBlePrint').onclick = () => blePrint(p);
   $('#dPreview').onclick = () => showPrintPreview(p);
+
+  // 绑定流水点击
+  $('#detailBody').querySelectorAll('.rec-item[data-rec-id]').forEach(node => {
+    node.onclick = () => showRecordDetail(node.dataset.recId);
+  });
 }
 
 function copyText(text, msg){
@@ -1381,13 +1469,12 @@ function confirmDelete(p){
   };
 }
 
-/* ==================== 出入库数量弹窗（含实际销售价） ==================== */
+/* ==================== 出入库数量弹窗 ==================== */
 function promptQuantity(productId, sign){
   const p = findProduct(productId);
   if(!p) return;
   const isIn = sign > 0;
 
-  // 出库时增加实际销售价字段
   const priceField = isIn ? '' : `
     <input class="modal-input" id="mqPrice" type="number" inputmode="decimal"
       value="${p.priceOut || 0}" placeholder="实际销售价">
@@ -1419,7 +1506,6 @@ function promptQuantity(productId, sign){
     if(qty <= 0){ toast('请输入正确的数量'); return; }
     if(!isIn && qty > p.stock){ toast(`库存不足，当前 ${p.stock}`); return; }
 
-    // 出库时读取实际销售价
     let actualPrice = null;
     if(!isIn && priceEl){
       actualPrice = parseFloat(priceEl.value);
@@ -1442,6 +1528,180 @@ function promptQuantity(productId, sign){
     if(currentView === 'detail' && currentProductId === p.id) renderDetail(findProduct(p.id));
     else renderProductList();
   };
+}
+
+/* ==================== 记录详情 / 撤销 ==================== */
+function showRecordDetail(recId){
+  const rec = records.find(r => r.id === recId);
+  if(!rec){ toast('记录不存在'); return; }
+
+  const isIn = rec.type > 0;
+  const p = findProduct(rec.productId);
+  const totalPrice = (rec.actualPrice != null) ? rec.actualPrice * rec.quantity : null;
+  const profit = (rec.actualPrice != null && rec.priceIn != null)
+    ? (rec.actualPrice - rec.priceIn) * rec.quantity
+    : null;
+
+  const { mask, close } = showModal(`
+    <div class="modal-title">${isIn ? '入库' : '出库'}记录详情</div>
+    <div class="detail-info-box">
+      <div class="di-row">
+        <span class="di-label">类型</span>
+        <span class="di-value">
+          <span class="detail-tag ${isIn ? 'in' : 'out'}">${isIn ? '入库' : '出库'}</span>
+        </span>
+      </div>
+      <div class="di-row">
+        <span class="di-label">商品名称</span>
+        <span class="di-value">${esc(rec.productName)}</span>
+      </div>
+      <div class="di-row">
+        <span class="di-label">条码</span>
+        <span class="di-value mono">${esc(rec.barcode)}</span>
+      </div>
+      <div class="di-row">
+        <span class="di-label">数量</span>
+        <span class="di-value ${isIn ? 'green' : 'red'}">${isIn ? '+' : '-'}${rec.quantity} 台</span>
+      </div>
+      ${rec.actualPrice != null ? `
+        <div class="di-row">
+          <span class="di-label">实际售价</span>
+          <span class="di-value">¥${fmtMoney(rec.actualPrice)}</span>
+        </div>` : ''}
+      ${rec.priceIn != null && !isIn ? `
+        <div class="di-row">
+          <span class="di-label">进货成本</span>
+          <span class="di-value">¥${fmtMoney(rec.priceIn)}</span>
+        </div>` : ''}
+      ${totalPrice != null ? `
+        <div class="di-row">
+          <span class="di-label">销售总额</span>
+          <span class="di-value green big">¥${fmtMoney(totalPrice)}</span>
+        </div>` : ''}
+      ${profit != null ? `
+        <div class="di-row">
+          <span class="di-label">毛利</span>
+          <span class="di-value ${profit >= 0 ? 'green' : 'red'} big">¥${fmtMoney(profit)}</span>
+        </div>` : ''}
+      ${rec.remark ? `
+        <div class="di-row">
+          <span class="di-label">备注</span>
+          <span class="di-value">${esc(rec.remark)}</span>
+        </div>` : ''}
+      <div class="di-row">
+        <span class="di-label">操作时间</span>
+        <span class="di-value mono">${fmtTimeFull(rec.time)}</span>
+      </div>
+      ${p ? `
+        <div class="di-row">
+          <span class="di-label">当前库存</span>
+          <span class="di-value">${p.stock} 台</span>
+        </div>` : `
+        <div class="di-row">
+          <span class="di-label">提示</span>
+          <span class="di-value" style="color:var(--ios-orange);">该商品已被删除</span>
+        </div>`}
+    </div>
+    <div class="modal-btns" style="flex-direction:column;gap:8px;">
+      <button class="danger" data-act="undo">撤销此记录</button>
+      <button data-act="cancel">关闭</button>
+    </div>`);
+
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+  mask.querySelector('[data-act="undo"]').onclick = () => {
+    close();
+    setTimeout(() => confirmUndoRecord(recId), 240);
+  };
+}
+
+function confirmUndoRecord(recId){
+  const rec = records.find(r => r.id === recId);
+  if(!rec){ toast('记录不存在'); return; }
+  const isIn = rec.type > 0;
+  const p = findProduct(rec.productId);
+
+  const actionText = isIn ? '撤销入库' : '撤销出库';
+  const effectText = isIn
+    ? `库存将减少 ${rec.quantity} 台`
+    : `库存将增加 ${rec.quantity} 台`;
+
+  // 撤销入库时，检查库存是否足够
+  if(isIn && p){
+    const newStock = p.stock - rec.quantity;
+    if(newStock < 0){
+      const { mask, close } = showModal(`
+        <div class="modal-title">无法撤销</div>
+        <div class="modal-body">
+          撤销该入库记录会导致库存变为 ${newStock} 台（负数）。\n\n
+          说明该批货物已部分或全部售出，请先处理相关的出库记录。
+        </div>
+        <div class="modal-btns">
+          <button class="primary" data-act="ok">知道了</button>
+        </div>`);
+      mask.querySelector('[data-act="ok"]').onclick = close;
+      return;
+    }
+  }
+
+  if(!p){
+    const { mask, close } = showModal(`
+      <div class="modal-title">${actionText}</div>
+      <div class="modal-body">
+        该商品已被删除，撤销操作只会删除这条记录，不会影响库存。
+      </div>
+      <div class="modal-btns">
+        <button data-act="cancel">取消</button>
+        <button class="danger" data-act="ok">确认删除记录</button>
+      </div>`);
+    mask.querySelector('[data-act="cancel"]').onclick = close;
+    mask.querySelector('[data-act="ok"]').onclick = () => {
+      const result = undoRecord(recId);
+      close();
+      if(result.ok){
+        toast(`已${actionText}`);
+        refreshCurrentView();
+      }else{
+        toast(result.msg || '撤销失败');
+      }
+    };
+    return;
+  }
+
+  const { mask, close } = showModal(`
+    <div class="modal-title">${actionText}</div>
+    <div class="modal-body">
+      商品：${esc(rec.productName)}\n
+      数量：${rec.quantity} 台\n
+      ${effectText}\n\n
+      撤销后该记录将被删除，无法恢复。
+    </div>
+    <div class="modal-btns">
+      <button data-act="cancel">取消</button>
+      <button class="danger" data-act="ok">确认撤销</button>
+    </div>`);
+
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+  mask.querySelector('[data-act="ok"]').onclick = () => {
+    const result = undoRecord(recId);
+    close();
+    if(result.ok){
+      toast(`已${actionText}，当前库存 ${result.stock} 台`);
+      refreshCurrentView();
+    }else{
+      toast(result.msg || '撤销失败');
+    }
+  };
+}
+
+function refreshCurrentView(){
+  if(currentView === 'records') renderRecords();
+  if(currentView === 'list') renderProductList();
+  if(currentView === 'detail' && currentProductId){
+    const prod = findProduct(currentProductId);
+    if(prod) renderDetail(prod);
+    else showView('list');
+  }
+  if(currentView === 'analysis') renderAnalysis();
 }
 
 /* ==================== 扫码 ==================== */
@@ -1578,7 +1838,6 @@ function renderAnalysis(){
   const totalIn = rangeRecords.filter(r => r.type > 0).reduce((s, r) => s + r.quantity, 0);
   const totalOut = rangeRecords.filter(r => r.type < 0).reduce((s, r) => s + r.quantity, 0);
 
-  // 销售统计：只统计有 actualPrice 的出库记录
   const saleRecords = rangeRecords.filter(r => r.type < 0 && r.actualPrice != null);
   const totalRevenue = saleRecords.reduce((s, r) => s + (r.actualPrice || 0) * r.quantity, 0);
   const totalCost = saleRecords.reduce((s, r) => s + (r.priceIn || 0) * r.quantity, 0);
@@ -1613,7 +1872,6 @@ function renderAnalysis(){
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 5);
 
-  // 销售毛利 TOP 5
   const profitMap = {};
   saleRecords.forEach(r => {
     if(!profitMap[r.productId]){
@@ -1846,15 +2104,21 @@ function renderRecords(){
       ? ` · <span class="price-tag">¥${fmtMoney(r.actualPrice)} × ${r.quantity} = ¥${fmtMoney(r.actualPrice * r.quantity)}</span>`
       : '';
     return `
-    <div class="rec-item">
+    <div class="rec-item clickable" data-rec-id="${esc(r.id)}">
       <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
       <div class="rec-main">
         <div class="rec-name">${esc(r.productName)}</div>
         <div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}${priceInfo}</div>
       </div>
       <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
+      <span class="rec-arrow">›</span>
     </div>`;
   }).join('');
+
+  // 绑定流水点击
+  el.querySelectorAll('.rec-item[data-rec-id]').forEach(node => {
+    node.onclick = () => showRecordDetail(node.dataset.recId);
+  });
 }
 
 $('#btnExport').addEventListener('click', ()=>{
