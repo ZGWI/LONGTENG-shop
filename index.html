@@ -78,20 +78,12 @@ body{
 .pi-name{font-size:15px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pi-code{font-size:11.5px;color:#9AA0A6;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-right{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-.pi-stock{font-size:14px;font-weight:700;}
+.pi-right{flex:none;text-align:right;}
+.pi-stock{font-size:14px;font-weight:700;margin-bottom:5px;}
 .pi-stock.ok{color:var(--green);}
 .pi-stock.warn{color:var(--orange);}
 .pi-stock.danger{color:var(--red);}
 .pi-price{font-size:13px;color:var(--primary);font-weight:600;}
-/* 列表编辑按钮 */
-.edit-btn{
-  margin-top:2px;height:28px;padding:0 10px;
-  border:1px solid var(--primary);background:#fff;color:var(--primary);
-  border-radius:8px;font-size:12px;cursor:pointer;
-  display:inline-flex;align-items:center;gap:3px;
-}
-.edit-btn:active{background:#E8F0FE;}
 .empty{text-align:center;color:var(--text2);font-size:14px;padding:60px 24px;line-height:1.8;}
 .fab{
   position:fixed;right:calc(50% - 320px + 18px);bottom:78px;
@@ -360,7 +352,7 @@ let currentView = 'list';
 let editingId = null;
 let currentProductId = null;
 
-const TITLES = { list:'龙腾手机库存', add:'新增商品', edit:'编辑商品', detail:'商品详情', scan:'扫码', records:'出入库记录' };
+const TITLES = { list:'龙腾手机库存', add:'新增商品', detail:'商品详情', scan:'扫码', records:'出入库记录' };
 
 function showView(name){
   if(currentView === 'scan' && name !== 'scan') stopScan();
@@ -368,6 +360,7 @@ function showView(name){
   $$('.view').forEach(v => v.classList.remove('active'));
   const el = $('#view-' + name);
   if(el) el.classList.add('active');
+  // 默认标题（openAdd 里会覆盖）
   $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
   const isRoot = (name === 'list' || name === 'scan' || name === 'records');
   $('#btnBack').classList.toggle('hidden', isRoot);
@@ -408,12 +401,10 @@ function renderProductList(){
       <div class="pi-right">
         <div class="pi-stock ${cls}">库存 ${p.stock}</div>
         <div class="pi-price">¥${fmtMoney(p.priceOut)}</div>
-        <button class="edit-btn" data-edit="${esc(p.id)}">✏️ 编辑</button>
       </div>
     </div>`;
   }).join('');
 
-  // 整卡点击 → 详情
   el.querySelectorAll('.product-item').forEach(node => {
     const id = node.dataset.id;
     node.addEventListener('click', () => openDetail(id));
@@ -424,14 +415,6 @@ function renderProductList(){
     node.addEventListener('touchend', cancel);
     node.addEventListener('touchmove', cancel, {passive:true});
     node.addEventListener('contextmenu', e => { e.preventDefault(); showQuickMenu(id); });
-  });
-
-  // 编辑按钮点击 → 编辑（阻止冒泡，避免触发详情）
-  el.querySelectorAll('.edit-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openAdd(btn.dataset.edit);
-    });
   });
 }
 
@@ -471,8 +454,13 @@ function showQuickMenu(id){
 /* ==================== 新增 / 编辑 ==================== */
 function openAdd(id = null, presetBarcode = ''){
   editingId = id;
-  showView(id ? 'edit' : 'add');
+  // ✅ 关键修复：始终使用 'add' 视图，编辑时只改标题
+  showView('add');
+  $('#tbTitle').textContent = id ? '编辑商品' : '新增商品';
+
   const p = id ? findProduct(id) : null;
+  if(id && !p){ toast('商品不存在'); showView('list'); return; }
+
   $('#fName').value     = p ? p.name : '';
   $('#fBrand').value    = p ? p.brand : '';
   $('#fModel').value    = p ? p.model : '';
@@ -517,6 +505,7 @@ $('#btnSaveProduct').addEventListener('click', ()=>{
 
   if(editingId){
     const p = findProduct(editingId);
+    if(!p){ toast('商品不存在'); return; }
     Object.assign(p, data, { updatedAt: Date.now() });
     saveProducts(); toast('已保存');
   }else{
