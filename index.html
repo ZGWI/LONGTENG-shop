@@ -2,82 +2,102 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#2563EB">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#007AFF">
 <title>龙腾手机库存</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
 <style>
+/* ==================== iOS 26 Liquid Glass 设计系统 ==================== */
 :root{
-  --primary:#2563EB;
-  --primary-light:#3B82F6;
-  --primary-dark:#1D4ED8;
-  --primary-soft:#EFF6FF;
-  --green:#10B981;
-  --green-soft:#ECFDF5;
-  --red:#EF4444;
-  --red-soft:#FEF2F2;
-  --orange:#F59E0B;
-  --orange-soft:#FFFBEB;
-  --purple:#8B5CF6;
-  --purple-soft:#F5F3FF;
-  --bg:#F8FAFC;
-  --card:#FFFFFF;
-  --text:#0F172A;
-  --text2:#64748B;
-  --text3:#94A3B8;
-  --border:#E2E8F0;
-  --border-soft:#F1F5F9;
-  --shadow-sm:0 1px 2px rgba(15,23,42,.04);
-  --shadow:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
-  --shadow-md:0 4px 12px rgba(15,23,42,.08);
-  --shadow-lg:0 12px 32px rgba(15,23,42,.12);
-  --radius:16px;
-  --radius-sm:12px;
-  --radius-xs:10px;
+  --ios-blue:#007AFF;
+  --ios-blue-dark:#0051D5;
+  --ios-green:#34C759;
+  --ios-red:#FF3B30;
+  --ios-orange:#FF9500;
+  --ios-purple:#AF52DE;
+  --ios-pink:#FF2D55;
+  --ios-indigo:#5856D6;
+
+  --text:#1C1C1E;
+  --text2:rgba(60,60,67,.6);
+  --text3:rgba(60,60,67,.3);
+
+  --bg-system:#F2F2F7;
+  --bg-elevated:rgba(255,255,255,.72);
+  --bg-card:rgba(255,255,255,.78);
+  --bg-input:rgba(120,120,128,.12);
+
+  --separator:rgba(60,60,67,.29);
+  --separator-soft:rgba(60,60,67,.12);
+
+  --glass-border:rgba(255,255,255,.6);
+  --glass-highlight:rgba(255,255,255,.9);
+
+  --radius-lg:28px;
+  --radius:22px;
+  --radius-sm:16px;
+  --radius-xs:12px;
+
+  --shadow-1:0 1px 2px rgba(0,0,0,.04), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-2:0 2px 8px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+  --shadow-3:0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+  --shadow-blue:0 8px 24px rgba(0,122,255,.32), 0 2px 6px rgba(0,122,255,.16);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  background:#E2E8F0;color:var(--text);font-size:15px;overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:#C7C7CC;
+  color:var(--text);font-size:15px;overflow:hidden;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
+  letter-spacing:-.01em;
+}
+/* 背景装饰光斑 */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(0,122,255,.15), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(175,82,222,.12), transparent 60%),
+    radial-gradient(ellipse 50% 30% at 0% 100%, rgba(52,199,89,.08), transparent 60%);
 }
 #app{
   max-width:640px;margin:0 auto;height:100vh;height:100dvh;
-  display:flex;flex-direction:column;background:var(--bg);
+  display:flex;flex-direction:column;
   position:relative;overflow:hidden;
-  box-shadow:0 0 40px rgba(15,23,42,.06);
+  background:linear-gradient(180deg, #F7F8FC 0%, #F2F2F7 100%);
+  box-shadow:0 0 60px rgba(0,0,0,.1);
+  z-index:1;
 }
 
-/* ==================== 顶栏 ==================== */
+/* ==================== 顶栏：毛玻璃 ==================== */
 #topbar{
-  height:60px;flex:none;display:flex;align-items:center;
-  padding:0 6px;
-  background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%);
-  color:#fff;
-  box-shadow:0 2px 10px rgba(37,99,235,.24);
+  height:58px;flex:none;display:flex;align-items:center;
+  padding:0 8px;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
+  border-bottom:.5px solid var(--separator-soft);
   z-index:10;position:relative;
 }
-#topbar::after{
-  content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
-}
 #topbar .tb-btn{
-  width:42px;height:42px;border:0;background:transparent;color:#fff;
-  font-size:19px;border-radius:12px;cursor:pointer;display:flex;
-  align-items:center;justify-content:center;
-  transition:background .15s;
+  width:40px;height:40px;border:0;background:transparent;
+  color:var(--ios-blue);font-size:19px;
+  border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  font-weight:500;
 }
-#topbar .tb-btn:active{background:rgba(255,255,255,.18);}
+#topbar .tb-btn:active{background:rgba(120,120,128,.12);transform:scale(.94);}
 #topbar .tb-btn.hidden{visibility:hidden;}
 #topbar h1{
-  flex:1;text-align:center;font-size:16.5px;margin:0;font-weight:600;
-  letter-spacing:.3px;
+  flex:1;text-align:center;font-size:17px;margin:0;
+  font-weight:600;letter-spacing:-.4px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--text);
   display:flex;align-items:center;justify-content:center;gap:6px;
 }
 
@@ -86,407 +106,603 @@ body{
 .view{
   position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
   display:none;padding-bottom:24px;
-  animation:fadeIn .2s ease;
+  animation:viewIn .28s cubic-bezier(.4,0,.2,1);
 }
 .view.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+@keyframes viewIn{
+  from{opacity:0;transform:translateY(6px);}
+  to{opacity:1;transform:translateY(0);}
+}
 
-/* ==================== 底部导航 ==================== */
+/* ==================== 底部导航：毛玻璃 ==================== */
 #tabbar{
-  flex:none;height:62px;display:flex;background:#fff;
-  border-top:1px solid var(--border-soft);
-  box-shadow:0 -2px 12px rgba(15,23,42,.04);
+  flex:none;height:58px;display:flex;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
+  border-top:.5px solid var(--separator-soft);
   z-index:10;position:relative;
   padding-bottom:env(safe-area-inset-bottom,0);
 }
 #tabbar.hidden{display:none;}
 #tabbar button{
-  flex:1;border:0;background:transparent;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;font-size:11px;
-  color:var(--text3);cursor:pointer;padding:6px 0;position:relative;
-  transition:color .2s;
+  flex:1;border:0;background:transparent;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;
+  font-size:10.5px;color:var(--text2);cursor:pointer;
+  padding:4px 0;position:relative;
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+  font-weight:500;letter-spacing:-.2px;
 }
-#tabbar button .ic{font-size:20px;line-height:1;transition:transform .2s;}
-#tabbar button.active{color:var(--primary);font-weight:600;}
-#tabbar button.active .ic{transform:translateY(-2px) scale(1.08);}
-#tabbar button.active::before{
-  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:28px;height:3px;background:var(--primary);border-radius:0 0 4px 4px;
+#tabbar button .ic{
+  font-size:22px;line-height:1;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  filter:grayscale(.6);
+  opacity:.7;
+}
+#tabbar button.active{color:var(--ios-blue);font-weight:600;}
+#tabbar button.active .ic{
+  transform:scale(1.08);
+  filter:none;opacity:1;
 }
 
 /* ==================== 搜索框 ==================== */
-.search-wrap{padding:14px 14px 8px;position:relative;}
+.search-wrap{padding:12px 16px 8px;position:relative;}
 .search-wrap input{
-  width:100%;height:44px;border:1.5px solid transparent;border-radius:14px;
-  padding:0 16px 0 42px;font-size:14px;background:#fff;outline:none;
-  box-shadow:var(--shadow);color:var(--text);
-  transition:all .2s;
+  width:100%;height:38px;
+  border:0;border-radius:12px;
+  padding:0 16px 0 38px;font-size:16px;
+  background:var(--bg-input);
+  outline:none;color:var(--text);
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+  font-weight:400;letter-spacing:-.2px;
 }
 .search-wrap input::placeholder{color:var(--text3);}
 .search-wrap input:focus{
-  border-color:var(--primary-light);
-  box-shadow:0 0 0 4px rgba(59,130,246,.12),var(--shadow);
+  background:rgba(120,120,128,.16);
+  box-shadow:0 0 0 4px rgba(0,122,255,.12);
 }
 .search-wrap::before{
-  content:"🔍";position:absolute;left:28px;top:50%;transform:translateY(-40%);
-  font-size:15px;opacity:.5;pointer-events:none;
+  content:"";position:absolute;left:28px;top:50%;
+  transform:translateY(-60%);
+  width:15px;height:15px;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 4.5px, rgba(60,60,67,.5) 4.5px, rgba(60,60,67,.5) 5.5px, transparent 5.5px);
+  pointer-events:none;
+  z-index:1;
+}
+.search-wrap::after{
+  content:"";position:absolute;left:40px;top:58%;width:5px;height:1.5px;
+  background:rgba(60,60,67,.5);transform:rotate(45deg);
+  border-radius:2px;pointer-events:none;z-index:1;
 }
 
 /* ==================== 商品列表 ==================== */
-.list{padding:4px 14px 100px;}
+.list{padding:6px 16px 100px;}
 .card{
-  background:var(--card);border-radius:var(--radius);padding:14px 16px;
-  margin-bottom:10px;box-shadow:var(--shadow);
-  cursor:pointer;transition:all .18s cubic-bezier(.4,0,.2,1);
-  border:1px solid var(--border-soft);
+  background:var(--bg-card);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  margin-bottom:10px;
+  border:.5px solid var(--glass-border);
+  box-shadow:var(--shadow-2);
+  cursor:pointer;
+  transition:all .22s cubic-bezier(.4,0,.2,1);
   position:relative;overflow:hidden;
 }
-.card::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
-  background:var(--green);border-radius:0 4px 4px 0;
+/* 边缘高光 */
+.card::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 40%);
+  opacity:.5;
 }
-.card.stock-warn::before{background:var(--orange);}
-.card.stock-danger::before{background:var(--red);}
-.card:active{transform:scale(.985);box-shadow:var(--shadow-md);}
-.product-item{display:flex;gap:12px;align-items:flex-start;}
+.card:active{transform:scale(.98);box-shadow:var(--shadow-1);}
+.product-item{display:flex;gap:12px;align-items:flex-start;position:relative;z-index:1;}
 .pi-main{flex:1;min-width:0;}
-.pi-name{font-size:15.5px;font-weight:600;margin-bottom:4px;color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.1px;}
-.pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:5px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-code{font-size:11.5px;color:var(--text3);font-family:ui-monospace,Menlo,monospace;
+.pi-name{
+  font-size:16px;font-weight:600;margin-bottom:4px;
+  color:var(--text);letter-spacing:-.3px;line-height:1.25;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  background:var(--bg);display:inline-block;padding:2px 8px;border-radius:6px;}
-.pi-right{flex:none;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
-.pi-stock{
-  font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:20px;
-  background:var(--green-soft);color:var(--green);
 }
-.pi-stock.ok{background:var(--green-soft);color:var(--green);}
-.pi-stock.warn{background:var(--orange-soft);color:var(--orange);}
-.pi-stock.danger{background:var(--red-soft);color:var(--red);}
-.pi-price{font-size:14px;color:var(--primary);font-weight:700;letter-spacing:.2px;}
+.pi-sub{
+  font-size:13px;color:var(--text2);margin-bottom:6px;
+  letter-spacing:-.1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pi-code{
+  font-size:11.5px;color:var(--text2);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  letter-spacing:.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pi-right{
+  flex:none;display:flex;flex-direction:column;
+  gap:6px;align-items:flex-end;
+}
+.pi-stock{
+  font-size:13px;font-weight:600;
+  padding:4px 11px;border-radius:100px;
+  background:rgba(52,199,89,.14);color:var(--ios-green);
+  letter-spacing:-.1px;
+}
+.pi-stock.ok{background:rgba(52,199,89,.14);color:var(--ios-green);}
+.pi-stock.warn{background:rgba(255,149,0,.14);color:var(--ios-orange);}
+.pi-stock.danger{background:rgba(255,59,48,.14);color:var(--ios-red);}
+.pi-price{
+  font-size:15px;color:var(--ios-blue);
+  font-weight:700;letter-spacing:-.3px;
+}
 
 /* ==================== 空状态 ==================== */
 .empty{
-  text-align:center;color:var(--text3);font-size:14px;
-  padding:80px 24px;line-height:2;
+  text-align:center;color:var(--text2);font-size:14px;
+  padding:80px 24px;line-height:2;letter-spacing:-.2px;
 }
-.empty b{color:var(--primary);}
+.empty b{color:var(--ios-blue);font-weight:600;}
 
 /* ==================== FAB ==================== */
 .fab{
   position:fixed;right:calc(50% - 320px + 20px);bottom:82px;
-  width:58px;height:58px;border-radius:50%;border:0;
-  background:linear-gradient(135deg,#3B82F6,#2563EB);
+  width:56px;height:56px;border-radius:50%;border:0;
+  background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%);
   color:#fff;font-size:30px;line-height:1;font-weight:300;
-  box-shadow:0 8px 24px rgba(37,99,235,.4),0 2px 6px rgba(37,99,235,.2);
+  box-shadow:var(--shadow-blue);
   cursor:pointer;z-index:9;
   display:flex;align-items:center;justify-content:center;
-  transition:all .2s cubic-bezier(.4,0,.2,1);
+  transition:all .22s cubic-bezier(.4,0,.2,1);
+  position:fixed;
 }
 @media (max-width:676px){ .fab{right:20px;} }
-.fab:active{transform:scale(.92);box-shadow:0 4px 12px rgba(37,99,235,.3);}
+.fab:active{transform:scale(.9);box-shadow:0 4px 12px rgba(0,122,255,.24);}
+.fab::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 50%);
+  pointer-events:none;
+}
 
 /* ==================== 表单 ==================== */
 .form-body{padding:20px 16px 60px;}
-.field{margin-bottom:16px;flex:1;min-width:0;}
+.field{margin-bottom:18px;flex:1;min-width:0;}
 .field label{
-  display:block;font-size:12.5px;color:var(--text2);
-  margin-bottom:8px;font-weight:500;letter-spacing:.2px;
+  display:block;font-size:13px;color:var(--text2);
+  margin-bottom:6px;font-weight:500;letter-spacing:-.1px;
+  padding-left:4px;
 }
-.field .req{color:var(--red);}
+.field .req{color:var(--ios-red);}
 .field input,.field textarea{
-  width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
-  padding:12px 14px;font-size:15px;background:#fff;outline:none;
+  width:100%;border:0;border-radius:12px;
+  padding:11px 14px;font-size:16px;
+  background:var(--bg-input);outline:none;
   font-family:inherit;color:var(--text);
-  transition:all .2s;
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+  font-weight:400;letter-spacing:-.2px;
 }
 .field input::placeholder,.field textarea::placeholder{color:var(--text3);}
 .field input:focus,.field textarea:focus{
-  border-color:var(--primary-light);
-  box-shadow:0 0 0 4px rgba(59,130,246,.1);
+  background:rgba(120,120,128,.16);
+  box-shadow:0 0 0 4px rgba(0,122,255,.12);
 }
-.field input:disabled{background:var(--bg);color:var(--text3);cursor:not-allowed;}
+.field input:disabled{background:rgba(120,120,128,.08);color:var(--text3);cursor:not-allowed;}
 .row2{display:flex;gap:12px;}
 .input-with-actions{display:flex;gap:8px;align-items:center;}
 .input-with-actions input{flex:1;min-width:0;}
 .mini-btn{
-  flex:none;height:44px;padding:0 16px;
-  border:1.5px solid var(--primary-light);
-  background:#fff;color:var(--primary);border-radius:var(--radius-sm);
-  font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;
-  transition:all .15s;
+  flex:none;height:38px;padding:0 16px;border:0;
+  background:rgba(0,122,255,.1);color:var(--ios-blue);
+  border-radius:12px;font-size:14px;font-weight:500;
+  cursor:pointer;white-space:nowrap;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  letter-spacing:-.2px;
 }
-.mini-btn:active{background:var(--primary-soft);transform:scale(.97);}
+.mini-btn:active{background:rgba(0,122,255,.2);transform:scale(.96);}
 .btn-primary{
-  width:100%;height:52px;border:0;border-radius:14px;
-  background:linear-gradient(135deg,#3B82F6,#2563EB);
-  color:#fff;font-size:16px;font-weight:600;
-  cursor:pointer;margin-top:12px;letter-spacing:.3px;
-  box-shadow:0 4px 14px rgba(37,99,235,.28);
-  transition:all .18s;
+  width:100%;height:50px;border:0;border-radius:14px;
+  background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%);
+  color:#fff;font-size:17px;font-weight:600;
+  cursor:pointer;margin-top:14px;
+  letter-spacing:-.3px;
+  box-shadow:var(--shadow-blue);
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
 }
-.btn-primary:active{transform:scale(.98);box-shadow:0 2px 8px rgba(37,99,235,.2);}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
+.btn-primary::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 50%);
+  pointer-events:none;
+}
+.btn-primary:active{transform:scale(.98);box-shadow:0 4px 12px rgba(0,122,255,.24);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
 .btn-plain{
-  width:100%;height:46px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
-  background:#fff;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;
-  transition:all .15s;
+  width:100%;height:46px;border:0;
+  background:rgba(120,120,128,.12);
+  color:var(--text);font-size:16px;font-weight:500;
+  border-radius:12px;cursor:pointer;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  letter-spacing:-.2px;
 }
-.btn-plain:active{background:var(--bg);}
+.btn-plain:active{background:rgba(120,120,128,.2);transform:scale(.98);}
 
 /* ==================== 商品详情 ==================== */
 .detail-body{padding:20px 16px 60px;}
-.d-name{font-size:22px;font-weight:700;margin:0 0 6px;letter-spacing:.2px;line-height:1.3;}
-.d-sub{font-size:14px;color:var(--text2);margin-bottom:12px;}
+.d-name{
+  font-size:26px;font-weight:700;
+  margin:0 0 4px;letter-spacing:-.7px;line-height:1.2;
+}
+.d-sub{font-size:14px;color:var(--text2);margin-bottom:12px;letter-spacing:-.2px;}
 .d-badge{
-  display:inline-block;font-size:14px;font-weight:700;
-  padding:6px 16px;border-radius:20px;
-  background:var(--green-soft);color:var(--green);
-  letter-spacing:.3px;
+  display:inline-block;font-size:14px;font-weight:600;
+  padding:6px 16px;border-radius:100px;
+  background:rgba(52,199,89,.14);color:var(--ios-green);
+  letter-spacing:-.2px;
 }
-.d-badge.ok{color:var(--green);background:var(--green-soft);}
-.d-badge.warn{color:var(--orange);background:var(--orange-soft);}
-.d-badge.danger{color:var(--red);background:var(--red-soft);}
+.d-badge.ok{background:rgba(52,199,89,.14);color:var(--ios-green);}
+.d-badge.warn{background:rgba(255,149,0,.14);color:var(--ios-orange);}
+.d-badge.danger{background:rgba(255,59,48,.14);color:var(--ios-red);}
 .barcode-box{
-  background:#fff;border-radius:var(--radius);padding:20px;
-  margin:18px 0;text-align:center;box-shadow:var(--shadow);
-  border:1px solid var(--border-soft);
+  background:var(--bg-card);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-radius:var(--radius);padding:22px;
+  margin:18px 0;text-align:center;
+  border:.5px solid var(--glass-border);
+  box-shadow:var(--shadow-2);
+  position:relative;overflow:hidden;
 }
-.barcode-box svg{width:100%;height:auto;max-height:140px;display:block;}
-.barcode-box img{max-width:160px;height:auto;display:block;margin:0 auto;}
+.barcode-box::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 50%);
+  pointer-events:none;opacity:.5;
+}
+.barcode-box svg{width:100%;height:auto;max-height:140px;display:block;position:relative;z-index:1;}
+.barcode-box img{max-width:160px;height:auto;display:block;margin:0 auto;position:relative;z-index:1;}
 .barcode-text{
-  font-family:ui-monospace,Menlo,monospace;font-size:13px;
-  letter-spacing:1.5px;margin-top:10px;color:var(--text2);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  font-size:13px;letter-spacing:1.5px;
+  margin-top:10px;color:var(--text2);
+  position:relative;z-index:1;
 }
 .d-actions{display:flex;gap:12px;margin-bottom:14px;}
 .d-actions button{
-  flex:1;height:52px;border:0;border-radius:14px;font-size:15.5px;
-  font-weight:600;cursor:pointer;letter-spacing:.3px;
-  transition:all .18s;
+  flex:1;height:50px;border:0;border-radius:14px;
+  font-size:16px;font-weight:600;cursor:pointer;
+  letter-spacing:-.2px;
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+}
+.d-actions button::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 50%);
+  pointer-events:none;
 }
 .d-actions button:active{transform:scale(.98);}
 .btn-in{
-  background:linear-gradient(135deg,#34D399,#10B981);color:#fff;
-  box-shadow:0 4px 14px rgba(16,185,129,.28);
+  background:linear-gradient(180deg,#40D86E 0%,#34C759 100%);
+  color:#fff;
+  box-shadow:0 8px 24px rgba(52,199,89,.32),0 2px 6px rgba(52,199,89,.16);
 }
 .btn-out{
-  background:#fff;color:var(--red);
-  border:1.5px solid var(--red)!important;
+  background:rgba(255,255,255,.9);
+  color:var(--ios-red);
+  box-shadow:var(--shadow-1);
+  border:.5px solid rgba(255,59,48,.2)!important;
 }
 .d-mini{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
 .d-mini button{
   flex:1;min-width:76px;height:40px;
-  border:1.5px solid var(--border);background:#fff;
-  border-radius:var(--radius-xs);
-  font-size:12.5px;color:var(--text2);cursor:pointer;font-weight:500;
-  transition:all .15s;
+  border:0;background:rgba(255,255,255,.9);
+  border-radius:12px;
+  font-size:12.5px;color:var(--text);cursor:pointer;
+  font-weight:500;letter-spacing:-.2px;
+  box-shadow:var(--shadow-1);
+  transition:all .18s cubic-bezier(.4,0,.2,1);
 }
-.d-mini button:active{background:var(--bg);transform:scale(.97);}
+.d-mini button:active{transform:scale(.96);box-shadow:none;}
 .btn-ble{
-  background:linear-gradient(135deg,#3B82F6,#2563EB)!important;
-  color:#fff!important;border-color:transparent!important;
+  background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%)!important;
+  color:#fff!important;
   font-weight:600!important;
-  box-shadow:0 3px 10px rgba(37,99,235,.25);
+  box-shadow:var(--shadow-blue)!important;
 }
 .section-title{
-  font-size:13.5px;font-weight:700;margin:22px 0 10px;color:var(--text);
-  letter-spacing:.3px;display:flex;align-items:center;gap:6px;
-}
-.section-title::before{
-  content:"";width:3px;height:14px;background:var(--primary);
-  border-radius:2px;
+  font-size:13px;font-weight:600;
+  margin:24px 0 10px;color:var(--text2);
+  letter-spacing:.2px;
+  padding-left:4px;
+  text-transform:uppercase;
 }
 .info-box{
-  background:#fff;border-radius:var(--radius);padding:16px 18px;
-  font-size:14px;line-height:2;
-  box-shadow:var(--shadow);border:1px solid var(--border-soft);
+  background:var(--bg-card);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-radius:var(--radius);padding:16px 18px;
+  font-size:15px;line-height:2;
+  border:.5px solid var(--glass-border);
+  box-shadow:var(--shadow-2);
+  letter-spacing:-.2px;
 }
-.info-box b{color:var(--text2);font-weight:400;display:inline-block;min-width:64px;}
+.info-box b{color:var(--text2);font-weight:400;display:inline-block;min-width:68px;}
+.info-box > div + div{border-top:.5px solid var(--separator-soft);padding-top:6px;margin-top:6px;}
 
 /* ==================== 出入库记录 ==================== */
 .rec-item{
-  display:flex;align-items:center;gap:12px;padding:12px 0;
-  border-bottom:1px solid var(--border-soft);
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;
+  border-bottom:.5px solid var(--separator-soft);
 }
 .rec-item:last-child{border-bottom:0;}
 .rec-type{
-  flex:none;padding:3px 9px;border-radius:6px;
-  font-size:11.5px;font-weight:700;letter-spacing:.3px;
+  flex:none;padding:3px 10px;border-radius:8px;
+  font-size:11.5px;font-weight:700;letter-spacing:.2px;
 }
-.rec-type.in{color:var(--green);background:var(--green-soft);}
-.rec-type.out{color:var(--red);background:var(--red-soft);}
+.rec-type.in{color:var(--ios-green);background:rgba(52,199,89,.14);}
+.rec-type.out{color:var(--ios-red);background:rgba(255,59,48,.14);}
 .rec-main{flex:1;min-width:0;}
-.rec-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rec-time{font-size:11.5px;color:var(--text3);margin-top:2px;}
-.rec-qty{flex:none;font-size:16px;font-weight:700;font-family:ui-monospace,Menlo,monospace;}
-.rec-qty.in{color:var(--green);}
-.rec-qty.out{color:var(--red);}
+.rec-name{
+  font-size:14.5px;font-weight:500;
+  letter-spacing:-.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.rec-time{font-size:12px;color:var(--text2);margin-top:2px;letter-spacing:-.1px;}
+.rec-qty{
+  flex:none;font-size:16px;font-weight:700;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  letter-spacing:-.3px;
+}
+.rec-qty.in{color:var(--ios-green);}
+.rec-qty.out{color:var(--ios-red);}
 
 /* ==================== 扫码 ==================== */
-.scan-tabs{display:flex;gap:8px;padding:14px 16px 10px;}
-.scan-tabs button{
-  flex:1;height:42px;border:1.5px solid var(--border);background:#fff;
-  border-radius:var(--radius-sm);font-size:13.5px;color:var(--text2);
-  cursor:pointer;font-weight:500;transition:all .18s;
+.scan-tabs{
+  display:flex;gap:6px;padding:14px 16px 12px;
+  background:rgba(120,120,128,.08);
+  border-radius:12px;margin:12px 16px 0;
 }
-.scan-tabs button:active{transform:scale(.97);}
+.scan-tabs button{
+  flex:1;height:34px;border:0;background:transparent;
+  border-radius:9px;font-size:13.5px;color:var(--text);
+  cursor:pointer;font-weight:500;letter-spacing:-.2px;
+  transition:all .22s cubic-bezier(.4,0,.2,1);
+}
+.scan-tabs button:active{transform:scale(.96);}
 .scan-tabs button.active{
-  background:linear-gradient(135deg,#3B82F6,#2563EB);
-  color:#fff;border-color:transparent;font-weight:600;
-  box-shadow:0 3px 10px rgba(37,99,235,.25);
+  background:#fff;
+  color:var(--text);
+  font-weight:600;
+  box-shadow:0 3px 8px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
 }
 .scan-reader{
-  width:100%;min-height:280px;background:#0F172A;border-radius:var(--radius);
-  overflow:hidden;position:relative;box-shadow:var(--shadow-md);
+  width:calc(100% - 32px);
+  margin:0 16px;
+  min-height:280px;
+  background:#000;
+  border-radius:var(--radius);
+  overflow:hidden;position:relative;
+  box-shadow:var(--shadow-3);
 }
 .scan-reader video{width:100%!important;height:auto!important;}
 .scan-tip{
-  text-align:center;font-size:13px;color:var(--text2);
-  padding:14px 24px;line-height:1.8;
+  text-align:center;font-size:13.5px;color:var(--text2);
+  padding:14px 24px;line-height:1.7;letter-spacing:-.2px;
 }
 
 /* ==================== 弹窗 ==================== */
 .modal-mask{
-  position:fixed;inset:0;background:rgba(15,23,42,.5);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;
-  opacity:0;transition:opacity .22s;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.32);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  opacity:0;transition:opacity .24s cubic-bezier(.4,0,.2,1);
 }
 .modal-mask.show{opacity:1;}
 .modal{
-  width:100%;max-width:380px;background:#fff;border-radius:20px;
-  padding:24px;transform:scale(.94) translateY(8px);
-  transition:transform .22s cubic-bezier(.4,0,.2,1);
+  width:100%;max-width:360px;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:saturate(180%) blur(30px);
+  -webkit-backdrop-filter:saturate(180%) blur(30px);
+  border-radius:24px;
+  padding:22px;
+  transform:scale(.92);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
   max-height:85vh;overflow-y:auto;
-  box-shadow:0 24px 60px rgba(15,23,42,.24);
+  box-shadow:0 24px 60px rgba(0,0,0,.24),0 0 0 .5px rgba(255,255,255,.6) inset;
+  border:.5px solid rgba(255,255,255,.6);
 }
-.modal-mask.show .modal{transform:scale(1) translateY(0);}
+.modal-mask.show .modal{transform:scale(1);}
 .modal-title{
-  font-size:17px;font-weight:700;margin-bottom:12px;text-align:center;
-  color:var(--text);letter-spacing:.2px;
+  font-size:17px;font-weight:600;
+  margin-bottom:10px;text-align:center;
+  color:var(--text);letter-spacing:-.3px;
 }
 .modal-body{
-  font-size:14px;color:var(--text2);line-height:1.8;
-  margin-bottom:18px;text-align:center;white-space:pre-line;
+  font-size:14px;color:var(--text2);
+  line-height:1.7;margin-bottom:18px;
+  text-align:center;white-space:pre-line;
+  letter-spacing:-.2px;
 }
 .modal-input{
-  width:100%;height:48px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
-  padding:0 14px;font-size:16px;outline:none;margin-bottom:12px;
+  width:100%;height:44px;border:0;border-radius:12px;
+  padding:0 14px;font-size:16px;
+  background:var(--bg-input);
+  outline:none;margin-bottom:10px;
   transition:all .2s;color:var(--text);
+  font-family:inherit;letter-spacing:-.2px;
 }
 .modal-input:focus{
-  border-color:var(--primary-light);
-  box-shadow:0 0 0 4px rgba(59,130,246,.1);
+  background:rgba(120,120,128,.16);
+  box-shadow:0 0 0 4px rgba(0,122,255,.12);
 }
-.modal-btns{display:flex;gap:10px;margin-top:8px;}
+.modal-btns{display:flex;gap:8px;margin-top:8px;}
 .modal-btns button{
-  flex:1;height:46px;border-radius:var(--radius-sm);font-size:15px;
-  cursor:pointer;border:1.5px solid var(--border);background:#fff;
-  color:var(--text2);font-weight:500;transition:all .15s;
+  flex:1;height:46px;border-radius:12px;font-size:16px;
+  cursor:pointer;border:0;
+  background:rgba(120,120,128,.12);
+  color:var(--text);font-weight:500;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  letter-spacing:-.3px;
 }
-.modal-btns button:active{transform:scale(.98);}
+.modal-btns button:active{transform:scale(.97);background:rgba(120,120,128,.2);}
 .modal-btns button.primary{
-  background:linear-gradient(135deg,#3B82F6,#2563EB);
-  color:#fff;border-color:transparent;font-weight:600;
-  box-shadow:0 3px 10px rgba(37,99,235,.25);
+  background:linear-gradient(180deg,#3395FF 0%,#007AFF 100%);
+  color:#fff;font-weight:600;
+  box-shadow:0 6px 16px rgba(0,122,255,.28);
 }
+.modal-btns button.primary:active{box-shadow:0 2px 8px rgba(0,122,255,.2);}
 
 /* ==================== Toast ==================== */
 .toast{
   position:fixed;left:50%;bottom:110px;
-  transform:translateX(-50%) translateY(12px) scale(.95);
-  background:rgba(15,23,42,.94);color:#fff;font-size:14px;
-  padding:12px 22px;border-radius:24px;z-index:200;
-  opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);
-  pointer-events:none;max-width:80vw;text-align:center;
-  box-shadow:0 8px 24px rgba(15,23,42,.3);
-  font-weight:500;letter-spacing:.2px;
+  transform:translateX(-50%) translateY(16px) scale(.94);
+  background:rgba(30,30,32,.92);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  color:#fff;font-size:14px;font-weight:500;
+  padding:12px 22px;border-radius:100px;
+  z-index:200;opacity:0;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+  max-width:80vw;text-align:center;
+  box-shadow:0 12px 40px rgba(0,0,0,.32);
+  letter-spacing:-.2px;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
 
 /* ==================== 批量导入 ==================== */
 .import-tip{
-  font-size:12px;color:var(--text2);background:var(--primary-soft);
-  border-radius:var(--radius-xs);padding:12px 14px;line-height:1.8;margin-bottom:12px;
-  border-left:3px solid var(--primary);
+  font-size:12.5px;color:var(--text2);
+  background:rgba(0,122,255,.08);
+  border-radius:12px;padding:12px 14px;
+  line-height:1.7;margin-bottom:12px;
+  letter-spacing:-.1px;
 }
 .import-tip code{
-  background:#fff;color:var(--primary);padding:2px 6px;border-radius:4px;
-  font-size:11px;font-family:ui-monospace,Menlo,monospace;
+  background:rgba(255,255,255,.9);
+  color:var(--ios-blue);
+  padding:2px 6px;border-radius:5px;
+  font-size:11px;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
 }
 .import-area{
   width:100%;min-height:140px;max-height:280px;
-  border:1.5px solid var(--border);border-radius:var(--radius-sm);
-  padding:12px;font-size:12px;font-family:ui-monospace,Menlo,monospace;
-  outline:none;resize:vertical;transition:all .2s;
+  border:0;border-radius:12px;
+  padding:12px;font-size:12.5px;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  background:var(--bg-input);
+  outline:none;resize:vertical;
+  transition:all .2s;
+  letter-spacing:-.1px;line-height:1.6;
 }
 .import-area:focus{
-  border-color:var(--primary-light);
-  box-shadow:0 0 0 4px rgba(59,130,246,.1);
+  background:rgba(120,120,128,.16);
+  box-shadow:0 0 0 4px rgba(0,122,255,.12);
 }
 .import-preview{
   max-height:220px;overflow-y:auto;
-  border:1px solid var(--border);border-radius:var(--radius-xs);
-  margin-top:12px;font-size:12px;background:#fff;
+  border:0;border-radius:12px;
+  margin-top:12px;font-size:12.5px;
+  background:rgba(120,120,128,.06);
 }
 .import-preview .row{
   display:flex;gap:8px;padding:8px 12px;
-  border-bottom:1px solid var(--border-soft);align-items:center;
+  border-bottom:.5px solid var(--separator-soft);
+  align-items:center;
 }
 .import-preview .row:last-child{border-bottom:0;}
-.import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
-.import-preview .row .c{color:var(--text3);font-family:ui-monospace,Menlo,monospace;font-size:11px;}
-.import-preview .row.err{background:var(--red-soft);color:var(--red);}
-.tpl-btn{
-  width:100%;height:44px;border:1.5px dashed var(--primary);
-  border-radius:var(--radius-sm);
-  background:var(--primary-soft);color:var(--primary);
-  font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;
-  transition:all .15s;
+.import-preview .row .n{
+  flex:1;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-weight:500;letter-spacing:-.1px;
 }
-.tpl-btn:active{background:#DBEAFE;transform:scale(.98);}
+.import-preview .row .c{
+  color:var(--text2);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  font-size:11px;
+}
+.import-preview .row.err{background:rgba(255,59,48,.08);color:var(--ios-red);}
+.tpl-btn{
+  width:100%;height:44px;border:0;
+  border-radius:12px;
+  background:rgba(0,122,255,.1);
+  color:var(--ios-blue);
+  font-size:14px;font-weight:600;
+  cursor:pointer;margin-bottom:12px;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  letter-spacing:-.2px;
+}
+.tpl-btn:active{background:rgba(0,122,255,.2);transform:scale(.98);}
 
 /* ==================== 批量打印 ==================== */
 .bp-toolbar{
-  display:flex;gap:8px;align-items:center;padding:10px 12px;
-  background:var(--bg);border-radius:var(--radius-xs);margin-bottom:10px;
-  font-size:13px;
+  display:flex;gap:8px;align-items:center;
+  padding:10px 14px;
+  background:rgba(120,120,128,.08);
+  border-radius:12px;margin-bottom:10px;
+  font-size:13.5px;
 }
-.bp-toolbar label{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;font-weight:500;}
+.bp-toolbar label{
+  display:flex;align-items:center;gap:6px;
+  cursor:pointer;user-select:none;
+  font-weight:500;letter-spacing:-.2px;
+}
 .bp-list{
   max-height:320px;overflow-y:auto;
-  border:1.5px solid var(--border);border-radius:var(--radius-xs);
+  border-radius:12px;
+  background:rgba(120,120,128,.06);
 }
 .bp-item{
-  display:flex;align-items:center;gap:10px;padding:10px 12px;
-  border-bottom:1px solid var(--border-soft);font-size:13.5px;
-  transition:background .12s;
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;
+  border-bottom:.5px solid var(--separator-soft);
+  font-size:14px;transition:background .15s;
+  letter-spacing:-.2px;cursor:pointer;
 }
-.bp-item:hover{background:var(--bg);}
+.bp-item:hover{background:rgba(120,120,128,.06);}
 .bp-item:last-child{border-bottom:0;}
 .bp-item input[type="checkbox"]{
-  width:18px;height:18px;flex:none;cursor:pointer;accent-color:var(--primary);
+  width:20px;height:20px;flex:none;
+  cursor:pointer;accent-color:var(--ios-blue);
+  border-radius:50%;
 }
-.bp-item .bp-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
-.bp-item .bp-code{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--text3);flex:none;}
+.bp-item .bp-name{
+  flex:1;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-weight:500;
+}
+.bp-item .bp-code{
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;
+  font-size:11px;color:var(--text2);flex:none;
+}
 .bp-progress{
-  text-align:center;padding:20px 0;font-size:14px;color:var(--text2);line-height:1.8;
+  text-align:center;padding:20px 0;
+  font-size:14.5px;color:var(--text);line-height:1.8;
+  letter-spacing:-.2px;font-weight:500;
 }
 .bp-progress .bp-bar{
-  height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:14px;
+  height:6px;background:rgba(120,120,128,.16);
+  border-radius:3px;overflow:hidden;margin-top:14px;
 }
 .bp-progress .bp-bar-inner{
-  height:100%;background:linear-gradient(90deg,#3B82F6,#2563EB);
-  width:0;transition:width .35s cubic-bezier(.4,0,.2,1);border-radius:3px;
+  height:100%;
+  background:linear-gradient(90deg,#3395FF,#007AFF);
+  width:0;transition:width .4s cubic-bezier(.4,0,.2,1);
+  border-radius:3px;
+}
+
+/* 小屏幕微调 */
+@media (max-width:480px){
+  .d-name{font-size:24px;}
+  .field input,.field textarea{font-size:16px;}
+  .modal{max-width:100%;}
 }
 </style>
 </head>
 <body>
 <div id="app">
   <header id="topbar">
-    <button class="tb-btn hidden" id="btnBack">←</button>
+    <button class="tb-btn hidden" id="btnBack">‹</button>
     <h1 id="tbTitle">龙腾手机库存</h1>
     <button class="tb-btn hidden" id="tbRight">⋯</button>
   </header>
@@ -494,7 +710,7 @@ body{
   <main id="main">
     <section id="view-list" class="view active">
       <div class="search-wrap">
-        <input id="searchInput" type="search" placeholder="搜索 名称 / 品牌 / 型号 / 条码">
+        <input id="searchInput" type="search" placeholder="搜索">
       </div>
       <div id="productList" class="list"></div>
     </section>
@@ -541,27 +757,27 @@ body{
         <button data-mode="in">扫码入库</button>
         <button data-mode="out">扫码出库</button>
       </div>
-      <div style="padding:0 16px;"><div id="reader" class="scan-reader"></div></div>
+      <div id="reader" class="scan-reader" style="margin-top:14px;"></div>
       <div class="scan-tip" id="scanTip">将条形码 / 二维码放入取景框内</div>
     </section>
 
     <section id="view-records" class="view">
       <div style="padding:16px;">
         <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <button class="mini-btn" id="btnExport" style="flex:1;">导出备份</button>
-          <button class="mini-btn" id="btnImport" style="flex:1;">导入备份</button>
-          <button class="mini-btn" id="btnClearAll" style="flex:1;border-color:#FECACA;color:var(--red);">清空数据</button>
+          <button class="mini-btn" id="btnExport" style="flex:1;height:42px;">导出备份</button>
+          <button class="mini-btn" id="btnImport" style="flex:1;height:42px;">导入备份</button>
+          <button class="mini-btn" id="btnClearAll" style="flex:1;height:42px;background:rgba(255,59,48,.1);color:var(--ios-red);">清空数据</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <button class="mini-btn" id="btnBatchImport" style="flex:1;background:var(--green);color:#fff;border-color:transparent;">批量导入商品</button>
-          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:var(--primary);color:#fff;border-color:transparent;">批量下载条码</button>
+          <button class="mini-btn" id="btnBatchImport" style="flex:1;height:42px;background:rgba(52,199,89,.12);color:var(--ios-green);">批量导入商品</button>
+          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;height:42px;">批量下载条码</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:14px;">
-          <button class="mini-btn" id="btnBatchPrint" style="flex:1;background:linear-gradient(135deg,#A855F7,#7C3AED);color:#fff;border-color:transparent;">🖨 批量打印标签</button>
+          <button class="mini-btn" id="btnBatchPrint" style="flex:1;height:42px;background:rgba(175,82,222,.12);color:var(--ios-purple);font-weight:600;">🖨 批量打印标签</button>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <div class="section-title">全部出入库流水</div>
-        <div class="card" style="padding:6px 16px;cursor:default;">
+        <div class="card" style="padding:6px 16px;cursor:default;position:relative;z-index:1;">
           <div id="recordList"></div>
         </div>
       </div>
@@ -596,7 +812,7 @@ function toast(msg){
   t.className = 'toast'; t.textContent = msg;
   document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('show'));
-  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2200);
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),320); }, 2200);
 }
 
 /* ==================== 数据层 ==================== */
@@ -674,9 +890,8 @@ function renderProductList(){
   }
   el.innerHTML = list.map(p => {
     const cls = p.stock <= 0 ? 'danger' : (p.stock <= p.warnStock ? 'warn' : 'ok');
-    const cardCls = p.stock <= 0 ? 'stock-danger' : (p.stock <= p.warnStock ? 'stock-warn' : '');
     const sub = [p.brand, p.model, p.spec, p.color].filter(Boolean).join(' / ') || '—';
-    return `<div class="card product-item ${cardCls}" data-id="${esc(p.id)}">
+    return `<div class="card product-item" data-id="${esc(p.id)}">
       <div class="pi-main">
         <div class="pi-name">${esc(p.name)}</div>
         <div class="pi-sub">${esc(sub)}</div>
@@ -711,7 +926,7 @@ function showQuickMenu(id){
     <div class="modal-btns" style="flex-direction:column;gap:8px;">
       <button class="primary" data-act="in">入库</button>
       <button data-act="out">出库</button>
-      <button data-act="ble" style="background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;border-color:transparent;font-weight:600;">蓝牙打印</button>
+      <button data-act="ble" style="background:linear-gradient(180deg,#3395FF,#007AFF);color:#fff;font-weight:600;">蓝牙打印</button>
       <button data-act="preview">打印预览</button>
       <button data-act="print">打印条码</button>
       <button data-act="saveImg">保存条码图</button>
@@ -723,14 +938,14 @@ function showQuickMenu(id){
     btn.addEventListener('click', () => {
       const act = btn.dataset.act;
       close();
-      if(act === 'in')       setTimeout(()=>promptQuantity(id, 1), 220);
-      if(act === 'out')      setTimeout(()=>promptQuantity(id, -1), 220);
-      if(act === 'ble')      setTimeout(()=>blePrint(p), 220);
-      if(act === 'preview')  setTimeout(()=>showPrintPreview(p), 220);
-      if(act === 'print')    setTimeout(()=>printBarcode(p), 220);
-      if(act === 'saveImg')  setTimeout(()=>saveBarcodeImage(p), 220);
-      if(act === 'detail')   setTimeout(()=>openDetail(id), 220);
-      if(act === 'edit')     setTimeout(()=>openAdd(id), 220);
+      if(act === 'in')       setTimeout(()=>promptQuantity(id, 1), 240);
+      if(act === 'out')      setTimeout(()=>promptQuantity(id, -1), 240);
+      if(act === 'ble')      setTimeout(()=>blePrint(p), 240);
+      if(act === 'preview')  setTimeout(()=>showPrintPreview(p), 240);
+      if(act === 'print')    setTimeout(()=>printBarcode(p), 240);
+      if(act === 'saveImg')  setTimeout(()=>saveBarcodeImage(p), 240);
+      if(act === 'detail')   setTimeout(()=>openDetail(id), 240);
+      if(act === 'edit')     setTimeout(()=>openAdd(id), 240);
     });
   });
 }
@@ -830,20 +1045,20 @@ function renderDetail(p){
       <button id="dPrint">打印条码</button>
       <button id="dSaveImg">保存条码图</button>
       <button id="dEdit">编辑</button>
-      <button id="dDel" style="color:var(--red);border-color:#FECACA;">删除</button>
+      <button id="dDel" style="color:var(--ios-red);">删除</button>
     </div>
     <div class="section-title">商品信息</div>
     <div class="info-box">
-      <div><b>规格：</b>${esc(p.spec || '—')}</div>
-      <div><b>颜色：</b>${esc(p.color || '—')}</div>
-      <div><b>进货价：</b>¥${fmtMoney(p.priceIn)}</div>
-      <div><b>销售价：</b>¥${fmtMoney(p.priceOut)}</div>
-      <div><b>预警值：</b>${p.warnStock}</div>
-      <div><b>创建时间：</b>${fmtTime(p.createdAt)}</div>
-      ${p.remark ? `<div><b>备注：</b>${esc(p.remark)}</div>` : ''}
+      <div><b>规格</b>${esc(p.spec || '—')}</div>
+      <div><b>颜色</b>${esc(p.color || '—')}</div>
+      <div><b>进货价</b>¥${fmtMoney(p.priceIn)}</div>
+      <div><b>销售价</b>¥${fmtMoney(p.priceOut)}</div>
+      <div><b>预警值</b>${p.warnStock}</div>
+      <div><b>创建时间</b>${fmtTime(p.createdAt)}</div>
+      ${p.remark ? `<div><b>备注</b>${esc(p.remark)}</div>` : ''}
     </div>
     <div class="section-title">出入库记录（${recs.length}）</div>
-    <div class="card" style="padding:6px 16px;cursor:default;">
+    <div class="card" style="padding:6px 16px;cursor:default;position:relative;z-index:1;">
       ${recs.length ? recs.map(r => `
         <div class="rec-item">
           <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
@@ -888,7 +1103,7 @@ function confirmDelete(p){
     <div class="modal-body">确定要删除「${esc(p.name)}」吗？\n历史出入库记录会保留。</div>
     <div class="modal-btns">
       <button data-act="cancel">取消</button>
-      <button class="primary" data-act="ok" style="background:linear-gradient(135deg,#F87171,#EF4444);border-color:transparent;">删除</button>
+      <button class="primary" data-act="ok" style="background:linear-gradient(180deg,#FF6961,#FF3B30);">删除</button>
     </div>`);
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
@@ -913,7 +1128,7 @@ function promptQuantity(productId, sign){
     </div>`);
   const qtyEl = mask.querySelector('#mqQty');
   const rmkEl = mask.querySelector('#mqRemark');
-  setTimeout(()=>{ qtyEl.focus(); qtyEl.select(); }, 120);
+  setTimeout(()=>{ qtyEl.focus(); qtyEl.select(); }, 200);
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     const qty = parseInt(qtyEl.value) || 0;
@@ -971,7 +1186,7 @@ function onScanSuccess(text){
   scanning = false;
   const code = String(text).trim();
   if(scanner){ scanner.stop().then(()=>{ try{ scanner.clear(); }catch(e){} scanner = null; }).catch(()=>{ scanner = null; }); }
-  setTimeout(() => handleScanResult(code), 120);
+  setTimeout(() => handleScanResult(code), 140);
 }
 function handleScanResult(code){
   const p = findByBarcode(code);
@@ -983,8 +1198,8 @@ function handleScanResult(code){
         <button data-act="cancel">取消</button>
         <button class="primary" data-act="add">新增商品</button>
       </div>`);
-    mask.querySelector('[data-act="cancel"]').onclick = () => { close(); setTimeout(startScan, 250); };
-    mask.querySelector('[data-act="add"]').onclick = () => { close(); setTimeout(()=>openAdd(null, code), 220); };
+    mask.querySelector('[data-act="cancel"]').onclick = () => { close(); setTimeout(startScan, 280); };
+    mask.querySelector('[data-act="add"]').onclick = () => { close(); setTimeout(()=>openAdd(null, code), 240); };
     return;
   }
   if(scanMode === 'query') openDetail(p.id);
@@ -1038,7 +1253,7 @@ $('#btnClearAll').addEventListener('click', ()=>{
   const { mask, close } = showModal(`
     <div class="modal-title">清空全部数据</div>
     <div class="modal-body">将删除所有商品和出入库记录，且不可恢复。\n建议先导出备份。</div>
-    <div class="modal-btns"><button data-act="cancel">取消</button><button class="primary" data-act="ok" style="background:linear-gradient(135deg,#F87171,#EF4444);border-color:transparent;">确认清空</button></div>`);
+    <div class="modal-btns"><button data-act="cancel">取消</button><button class="primary" data-act="ok" style="background:linear-gradient(180deg,#FF6961,#FF3B30);">确认清空</button></div>`);
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     products = []; records = []; saveProducts(); saveRecords(); close(); toast('已清空'); renderProductList(); renderRecords();
@@ -1064,7 +1279,7 @@ function downloadImportTemplate(){
   a.href = url; a.download = '商品批量导入模板.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast('模板已下载，用 Excel 打开填写后另存为 CSV');
+  toast('模板已下载');
 }
 
 /* ==================== 批量导入商品 ==================== */
@@ -1100,13 +1315,13 @@ function parseImportText(text){
 function openBatchImport(){
   const { mask, close } = showModal(`
     <div class="modal-title">批量导入商品</div>
-    <button class="tpl-btn" id="btnDownloadTpl">⬇ 下载 CSV 导入模板（用 Excel 填写）</button>
-    <div class="import-tip">每行一件商品，用逗号或制表符分隔。列顺序：<br><code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,库存量,备注</code><br>除<b>名称</b>外，其他列都可以省略；不填条码会自动生成。</div>
+    <button class="tpl-btn" id="btnDownloadTpl">⬇ 下载 CSV 导入模板</button>
+    <div class="import-tip">每行一件商品，列顺序：<br><code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,库存量,备注</code><br>除<b>名称</b>外可省略，不填条码会自动生成。</div>
     <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,2,5&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,2,3"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px;">
       <input type="file" id="batchFile" accept=".csv,.txt" style="display:none">
-      <button class="mini-btn" id="btnPickFile" style="flex:1;">选择 CSV 文件</button>
-      <button class="mini-btn" id="btnParsePreview" style="flex:1;background:var(--green);color:#fff;border-color:transparent;">解析预览</button>
+      <button class="mini-btn" id="btnPickFile" style="flex:1;height:42px;">选择 CSV 文件</button>
+      <button class="mini-btn" id="btnParsePreview" style="flex:1;height:42px;background:rgba(52,199,89,.14);color:var(--ios-green);">解析预览</button>
     </div>
     <div id="importPreviewWrap" style="display:none;"><div class="import-preview" id="importPreview"></div></div>
     <div class="modal-btns" style="margin-top:14px;"><button data-act="cancel">取消</button><button class="primary" data-act="ok" id="btnConfirmImport" disabled>确认导入</button></div>`);
@@ -1135,11 +1350,11 @@ function openBatchImport(){
       return { ...r, conflict: isDup };
     });
     previewWrap.style.display = 'block';
-    preview.innerHTML = previewRows.slice(0, 50).map(r => `<div class="row ${r.conflict ? 'err' : ''}"><span class="n">${esc(r.name)}</span><span class="c">${esc(r.barcode)}</span>${r.conflict ? '<span style="color:var(--red);">条码冲突</span>' : ''}</div>`).join('') + (previewRows.length > 50 ? `<div class="row" style="justify-content:center;color:var(--text2);">... 还有 ${previewRows.length - 50} 件未显示</div>` : '') + (result.errors.length > 0 ? `<div class="row err">跳过 ${result.errors.length} 行无效数据</div>` : '');
+    preview.innerHTML = previewRows.slice(0, 50).map(r => `<div class="row ${r.conflict ? 'err' : ''}"><span class="n">${esc(r.name)}</span><span class="c">${esc(r.barcode)}</span>${r.conflict ? '<span style="color:var(--ios-red);">冲突</span>' : ''}</div>`).join('') + (previewRows.length > 50 ? `<div class="row" style="justify-content:center;color:var(--text2);">... 还有 ${previewRows.length - 50} 件未显示</div>` : '') + (result.errors.length > 0 ? `<div class="row err">跳过 ${result.errors.length} 行无效数据</div>` : '');
     parsedRows = previewRows.filter(r => !r.conflict);
     const okBtn = mask.querySelector('#btnConfirmImport');
     okBtn.disabled = parsedRows.length === 0;
-    okBtn.textContent = `确认导入 ${parsedRows.length} 件` + (conflictCount ? ` (跳过 ${conflictCount} 件冲突)` : '');
+    okBtn.textContent = `确认导入 ${parsedRows.length} 件` + (conflictCount ? ` (跳过 ${conflictCount} 件)` : '');
   };
   mask.querySelector('#btnConfirmImport').onclick = () => {
     if(parsedRows.length === 0) return;
@@ -1166,7 +1381,7 @@ function showModal(html){
   mask.innerHTML = `<div class="modal">${html}</div>`;
   document.body.appendChild(mask);
   requestAnimationFrame(()=> mask.classList.add('show'));
-  const close = () => { mask.classList.remove('show'); setTimeout(()=> mask.remove(), 220); };
+  const close = () => { mask.classList.remove('show'); setTimeout(()=> mask.remove(), 260); };
   mask.addEventListener('click', e => { if(e.target === mask) close(); });
   return { mask, close };
 }
@@ -1175,7 +1390,7 @@ function showModal(html){
 async function scanOnce(onResult){
   const { mask, close } = showModal(`
     <div class="modal-title">扫描条码</div>
-    <div id="scanOnceReader" style="width:100%;min-height:220px;background:#0F172A;border-radius:12px;overflow:hidden;"></div>
+    <div id="scanOnceReader" style="width:100%;min-height:220px;background:#000;border-radius:16px;overflow:hidden;"></div>
     <div style="height:12px;"></div>
     <button class="btn-plain" id="scanOnceCancel">取消</button>`);
   const q = new Html5Qrcode('scanOnceReader', { verbose:false });
@@ -1184,7 +1399,7 @@ async function scanOnce(onResult){
   mask.querySelector('#scanOnceCancel').onclick = async () => { await stop(); close(); };
   try{
     await q.start({ facingMode:'environment' }, { fps:12, qrbox:(w,h)=>({width:Math.floor(w*0.9),height:Math.floor(h*0.5)}), aspectRatio:1.0 },
-      async (text) => { await stop(); close(); setTimeout(()=>onResult(String(text).trim()), 200); }, () => {});
+      async (text) => { await stop(); close(); setTimeout(()=>onResult(String(text).trim()), 220); }, () => {});
   }catch(e){
     mask.querySelector('#scanOnceReader').innerHTML = '<div class="empty" style="color:#fff;padding:30px 16px;">无法启动摄像头<br>请使用 HTTPS 访问并允许权限</div>';
   }
@@ -1202,7 +1417,7 @@ function printBarcode(p) {
     win.document.write(`
       <!DOCTYPE html><html><head><meta charset="UTF-8"><title>打印条码 - ${esc(p.name)}</title>
       <style>* { box-sizing: border-box; } body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; text-align: center; padding: 20px; margin: 0; }
-      .label { display: inline-block; border: 1px dashed #ccc; padding: 12px 24px; margin: 10px; border-radius: 8px; background: #fff; }
+      .label { display: inline-block; border: 1px dashed #ccc; padding: 12px 24px; margin: 10px; border-radius: 12px; background: #fff; }
       .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
       .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
       .qrcode { display: flex; justify-content: center; margin: 8px 0; }
@@ -1361,10 +1576,10 @@ function showPrintPreview(product) {
 
   const { mask, close } = showModal(`
     <div class="modal-title">打印预览</div>
-    <div style="text-align:center; padding:12px 0; background:#F8FAFC; border-radius:12px; border:1px dashed #CBD5E1; margin-bottom:16px;">
-      <img src="${dataUrl}" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:6px; box-shadow:0 4px 12px rgba(15,23,42,0.1);">
+    <div style="text-align:center; padding:14px; background:rgba(120,120,128,.06); border-radius:16px; margin-bottom:16px;">
+      <img src="${dataUrl}" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.12);">
     </div>
-    <div style="font-size:12px; color:#94A3B8; text-align:center; margin-bottom:16px; line-height:1.7;">
+    <div style="font-size:12.5px; color:var(--text2); text-align:center; margin-bottom:16px; line-height:1.7; letter-spacing:-.1px;">
       当前标签尺寸：40mm × 30mm<br>如果预览显示正常，可直接打印
     </div>
     <div class="modal-btns">
@@ -1374,7 +1589,7 @@ function showPrintPreview(product) {
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="print"]').onclick = () => {
     close();
-    setTimeout(() => blePrint(product), 220);
+    setTimeout(() => blePrint(product), 240);
   };
 }
 
@@ -1400,7 +1615,7 @@ async function batchDownloadBarcodes() {
   const nameCount = {};
   const { mask, close } = showModal(`
     <div class="modal-title">批量下载标签</div>
-    <div class="modal-body">正在生成 ${products.length} 张标签图片...<div id="batchProgress" style="margin-top:10px;font-size:13px;color:#6B7280;">准备中</div></div>`);
+    <div class="modal-body">正在生成 ${products.length} 张标签图片...<div id="batchProgress" style="margin-top:10px;font-size:13px;color:var(--text2);">准备中</div></div>`);
   const progressEl = mask.querySelector('#batchProgress');
   const zip = new JSZip(); const folder = zip.folder('标签图片');
   let ok = 0, fail = 0;
@@ -1442,7 +1657,7 @@ function openBatchPrint(){
     <div class="modal-title">批量打印标签</div>
     <div class="bp-toolbar">
       <label><input type="checkbox" id="bpSelectAll" checked> 全选</label>
-      <span style="flex:1;text-align:right;color:#94A3B8;">已选 <b id="bpCount">${sortedProducts.length}</b> / ${sortedProducts.length}</span>
+      <span style="flex:1;text-align:right;color:var(--text2);">已选 <b id="bpCount">${sortedProducts.length}</b> / ${sortedProducts.length}</span>
     </div>
     <div class="bp-list" id="bpList">
       ${sortedProducts.map(p => `
@@ -1483,7 +1698,7 @@ function openBatchPrint(){
     const ids = [...checkboxes].filter(c => c.checked).map(c => c.dataset.id);
     if(ids.length === 0){ toast('请至少选择一个商品'); return; }
     close();
-    setTimeout(() => startBatchPrint(ids), 250);
+    setTimeout(() => startBatchPrint(ids), 280);
   };
 }
 
@@ -1496,7 +1711,7 @@ async function startBatchPrint(ids){
     <div class="bp-progress">
       <div id="bpProgressText">准备中...</div>
       <div class="bp-bar"><div class="bp-bar-inner" id="bpBarInner"></div></div>
-      <div style="font-size:12px;color:#94A3B8;margin-top:12px;">请不要关闭页面，也不要锁屏</div>
+      <div style="font-size:12.5px;color:var(--text2);margin-top:12px;">请不要关闭页面，也不要锁屏</div>
     </div>`);
 
   const textEl = mask.querySelector('#bpProgressText');
