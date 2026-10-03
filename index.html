@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#1565C0">
+<meta name="theme-color" content="#2563EB">
 <title>龙腾手机库存</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -11,225 +11,475 @@
 <script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
 <style>
 :root{
-  --primary:#1565C0; --primary-dark:#0D47A1;
-  --green:#2E7D32; --red:#C62828; --orange:#EF6C00;
-  --bg:#F4F6F9; --card:#FFF; --text:#1A1A1A; --text2:#6B7280; --border:#E5E7EB;
+  --primary:#2563EB;
+  --primary-light:#3B82F6;
+  --primary-dark:#1D4ED8;
+  --primary-soft:#EFF6FF;
+  --green:#10B981;
+  --green-soft:#ECFDF5;
+  --red:#EF4444;
+  --red-soft:#FEF2F2;
+  --orange:#F59E0B;
+  --orange-soft:#FFFBEB;
+  --purple:#8B5CF6;
+  --purple-soft:#F5F3FF;
+  --bg:#F8FAFC;
+  --card:#FFFFFF;
+  --text:#0F172A;
+  --text2:#64748B;
+  --text3:#94A3B8;
+  --border:#E2E8F0;
+  --border-soft:#F1F5F9;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+  --shadow:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --shadow-md:0 4px 12px rgba(15,23,42,.08);
+  --shadow-lg:0 12px 32px rgba(15,23,42,.12);
+  --radius:16px;
+  --radius-sm:12px;
+  --radius-xs:10px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-  background:#DFE4EA;color:var(--text);font-size:15px;overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:#E2E8F0;color:var(--text);font-size:15px;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
 #app{
   max-width:640px;margin:0 auto;height:100vh;height:100dvh;
   display:flex;flex-direction:column;background:var(--bg);
   position:relative;overflow:hidden;
+  box-shadow:0 0 40px rgba(15,23,42,.06);
 }
+
+/* ==================== 顶栏 ==================== */
 #topbar{
-  height:56px;flex:none;display:flex;align-items:center;
-  padding:0 8px;background:var(--primary);color:#fff;
-  box-shadow:0 2px 6px rgba(0,0,0,.12);z-index:10;
+  height:60px;flex:none;display:flex;align-items:center;
+  padding:0 6px;
+  background:linear-gradient(135deg,#3B82F6 0%,#2563EB 50%,#1D4ED8 100%);
+  color:#fff;
+  box-shadow:0 2px 10px rgba(37,99,235,.24);
+  z-index:10;position:relative;
+}
+#topbar::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
 }
 #topbar .tb-btn{
-  width:44px;height:44px;border:0;background:transparent;color:#fff;
-  font-size:20px;border-radius:50%;cursor:pointer;display:flex;
+  width:42px;height:42px;border:0;background:transparent;color:#fff;
+  font-size:19px;border-radius:12px;cursor:pointer;display:flex;
   align-items:center;justify-content:center;
+  transition:background .15s;
 }
 #topbar .tb-btn:active{background:rgba(255,255,255,.18);}
 #topbar .tb-btn.hidden{visibility:hidden;}
 #topbar h1{
-  flex:1;text-align:center;font-size:17px;margin:0;font-weight:600;
+  flex:1;text-align:center;font-size:16.5px;margin:0;font-weight:600;
+  letter-spacing:.3px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;align-items:center;justify-content:center;gap:6px;
 }
+
+/* ==================== 主体 ==================== */
 #main{flex:1;position:relative;overflow:hidden;}
 .view{
   position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
   display:none;padding-bottom:24px;
+  animation:fadeIn .2s ease;
 }
 .view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+/* ==================== 底部导航 ==================== */
 #tabbar{
-  flex:none;height:58px;display:flex;background:#fff;
-  border-top:1px solid var(--border);z-index:10;
+  flex:none;height:62px;display:flex;background:#fff;
+  border-top:1px solid var(--border-soft);
+  box-shadow:0 -2px 12px rgba(15,23,42,.04);
+  z-index:10;position:relative;
+  padding-bottom:env(safe-area-inset-bottom,0);
 }
 #tabbar.hidden{display:none;}
 #tabbar button{
   flex:1;border:0;background:transparent;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:2px;font-size:11px;
-  color:var(--text2);cursor:pointer;padding:6px 0;
+  align-items:center;justify-content:center;gap:3px;font-size:11px;
+  color:var(--text3);cursor:pointer;padding:6px 0;position:relative;
+  transition:color .2s;
 }
-#tabbar button .ic{font-size:19px;line-height:1;}
+#tabbar button .ic{font-size:20px;line-height:1;transition:transform .2s;}
 #tabbar button.active{color:var(--primary);font-weight:600;}
-.search-wrap{padding:10px 12px 6px;}
+#tabbar button.active .ic{transform:translateY(-2px) scale(1.08);}
+#tabbar button.active::before{
+  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:28px;height:3px;background:var(--primary);border-radius:0 0 4px 4px;
+}
+
+/* ==================== 搜索框 ==================== */
+.search-wrap{padding:14px 14px 8px;position:relative;}
 .search-wrap input{
-  width:100%;height:42px;border:1px solid var(--border);border-radius:10px;
-  padding:0 14px;font-size:14px;background:#fff;outline:none;
+  width:100%;height:44px;border:1.5px solid transparent;border-radius:14px;
+  padding:0 16px 0 42px;font-size:14px;background:#fff;outline:none;
+  box-shadow:var(--shadow);color:var(--text);
+  transition:all .2s;
 }
-.search-wrap input:focus{border-color:var(--primary);}
-.list{padding:4px 12px 90px;}
+.search-wrap input::placeholder{color:var(--text3);}
+.search-wrap input:focus{
+  border-color:var(--primary-light);
+  box-shadow:0 0 0 4px rgba(59,130,246,.12),var(--shadow);
+}
+.search-wrap::before{
+  content:"🔍";position:absolute;left:28px;top:50%;transform:translateY(-40%);
+  font-size:15px;opacity:.5;pointer-events:none;
+}
+
+/* ==================== 商品列表 ==================== */
+.list{padding:4px 14px 100px;}
 .card{
-  background:var(--card);border-radius:12px;padding:12px 14px;
-  margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);
-  cursor:pointer;transition:transform .1s;
+  background:var(--card);border-radius:var(--radius);padding:14px 16px;
+  margin-bottom:10px;box-shadow:var(--shadow);
+  cursor:pointer;transition:all .18s cubic-bezier(.4,0,.2,1);
+  border:1px solid var(--border-soft);
+  position:relative;overflow:hidden;
 }
-.card:active{transform:scale(.985);}
-.product-item{display:flex;gap:10px;align-items:flex-start;}
+.card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--green);border-radius:0 4px 4px 0;
+}
+.card.stock-warn::before{background:var(--orange);}
+.card.stock-danger::before{background:var(--red);}
+.card:active{transform:scale(.985);box-shadow:var(--shadow-md);}
+.product-item{display:flex;gap:12px;align-items:flex-start;}
 .pi-main{flex:1;min-width:0;}
-.pi-name{font-size:15px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-code{font-size:11.5px;color:#9AA0A6;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-right{flex:none;text-align:right;}
-.pi-stock{font-size:14px;font-weight:700;margin-bottom:5px;}
-.pi-stock.ok{color:var(--green);}
-.pi-stock.warn{color:var(--orange);}
-.pi-stock.danger{color:var(--red);}
-.pi-price{font-size:13px;color:var(--primary);font-weight:600;}
-.empty{text-align:center;color:var(--text2);font-size:14px;padding:60px 24px;line-height:1.8;}
-.fab{
-  position:fixed;right:calc(50% - 320px + 18px);bottom:78px;
-  width:56px;height:56px;border-radius:50%;border:0;
-  background:var(--primary);color:#fff;font-size:28px;line-height:1;
-  box-shadow:0 4px 14px rgba(21,101,192,.42);cursor:pointer;z-index:9;
-  display:flex;align-items:center;justify-content:center;
+.pi-name{font-size:15.5px;font-weight:600;margin-bottom:4px;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.1px;}
+.pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pi-code{font-size:11.5px;color:var(--text3);font-family:ui-monospace,Menlo,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:var(--bg);display:inline-block;padding:2px 8px;border-radius:6px;}
+.pi-right{flex:none;text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+.pi-stock{
+  font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:20px;
+  background:var(--green-soft);color:var(--green);
 }
-@media (max-width:676px){ .fab{right:18px;} }
-.fab:active{transform:scale(.94);}
-.form-body{padding:16px 14px 40px;}
-.field{margin-bottom:14px;flex:1;min-width:0;}
-.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;}
+.pi-stock.ok{background:var(--green-soft);color:var(--green);}
+.pi-stock.warn{background:var(--orange-soft);color:var(--orange);}
+.pi-stock.danger{background:var(--red-soft);color:var(--red);}
+.pi-price{font-size:14px;color:var(--primary);font-weight:700;letter-spacing:.2px;}
+
+/* ==================== 空状态 ==================== */
+.empty{
+  text-align:center;color:var(--text3);font-size:14px;
+  padding:80px 24px;line-height:2;
+}
+.empty b{color:var(--primary);}
+
+/* ==================== FAB ==================== */
+.fab{
+  position:fixed;right:calc(50% - 320px + 20px);bottom:82px;
+  width:58px;height:58px;border-radius:50%;border:0;
+  background:linear-gradient(135deg,#3B82F6,#2563EB);
+  color:#fff;font-size:30px;line-height:1;font-weight:300;
+  box-shadow:0 8px 24px rgba(37,99,235,.4),0 2px 6px rgba(37,99,235,.2);
+  cursor:pointer;z-index:9;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+}
+@media (max-width:676px){ .fab{right:20px;} }
+.fab:active{transform:scale(.92);box-shadow:0 4px 12px rgba(37,99,235,.3);}
+
+/* ==================== 表单 ==================== */
+.form-body{padding:20px 16px 60px;}
+.field{margin-bottom:16px;flex:1;min-width:0;}
+.field label{
+  display:block;font-size:12.5px;color:var(--text2);
+  margin-bottom:8px;font-weight:500;letter-spacing:.2px;
+}
 .field .req{color:var(--red);}
 .field input,.field textarea{
-  width:100%;border:1px solid var(--border);border-radius:10px;
-  padding:11px 13px;font-size:15px;background:#fff;outline:none;font-family:inherit;color:var(--text);
+  width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 14px;font-size:15px;background:#fff;outline:none;
+  font-family:inherit;color:var(--text);
+  transition:all .2s;
 }
-.field input:focus,.field textarea:focus{border-color:var(--primary);}
-.field input:disabled{background:#F0F1F3;color:#9AA0A6;}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3);}
+.field input:focus,.field textarea:focus{
+  border-color:var(--primary-light);
+  box-shadow:0 0 0 4px rgba(59,130,246,.1);
+}
+.field input:disabled{background:var(--bg);color:var(--text3);cursor:not-allowed;}
 .row2{display:flex;gap:12px;}
 .input-with-actions{display:flex;gap:8px;align-items:center;}
 .input-with-actions input{flex:1;min-width:0;}
 .mini-btn{
-  flex:none;height:42px;padding:0 14px;border:1px solid var(--primary);
-  background:#fff;color:var(--primary);border-radius:10px;font-size:13px;cursor:pointer;white-space:nowrap;
+  flex:none;height:44px;padding:0 16px;
+  border:1.5px solid var(--primary-light);
+  background:#fff;color:var(--primary);border-radius:var(--radius-sm);
+  font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;
+  transition:all .15s;
 }
-.mini-btn:active{background:#E8F0FE;}
+.mini-btn:active{background:var(--primary-soft);transform:scale(.97);}
 .btn-primary{
-  width:100%;height:50px;border:0;border-radius:12px;
-  background:var(--primary);color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;
+  width:100%;height:52px;border:0;border-radius:14px;
+  background:linear-gradient(135deg,#3B82F6,#2563EB);
+  color:#fff;font-size:16px;font-weight:600;
+  cursor:pointer;margin-top:12px;letter-spacing:.3px;
+  box-shadow:0 4px 14px rgba(37,99,235,.28);
+  transition:all .18s;
 }
-.btn-primary:active{background:var(--primary-dark);}
-.btn-primary:disabled{opacity:.6;}
+.btn-primary:active{transform:scale(.98);box-shadow:0 2px 8px rgba(37,99,235,.2);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
 .btn-plain{
-  width:100%;height:44px;border:1px solid var(--border);border-radius:10px;
-  background:#fff;color:var(--text2);font-size:14px;cursor:pointer;
+  width:100%;height:46px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  background:#fff;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;
+  transition:all .15s;
 }
-.detail-body{padding:16px 14px 40px;}
-.d-name{font-size:22px;font-weight:700;margin:0 0 4px;}
-.d-sub{font-size:14px;color:var(--text2);margin-bottom:10px;}
-.d-badge{display:inline-block;font-size:15px;font-weight:700;padding:4px 12px;border-radius:20px;background:#F0F1F3;}
-.d-badge.ok{color:var(--green);background:#E8F5E9;}
-.d-badge.warn{color:var(--orange);background:#FFF3E0;}
-.d-badge.danger{color:var(--red);background:#FFEBEE;}
-.barcode-box{background:#fff;border-radius:12px;padding:14px;margin:14px 0;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);}
-.barcode-box svg{width:100%;height:auto;max-height:130px;display:block;}
-.barcode-text{font-family:monospace;font-size:13px;letter-spacing:1px;margin-top:6px;color:#374151;}
-.d-actions{display:flex;gap:10px;margin-bottom:12px;}
-.d-actions button{flex:1;height:48px;border:0;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;}
-.btn-in{background:var(--green);color:#fff;}
-.btn-out{background:#fff;color:var(--red);border:1.5px solid var(--red)!important;}
-.d-mini{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.btn-plain:active{background:var(--bg);}
+
+/* ==================== 商品详情 ==================== */
+.detail-body{padding:20px 16px 60px;}
+.d-name{font-size:22px;font-weight:700;margin:0 0 6px;letter-spacing:.2px;line-height:1.3;}
+.d-sub{font-size:14px;color:var(--text2);margin-bottom:12px;}
+.d-badge{
+  display:inline-block;font-size:14px;font-weight:700;
+  padding:6px 16px;border-radius:20px;
+  background:var(--green-soft);color:var(--green);
+  letter-spacing:.3px;
+}
+.d-badge.ok{color:var(--green);background:var(--green-soft);}
+.d-badge.warn{color:var(--orange);background:var(--orange-soft);}
+.d-badge.danger{color:var(--red);background:var(--red-soft);}
+.barcode-box{
+  background:#fff;border-radius:var(--radius);padding:20px;
+  margin:18px 0;text-align:center;box-shadow:var(--shadow);
+  border:1px solid var(--border-soft);
+}
+.barcode-box svg{width:100%;height:auto;max-height:140px;display:block;}
+.barcode-box img{max-width:160px;height:auto;display:block;margin:0 auto;}
+.barcode-text{
+  font-family:ui-monospace,Menlo,monospace;font-size:13px;
+  letter-spacing:1.5px;margin-top:10px;color:var(--text2);
+}
+.d-actions{display:flex;gap:12px;margin-bottom:14px;}
+.d-actions button{
+  flex:1;height:52px;border:0;border-radius:14px;font-size:15.5px;
+  font-weight:600;cursor:pointer;letter-spacing:.3px;
+  transition:all .18s;
+}
+.d-actions button:active{transform:scale(.98);}
+.btn-in{
+  background:linear-gradient(135deg,#34D399,#10B981);color:#fff;
+  box-shadow:0 4px 14px rgba(16,185,129,.28);
+}
+.btn-out{
+  background:#fff;color:var(--red);
+  border:1.5px solid var(--red)!important;
+}
+.d-mini{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
 .d-mini button{
-  flex:1;min-width:72px;height:38px;border:1px solid var(--border);background:#fff;
-  border-radius:9px;font-size:12.5px;color:var(--text2);cursor:pointer;
+  flex:1;min-width:76px;height:40px;
+  border:1.5px solid var(--border);background:#fff;
+  border-radius:var(--radius-xs);
+  font-size:12.5px;color:var(--text2);cursor:pointer;font-weight:500;
+  transition:all .15s;
 }
-.btn-ble{background:#1565C0!important;color:#fff!important;border-color:#1565C0!important;font-weight:600!important;}
-.section-title{font-size:14px;font-weight:700;margin:18px 0 8px;color:#374151;}
-.info-box{background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.9;box-shadow:0 1px 3px rgba(0,0,0,.06);}
-.info-box b{color:var(--text2);font-weight:400;}
-.rec-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F0F1F3;}
+.d-mini button:active{background:var(--bg);transform:scale(.97);}
+.btn-ble{
+  background:linear-gradient(135deg,#3B82F6,#2563EB)!important;
+  color:#fff!important;border-color:transparent!important;
+  font-weight:600!important;
+  box-shadow:0 3px 10px rgba(37,99,235,.25);
+}
+.section-title{
+  font-size:13.5px;font-weight:700;margin:22px 0 10px;color:var(--text);
+  letter-spacing:.3px;display:flex;align-items:center;gap:6px;
+}
+.section-title::before{
+  content:"";width:3px;height:14px;background:var(--primary);
+  border-radius:2px;
+}
+.info-box{
+  background:#fff;border-radius:var(--radius);padding:16px 18px;
+  font-size:14px;line-height:2;
+  box-shadow:var(--shadow);border:1px solid var(--border-soft);
+}
+.info-box b{color:var(--text2);font-weight:400;display:inline-block;min-width:64px;}
+
+/* ==================== 出入库记录 ==================== */
+.rec-item{
+  display:flex;align-items:center;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--border-soft);
+}
 .rec-item:last-child{border-bottom:0;}
-.rec-type{flex:none;width:42px;font-size:12.5px;font-weight:700;}
-.rec-type.in{color:var(--green);}
-.rec-type.out{color:var(--red);}
+.rec-type{
+  flex:none;padding:3px 9px;border-radius:6px;
+  font-size:11.5px;font-weight:700;letter-spacing:.3px;
+}
+.rec-type.in{color:var(--green);background:var(--green-soft);}
+.rec-type.out{color:var(--red);background:var(--red-soft);}
 .rec-main{flex:1;min-width:0;}
-.rec-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rec-time{font-size:11.5px;color:var(--text2);}
-.rec-qty{flex:none;font-size:16px;font-weight:700;}
+.rec-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rec-time{font-size:11.5px;color:var(--text3);margin-top:2px;}
+.rec-qty{flex:none;font-size:16px;font-weight:700;font-family:ui-monospace,Menlo,monospace;}
 .rec-qty.in{color:var(--green);}
 .rec-qty.out{color:var(--red);}
-.scan-tabs{display:flex;gap:8px;padding:12px 14px 8px;}
+
+/* ==================== 扫码 ==================== */
+.scan-tabs{display:flex;gap:8px;padding:14px 16px 10px;}
 .scan-tabs button{
-  flex:1;height:40px;border:1px solid var(--border);background:#fff;
-  border-radius:10px;font-size:13.5px;color:var(--text2);cursor:pointer;
+  flex:1;height:42px;border:1.5px solid var(--border);background:#fff;
+  border-radius:var(--radius-sm);font-size:13.5px;color:var(--text2);
+  cursor:pointer;font-weight:500;transition:all .18s;
 }
-.scan-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
-.scan-reader{width:100%;min-height:260px;background:#000;border-radius:12px;overflow:hidden;position:relative;}
+.scan-tabs button:active{transform:scale(.97);}
+.scan-tabs button.active{
+  background:linear-gradient(135deg,#3B82F6,#2563EB);
+  color:#fff;border-color:transparent;font-weight:600;
+  box-shadow:0 3px 10px rgba(37,99,235,.25);
+}
+.scan-reader{
+  width:100%;min-height:280px;background:#0F172A;border-radius:var(--radius);
+  overflow:hidden;position:relative;box-shadow:var(--shadow-md);
+}
 .scan-reader video{width:100%!important;height:auto!important;}
-.scan-tip{text-align:center;font-size:13px;color:var(--text2);padding:12px 20px;line-height:1.7;}
+.scan-tip{
+  text-align:center;font-size:13px;color:var(--text2);
+  padding:14px 24px;line-height:1.8;
+}
+
+/* ==================== 弹窗 ==================== */
 .modal-mask{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
-  display:flex;align-items:center;justify-content:center;padding:24px;
-  opacity:0;transition:opacity .18s;
+  position:fixed;inset:0;background:rgba(15,23,42,.5);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;
+  opacity:0;transition:opacity .22s;
 }
 .modal-mask.show{opacity:1;}
 .modal{
-  width:100%;max-width:380px;background:#fff;border-radius:16px;
-  padding:20px;transform:scale(.94);transition:transform .18s;
+  width:100%;max-width:380px;background:#fff;border-radius:20px;
+  padding:24px;transform:scale(.94) translateY(8px);
+  transition:transform .22s cubic-bezier(.4,0,.2,1);
   max-height:85vh;overflow-y:auto;
+  box-shadow:0 24px 60px rgba(15,23,42,.24);
 }
-.modal-mask.show .modal{transform:scale(1);}
-.modal-title{font-size:17px;font-weight:700;margin-bottom:10px;text-align:center;}
-.modal-body{font-size:14px;color:#374151;line-height:1.7;margin-bottom:16px;text-align:center;white-space:pre-line;}
-.modal-input{width:100%;height:46px;border:1px solid var(--border);border-radius:10px;padding:0 13px;font-size:16px;outline:none;margin-bottom:10px;}
-.modal-input:focus{border-color:var(--primary);}
-.modal-btns{display:flex;gap:10px;margin-top:6px;}
-.modal-btns button{flex:1;height:44px;border-radius:10px;font-size:15px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);}
-.modal-btns button.primary{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
+.modal-mask.show .modal{transform:scale(1) translateY(0);}
+.modal-title{
+  font-size:17px;font-weight:700;margin-bottom:12px;text-align:center;
+  color:var(--text);letter-spacing:.2px;
+}
+.modal-body{
+  font-size:14px;color:var(--text2);line-height:1.8;
+  margin-bottom:18px;text-align:center;white-space:pre-line;
+}
+.modal-input{
+  width:100%;height:48px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:0 14px;font-size:16px;outline:none;margin-bottom:12px;
+  transition:all .2s;color:var(--text);
+}
+.modal-input:focus{
+  border-color:var(--primary-light);
+  box-shadow:0 0 0 4px rgba(59,130,246,.1);
+}
+.modal-btns{display:flex;gap:10px;margin-top:8px;}
+.modal-btns button{
+  flex:1;height:46px;border-radius:var(--radius-sm);font-size:15px;
+  cursor:pointer;border:1.5px solid var(--border);background:#fff;
+  color:var(--text2);font-weight:500;transition:all .15s;
+}
+.modal-btns button:active{transform:scale(.98);}
+.modal-btns button.primary{
+  background:linear-gradient(135deg,#3B82F6,#2563EB);
+  color:#fff;border-color:transparent;font-weight:600;
+  box-shadow:0 3px 10px rgba(37,99,235,.25);
+}
+
+/* ==================== Toast ==================== */
 .toast{
-  position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(10px);
-  background:rgba(30,30,30,.92);color:#fff;font-size:14px;
-  padding:11px 20px;border-radius:22px;z-index:200;opacity:0;transition:all .25s;pointer-events:none;max-width:80vw;text-align:center;
+  position:fixed;left:50%;bottom:110px;
+  transform:translateX(-50%) translateY(12px) scale(.95);
+  background:rgba(15,23,42,.94);color:#fff;font-size:14px;
+  padding:12px 22px;border-radius:24px;z-index:200;
+  opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;max-width:80vw;text-align:center;
+  box-shadow:0 8px 24px rgba(15,23,42,.3);
+  font-weight:500;letter-spacing:.2px;
 }
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.import-tip{font-size:12px;color:var(--text2);background:#F8FAFC;border-radius:8px;padding:10px 12px;line-height:1.7;margin-bottom:10px;}
-.import-tip code{background:#E8F0FE;color:#1565C0;padding:1px 5px;border-radius:3px;font-size:11px;}
-.import-area{width:100%;min-height:140px;max-height:280px;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:12px;font-family:monospace;outline:none;resize:vertical;}
-.import-area:focus{border-color:var(--primary);}
-.import-preview{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:10px;font-size:12px;}
-.import-preview .row{display:flex;gap:6px;padding:5px 8px;border-bottom:1px solid #F0F1F3;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+
+/* ==================== 批量导入 ==================== */
+.import-tip{
+  font-size:12px;color:var(--text2);background:var(--primary-soft);
+  border-radius:var(--radius-xs);padding:12px 14px;line-height:1.8;margin-bottom:12px;
+  border-left:3px solid var(--primary);
+}
+.import-tip code{
+  background:#fff;color:var(--primary);padding:2px 6px;border-radius:4px;
+  font-size:11px;font-family:ui-monospace,Menlo,monospace;
+}
+.import-area{
+  width:100%;min-height:140px;max-height:280px;
+  border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px;font-size:12px;font-family:ui-monospace,Menlo,monospace;
+  outline:none;resize:vertical;transition:all .2s;
+}
+.import-area:focus{
+  border-color:var(--primary-light);
+  box-shadow:0 0 0 4px rgba(59,130,246,.1);
+}
+.import-preview{
+  max-height:220px;overflow-y:auto;
+  border:1px solid var(--border);border-radius:var(--radius-xs);
+  margin-top:12px;font-size:12px;background:#fff;
+}
+.import-preview .row{
+  display:flex;gap:8px;padding:8px 12px;
+  border-bottom:1px solid var(--border-soft);align-items:center;
+}
 .import-preview .row:last-child{border-bottom:0;}
-.import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.import-preview .row .c{color:var(--text2);font-family:monospace;}
-.import-preview .row.err{background:#FFF5F5;color:var(--red);}
-.tpl-btn{width:100%;height:40px;border:1px dashed #1565C0;border-radius:10px;background:#F0F7FF;color:#1565C0;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;}
-.tpl-btn:active{background:#E1EFFF;}
-/* ========== 批量打印 ========== */
-.bp-toolbar{
-  display:flex;gap:8px;align-items:center;padding:8px 10px;
-  background:#F8FAFC;border-radius:8px;margin-bottom:8px;font-size:13px;
+.import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+.import-preview .row .c{color:var(--text3);font-family:ui-monospace,Menlo,monospace;font-size:11px;}
+.import-preview .row.err{background:var(--red-soft);color:var(--red);}
+.tpl-btn{
+  width:100%;height:44px;border:1.5px dashed var(--primary);
+  border-radius:var(--radius-sm);
+  background:var(--primary-soft);color:var(--primary);
+  font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;
+  transition:all .15s;
 }
-.bp-toolbar label{display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.tpl-btn:active{background:#DBEAFE;transform:scale(.98);}
+
+/* ==================== 批量打印 ==================== */
+.bp-toolbar{
+  display:flex;gap:8px;align-items:center;padding:10px 12px;
+  background:var(--bg);border-radius:var(--radius-xs);margin-bottom:10px;
+  font-size:13px;
+}
+.bp-toolbar label{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;font-weight:500;}
 .bp-list{
-  max-height:320px;overflow-y:auto;border:1px solid var(--border);
-  border-radius:8px;
+  max-height:320px;overflow-y:auto;
+  border:1.5px solid var(--border);border-radius:var(--radius-xs);
 }
 .bp-item{
-  display:flex;align-items:center;gap:8px;padding:8px 10px;
-  border-bottom:1px solid #F0F1F3;font-size:13.5px;
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-bottom:1px solid var(--border-soft);font-size:13.5px;
+  transition:background .12s;
 }
+.bp-item:hover{background:var(--bg);}
 .bp-item:last-child{border-bottom:0;}
 .bp-item input[type="checkbox"]{
-  width:18px;height:18px;flex:none;cursor:pointer;
+  width:18px;height:18px;flex:none;cursor:pointer;accent-color:var(--primary);
 }
-.bp-item .bp-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.bp-item .bp-code{font-family:monospace;font-size:11px;color:var(--text2);flex:none;}
+.bp-item .bp-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+.bp-item .bp-code{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--text3);flex:none;}
 .bp-progress{
-  text-align:center;padding:16px 0;font-size:14px;color:var(--text2);
+  text-align:center;padding:20px 0;font-size:14px;color:var(--text2);line-height:1.8;
 }
 .bp-progress .bp-bar{
-  height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden;margin-top:10px;
+  height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:14px;
 }
 .bp-progress .bp-bar-inner{
-  height:100%;background:var(--primary);width:0;transition:width .3s;
+  height:100%;background:linear-gradient(90deg,#3B82F6,#2563EB);
+  width:0;transition:width .35s cubic-bezier(.4,0,.2,1);border-radius:3px;
 }
 </style>
 </head>
@@ -291,27 +541,29 @@ body{
         <button data-mode="in">扫码入库</button>
         <button data-mode="out">扫码出库</button>
       </div>
-      <div style="padding:0 14px;"><div id="reader" class="scan-reader"></div></div>
+      <div style="padding:0 16px;"><div id="reader" class="scan-reader"></div></div>
       <div class="scan-tip" id="scanTip">将条形码 / 二维码放入取景框内</div>
     </section>
 
     <section id="view-records" class="view">
-      <div style="padding:14px;">
+      <div style="padding:16px;">
         <div style="display:flex;gap:8px;margin-bottom:8px;">
           <button class="mini-btn" id="btnExport" style="flex:1;">导出备份</button>
           <button class="mini-btn" id="btnImport" style="flex:1;">导入备份</button>
-          <button class="mini-btn" id="btnClearAll" style="flex:1;border-color:#F3C6C6;color:var(--red);">清空数据</button>
+          <button class="mini-btn" id="btnClearAll" style="flex:1;border-color:#FECACA;color:var(--red);">清空数据</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <button class="mini-btn" id="btnBatchImport" style="flex:1;background:#2E7D32;color:#fff;border-color:#2E7D32;">批量导入商品</button>
-          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:#1565C0;color:#fff;border-color:#1565C0;">批量下载条码</button>
+          <button class="mini-btn" id="btnBatchImport" style="flex:1;background:var(--green);color:#fff;border-color:transparent;">批量导入商品</button>
+          <button class="mini-btn" id="btnBatchBarcode" style="flex:1;background:var(--primary);color:#fff;border-color:transparent;">批量下载条码</button>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <button class="mini-btn" id="btnBatchPrint" style="flex:1;background:#6A1B9A;color:#fff;border-color:#6A1B9A;">🖨 批量打印标签</button>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button class="mini-btn" id="btnBatchPrint" style="flex:1;background:linear-gradient(135deg,#A855F7,#7C3AED);color:#fff;border-color:transparent;">🖨 批量打印标签</button>
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none">
         <div class="section-title">全部出入库流水</div>
-        <div class="card" style="padding:6px 14px;"><div id="recordList"></div></div>
+        <div class="card" style="padding:6px 16px;cursor:default;">
+          <div id="recordList"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -422,12 +674,13 @@ function renderProductList(){
   }
   el.innerHTML = list.map(p => {
     const cls = p.stock <= 0 ? 'danger' : (p.stock <= p.warnStock ? 'warn' : 'ok');
+    const cardCls = p.stock <= 0 ? 'stock-danger' : (p.stock <= p.warnStock ? 'stock-warn' : '');
     const sub = [p.brand, p.model, p.spec, p.color].filter(Boolean).join(' / ') || '—';
-    return `<div class="card product-item" data-id="${esc(p.id)}">
+    return `<div class="card product-item ${cardCls}" data-id="${esc(p.id)}">
       <div class="pi-main">
         <div class="pi-name">${esc(p.name)}</div>
         <div class="pi-sub">${esc(sub)}</div>
-        <div class="pi-code">条码：${esc(p.barcode)}</div>
+        <div class="pi-code">${esc(p.barcode)}</div>
       </div>
       <div class="pi-right">
         <div class="pi-stock ${cls}">库存 ${p.stock}</div>
@@ -454,12 +707,12 @@ function showQuickMenu(id){
   if(!p) return;
   const { mask, close } = showModal(`
     <div class="modal-title">${esc(p.name)}</div>
-    <div class="modal-body">库存 ${p.stock}</div>
+    <div class="modal-body">当前库存：${p.stock}</div>
     <div class="modal-btns" style="flex-direction:column;gap:8px;">
       <button class="primary" data-act="in">入库</button>
       <button data-act="out">出库</button>
-      <button data-act="ble" style="background:#1565C0;color:#fff;border-color:#1565C0;font-weight:600;">蓝牙打印</button>
-      <button data-act="preview" style="color:#1565C0;border-color:#1565C0;">打印预览</button>
+      <button data-act="ble" style="background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;border-color:transparent;font-weight:600;">蓝牙打印</button>
+      <button data-act="preview">打印预览</button>
       <button data-act="print">打印条码</button>
       <button data-act="saveImg">保存条码图</button>
       <button data-act="detail">查看详情</button>
@@ -572,12 +825,12 @@ function renderDetail(p){
     </div>
     <div class="d-mini">
       <button id="dBlePrint" class="btn-ble">蓝牙打印</button>
-      <button id="dPreview" style="color:#1565C0;border-color:#1565C0;">打印预览</button>
+      <button id="dPreview">打印预览</button>
       <button id="dCopy">复制条码</button>
       <button id="dPrint">打印条码</button>
       <button id="dSaveImg">保存条码图</button>
       <button id="dEdit">编辑</button>
-      <button id="dDel" style="color:var(--red);border-color:#F3C6C6;">删除</button>
+      <button id="dDel" style="color:var(--red);border-color:#FECACA;">删除</button>
     </div>
     <div class="section-title">商品信息</div>
     <div class="info-box">
@@ -590,13 +843,13 @@ function renderDetail(p){
       ${p.remark ? `<div><b>备注：</b>${esc(p.remark)}</div>` : ''}
     </div>
     <div class="section-title">出入库记录（${recs.length}）</div>
-    <div class="card" style="padding:6px 14px;">
+    <div class="card" style="padding:6px 16px;cursor:default;">
       ${recs.length ? recs.map(r => `
         <div class="rec-item">
           <div class="rec-type ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '入库' : '出库'}</div>
           <div class="rec-main"><div class="rec-time">${fmtTime(r.time)}${r.remark ? ' · ' + esc(r.remark) : ''}</div></div>
           <div class="rec-qty ${r.type > 0 ? 'in' : 'out'}">${r.type > 0 ? '+' : '-'}${r.quantity}</div>
-        </div>`).join('') : '<div class="empty" style="padding:20px;">暂无记录</div>'}
+        </div>`).join('') : '<div class="empty" style="padding:24px;">暂无记录</div>'}
     </div>`;
   try{
     const qr = qrcode(0, 'M');
@@ -635,7 +888,7 @@ function confirmDelete(p){
     <div class="modal-body">确定要删除「${esc(p.name)}」吗？\n历史出入库记录会保留。</div>
     <div class="modal-btns">
       <button data-act="cancel">取消</button>
-      <button class="primary" data-act="ok" style="background:var(--red);border-color:var(--red);">删除</button>
+      <button class="primary" data-act="ok" style="background:linear-gradient(135deg,#F87171,#EF4444);border-color:transparent;">删除</button>
     </div>`);
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
@@ -785,7 +1038,7 @@ $('#btnClearAll').addEventListener('click', ()=>{
   const { mask, close } = showModal(`
     <div class="modal-title">清空全部数据</div>
     <div class="modal-body">将删除所有商品和出入库记录，且不可恢复。\n建议先导出备份。</div>
-    <div class="modal-btns"><button data-act="cancel">取消</button><button class="primary" data-act="ok" style="background:var(--red);border-color:var(--red);">确认清空</button></div>`);
+    <div class="modal-btns"><button data-act="cancel">取消</button><button class="primary" data-act="ok" style="background:linear-gradient(135deg,#F87171,#EF4444);border-color:transparent;">确认清空</button></div>`);
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="ok"]').onclick = () => {
     products = []; records = []; saveProducts(); saveRecords(); close(); toast('已清空'); renderProductList(); renderRecords();
@@ -850,13 +1103,13 @@ function openBatchImport(){
     <button class="tpl-btn" id="btnDownloadTpl">⬇ 下载 CSV 导入模板（用 Excel 填写）</button>
     <div class="import-tip">每行一件商品，用逗号或制表符分隔。列顺序：<br><code>名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,库存量,备注</code><br>除<b>名称</b>外，其他列都可以省略；不填条码会自动生成。</div>
     <textarea class="import-area" id="importText" placeholder="例如：&#10;iPhone 15 Pro Max,Apple,A3108,8+256G,原色钛金属,6901234567890,8000,8999,2,5&#10;华为 Mate 60 Pro,华为,,12+512G,雅川青,,6500,6999,2,3"></textarea>
-    <div style="display:flex;gap:8px;margin-top:10px;">
+    <div style="display:flex;gap:8px;margin-top:12px;">
       <input type="file" id="batchFile" accept=".csv,.txt" style="display:none">
       <button class="mini-btn" id="btnPickFile" style="flex:1;">选择 CSV 文件</button>
-      <button class="mini-btn" id="btnParsePreview" style="flex:1;background:#2E7D32;color:#fff;border-color:#2E7D32;">解析预览</button>
+      <button class="mini-btn" id="btnParsePreview" style="flex:1;background:var(--green);color:#fff;border-color:transparent;">解析预览</button>
     </div>
     <div id="importPreviewWrap" style="display:none;"><div class="import-preview" id="importPreview"></div></div>
-    <div class="modal-btns" style="margin-top:12px;"><button data-act="cancel">取消</button><button class="primary" data-act="ok" id="btnConfirmImport" disabled>确认导入</button></div>`);
+    <div class="modal-btns" style="margin-top:14px;"><button data-act="cancel">取消</button><button class="primary" data-act="ok" id="btnConfirmImport" disabled>确认导入</button></div>`);
   let parsedRows = [];
   const textarea = mask.querySelector('#importText');
   const previewWrap = mask.querySelector('#importPreviewWrap');
@@ -913,7 +1166,7 @@ function showModal(html){
   mask.innerHTML = `<div class="modal">${html}</div>`;
   document.body.appendChild(mask);
   requestAnimationFrame(()=> mask.classList.add('show'));
-  const close = () => { mask.classList.remove('show'); setTimeout(()=> mask.remove(), 200); };
+  const close = () => { mask.classList.remove('show'); setTimeout(()=> mask.remove(), 220); };
   mask.addEventListener('click', e => { if(e.target === mask) close(); });
   return { mask, close };
 }
@@ -922,7 +1175,7 @@ function showModal(html){
 async function scanOnce(onResult){
   const { mask, close } = showModal(`
     <div class="modal-title">扫描条码</div>
-    <div id="scanOnceReader" style="width:100%;min-height:220px;background:#000;border-radius:10px;overflow:hidden;"></div>
+    <div id="scanOnceReader" style="width:100%;min-height:220px;background:#0F172A;border-radius:12px;overflow:hidden;"></div>
     <div style="height:12px;"></div>
     <button class="btn-plain" id="scanOnceCancel">取消</button>`);
   const q = new Html5Qrcode('scanOnceReader', { verbose:false });
@@ -949,7 +1202,7 @@ function printBarcode(p) {
     win.document.write(`
       <!DOCTYPE html><html><head><meta charset="UTF-8"><title>打印条码 - ${esc(p.name)}</title>
       <style>* { box-sizing: border-box; } body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; text-align: center; padding: 20px; margin: 0; }
-      .label { display: inline-block; border: 1px dashed #ccc; padding: 12px 24px; margin: 10px; border-radius: 6px; background: #fff; }
+      .label { display: inline-block; border: 1px dashed #ccc; padding: 12px 24px; margin: 10px; border-radius: 8px; background: #fff; }
       .name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; }
       .config { font-size: 12px; color: #555; margin-bottom: 6px; white-space: nowrap; }
       .qrcode { display: flex; justify-content: center; margin: 8px 0; }
@@ -972,9 +1225,7 @@ function buildConfigLine(p){
   return parts.join(' · ');
 }
 
-/* ==================== 生成标签 Canvas（供预览和打印共用） ==================== */
-// ⚠️ 请根据你的实际标签纸尺寸修改以下参数（1mm ≈ 8px）
-// 40mm × 30mm 标签：w_px = 320, h_px = 240
+/* ==================== 生成标签 Canvas ==================== */
 const B1_LABEL_SIZE = { w_px: 320, h_px: 240, offset_y_px: 0 };
 
 function generateLabelCanvas(product) {
@@ -1082,7 +1333,7 @@ function generateLabelCanvas(product) {
   return canvas;
 }
 
-/* ==================== 蓝牙打印（精臣 NIMBOT B1） ==================== */
+/* ==================== 蓝牙打印 ==================== */
 async function blePrint(product) {
   if (!navigator.bluetooth) { toast('当前浏览器不支持蓝牙，请用安卓 Chrome 或 Edge'); return; }
   if (typeof Niimbot === 'undefined') { toast('蓝牙驱动未加载，请检查网络后刷新页面'); return; }
@@ -1110,10 +1361,10 @@ function showPrintPreview(product) {
 
   const { mask, close } = showModal(`
     <div class="modal-title">打印预览</div>
-    <div style="text-align:center; padding:10px 0; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; margin-bottom:16px;">
-      <img src="${dataUrl}" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+    <div style="text-align:center; padding:12px 0; background:#F8FAFC; border-radius:12px; border:1px dashed #CBD5E1; margin-bottom:16px;">
+      <img src="${dataUrl}" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:6px; box-shadow:0 4px 12px rgba(15,23,42,0.1);">
     </div>
-    <div style="font-size:12px; color:#6B7280; text-align:center; margin-bottom:16px;">
+    <div style="font-size:12px; color:#94A3B8; text-align:center; margin-bottom:16px; line-height:1.7;">
       当前标签尺寸：40mm × 30mm<br>如果预览显示正常，可直接打印
     </div>
     <div class="modal-btns">
@@ -1123,7 +1374,7 @@ function showPrintPreview(product) {
   mask.querySelector('[data-act="cancel"]').onclick = close;
   mask.querySelector('[data-act="print"]').onclick = () => {
     close();
-    setTimeout(() => blePrint(product), 200);
+    setTimeout(() => blePrint(product), 220);
   };
 }
 
@@ -1191,7 +1442,7 @@ function openBatchPrint(){
     <div class="modal-title">批量打印标签</div>
     <div class="bp-toolbar">
       <label><input type="checkbox" id="bpSelectAll" checked> 全选</label>
-      <span style="flex:1;text-align:right;color:#6B7280;">已选 <b id="bpCount">${sortedProducts.length}</b> / ${sortedProducts.length}</span>
+      <span style="flex:1;text-align:right;color:#94A3B8;">已选 <b id="bpCount">${sortedProducts.length}</b> / ${sortedProducts.length}</span>
     </div>
     <div class="bp-list" id="bpList">
       ${sortedProducts.map(p => `
@@ -1202,7 +1453,7 @@ function openBatchPrint(){
         </label>
       `).join('')}
     </div>
-    <div class="modal-btns" style="margin-top:14px;">
+    <div class="modal-btns" style="margin-top:16px;">
       <button data-act="cancel">取消</button>
       <button class="primary" data-act="print" id="bpStartBtn">开始打印 ${sortedProducts.length} 张</button>
     </div>`);
@@ -1245,7 +1496,7 @@ async function startBatchPrint(ids){
     <div class="bp-progress">
       <div id="bpProgressText">准备中...</div>
       <div class="bp-bar"><div class="bp-bar-inner" id="bpBarInner"></div></div>
-      <div style="font-size:12px;color:#9AA0A6;margin-top:10px;">请不要关闭页面，也不要锁屏</div>
+      <div style="font-size:12px;color:#94A3B8;margin-top:12px;">请不要关闭页面，也不要锁屏</div>
     </div>`);
 
   const textEl = mask.querySelector('#bpProgressText');
@@ -1269,14 +1520,12 @@ async function startBatchPrint(ids){
     } catch (e){
       console.error('第 ' + (i+1) + ' 张打印失败', e);
       fail++;
-      // 用户取消选择打印机 → 停止整个批处理
       if (e.name === 'NotFoundError' || e.name === 'SecurityError') {
         toast('已取消打印');
         break;
       }
     }
 
-    // 每张之间稍作延迟，让打印机缓冲
     await new Promise(r => setTimeout(r, 400));
   }
 
