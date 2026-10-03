@@ -457,12 +457,25 @@ body::before{
   border-radius:var(--radius);
   overflow:hidden;position:relative;
   box-shadow:var(--shadow-3);
+  cursor:pointer;
 }
 .scan-reader video{width:100%!important;height:100%!important;object-fit:cover;}
 .scan-tip{
   text-align:center;font-size:13.5px;color:var(--text2);
   padding:14px 24px;line-height:1.7;letter-spacing:-.2px;
 }
+.scan-tip .scan-hint{
+  display:block;font-size:11.5px;color:var(--text3);
+  margin-top:4px;letter-spacing:-.1px;
+}
+.scan-tip .focus-btn{
+  display:inline-block;margin-top:8px;
+  padding:6px 14px;border:0;border-radius:100px;
+  background:rgba(0,122,255,.1);color:var(--ios-blue);
+  font-size:12.5px;font-weight:500;cursor:pointer;
+  letter-spacing:-.2px;
+}
+.scan-tip .focus-btn:active{background:rgba(0,122,255,.2);}
 .modal-mask{
   position:fixed;inset:0;
   background:rgba(0,0,0,.32);
@@ -910,7 +923,11 @@ body::before{
         <button data-mode="out">扫码出库</button>
       </div>
       <div id="reader" class="scan-reader"></div>
-      <div class="scan-tip" id="scanTip">将二维码 / 条形码放入取景框内</div>
+      <div class="scan-tip" id="scanTip">
+        将二维码放入取景框内
+        <span class="scan-hint">画面模糊时，点击取景框手动对焦</span>
+        <button class="focus-btn" id="btnRefocus">重新对焦</button>
+      </div>
     </section>
 
     <section id="view-analysis" class="view">
@@ -971,6 +988,83 @@ function toast(msg){
   document.body.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('show'));
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),320); }, 2200);
+}
+
+/* ==================== 摄像头优化 ==================== */
+/**
+ * 获取当前运行中的视频轨道
+ */
+function getVideoTrack(){
+  const video = document.querySelector('#reader video') ||
+                document.querySelector('#scanOnceReader video');
+  if(!video) return null;
+  const stream = video.srcObject;
+  if(!stream) return null;
+  const tracks = stream.getVideoTracks();
+  return tracks[0] || null;
+}
+
+/**
+ * 应用摄像头优化参数：连续对焦、曝光补偿、白平衡
+ */
+async function applyCameraOptimization(){
+  const track = getVideoTrack();
+  if(!track) return;
+  try{
+    const caps = track.getCapabilities?.() || {};
+    const constraints = {};
+
+    // 1. 连续自动对焦（核心）
+    if(caps.focusMode && caps.focusMode.includes('continuous')){
+      constraints.focusMode = 'continuous';
+    }
+
+    // 2. 白平衡自动
+    if(caps.whiteBalanceMode && caps.whiteBalanceMode.includes('continuous')){
+      constraints.whiteBalanceMode = 'continuous';
+    }
+
+    // 3. 曝光补偿：略降，减少过曝
+    if(caps.exposureCompensation){
+      const r = caps.exposureCompensation;
+      constraints.exposureCompensation = Math.max(r.min, Math.min(r.max, -1));
+    }
+
+    // 4. 对焦距离：尽量近（部分设备支持）
+    if(caps.focusDistance){
+      // 不强制设置，让自动对焦决定
+    }
+
+    if(Object.keys(constraints).length > 0){
+      await track.applyConstraints({ advanced: [constraints] });
+      console.log('摄像头优化已应用:', constraints);
+    }
+  }catch(e){
+    console.warn('摄像头优化应用失败', e);
+  }
+}
+
+/**
+ * 强制重新对焦：先切到手动，再切回连续
+ */
+async function triggerRefocus(){
+  const track = getVideoTrack();
+  if(!track) return;
+  const caps = track.getCapabilities?.() || {};
+  if(!caps.focusMode) return;
+  try{
+    if(caps.focusMode.includes('manual')){
+      await track.applyConstraints({ advanced: [{ focusMode: 'manual' }] });
+      await new Promise(r => setTimeout(r, 80));
+    }
+    if(caps.focusMode.includes('continuous')){
+      await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+    }else if(caps.focusMode.includes('single-shot')){
+      await track.applyConstraints({ advanced: [{ focusMode: 'single-shot' }] });
+    }
+  }catch(e){
+    console.warn('重新对焦失败', e);
+  }
 }
 
 /* ==================== 数据层 ==================== */
@@ -1315,11 +1409,25 @@ $$('.scan-tabs button').forEach(btn => {
     $$('.scan-tabs button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     scanMode = btn.dataset.mode;
-    $('#scanTip').textContent = scanMode === 'query' ? '将二维码 / 条形码放入取景框内' : scanMode === 'in' ? '扫描商品二维码 → 快速入库' : '扫描商品二维码 → 快速出库';
+    $('#scanTip').innerHTML = scanMode === 'query'
+      ? '将二维码放入取景框内<span class="scan-hint">画面模糊时，点击取景框手动对焦</span><button class="focus-btn" id="btnRefocus">重新对焦</button>'
+      : scanMode === 'in'
+        ? '扫描商品二维码 → 快速入库<span class="scan-hint">画面模糊时，点击取景框手动对焦</span><button class="focus-btn" id="btnRefocus">重新对焦</button>'
+        : '扫描商品二维码 → 快速出库<span class="scan-hint">画面模糊时，点击取景框手动对焦</span><button class="focus-btn" id="btnRefocus">重新对焦</button>';
+    bindRefocusBtn();
     await stopScan();
     startScan();
   });
 });
+
+function bindRefocusBtn(){
+  const btn = $('#btnRefocus');
+  if(btn) btn.onclick = (e) => {
+    e.stopPropagation();
+    triggerRefocus();
+    toast('正在重新对焦...');
+  };
+}
 
 async function startScan(){
   if(scanning) return;
@@ -1329,20 +1437,31 @@ async function startScan(){
   scanner = new Html5Qrcode('reader', { verbose: false });
   scanning = true;
   try{
-    await scanner.start({ facingMode: 'environment' },
+    await scanner.start(
       {
-        fps: 12,
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      {
+        fps: 8,
         qrbox: (w, h) => {
           const size = Math.min(w, h, 280) * 0.85;
           const side = Math.max(size, 180);
           return { width: side, height: side };
         },
         aspectRatio: 1.0,
+        disableFlip: true,
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true
         }
       },
-      onScanSuccess, () => {});
+      onScanSuccess, () => {}
+    );
+
+    // 应用摄像头优化（连续对焦等）
+    setTimeout(() => applyCameraOptimization(), 400);
+    setTimeout(() => applyCameraOptimization(), 1200);
   }catch(e){
     scanning = false;
     readerEl.innerHTML = `<div class="empty" style="color:#fff;padding:30px 16px;">无法启动摄像头<br><br>请确认：<br>1. 使用 <b>HTTPS</b> 访问<br>2. 浏览器已允许摄像头权限<br>3. 设备有可用摄像头</div>`;
@@ -1378,6 +1497,16 @@ function handleScanResult(code){
   if(scanMode === 'query') openDetail(p.id);
   else promptQuantity(p.id, scanMode === 'in' ? 1 : -1);
 }
+
+// 点击取景框触发重新对焦
+document.addEventListener('click', (e) => {
+  if(e.target && e.target.closest && e.target.closest('#reader')){
+    triggerRefocus();
+  }
+});
+
+// 初始化时绑定对焦按钮
+bindRefocusBtn();
 
 /* ==================== 数据分析 ==================== */
 let analysisRange = 7;
@@ -1805,21 +1934,31 @@ async function scanOnce(onResult){
   const stop = async () => { if(done) return; done = true; try{ await q.stop(); q.clear(); }catch(e){} };
   mask.querySelector('#scanOnceCancel').onclick = async () => { await stop(); close(); };
   try{
-    await q.start({ facingMode:'environment' },
+    await q.start(
       {
-        fps: 12,
+        facingMode:'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      {
+        fps: 8,
         qrbox: (w, h) => {
           const size = Math.min(w, h, 260) * 0.85;
           const side = Math.max(size, 170);
           return { width: side, height: side };
         },
         aspectRatio: 1.0,
+        disableFlip: true,
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true
         }
       },
       async (text) => { await stop(); close(); setTimeout(()=>onResult(String(text).trim()), 220); },
       () => {});
+
+    // 应用摄像头优化
+    setTimeout(() => applyCameraOptimization(), 400);
+    setTimeout(() => applyCameraOptimization(), 1200);
   }catch(e){
     mask.querySelector('#scanOnceReader').innerHTML = '<div class="empty" style="color:#fff;padding:30px 16px;">无法启动摄像头<br>请使用 HTTPS 访问并允许权限</div>';
   }
