@@ -78,12 +78,20 @@ body{
 .pi-name{font-size:15px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pi-sub{font-size:12.5px;color:var(--text2);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pi-code{font-size:11.5px;color:#9AA0A6;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pi-right{flex:none;text-align:right;}
-.pi-stock{font-size:14px;font-weight:700;margin-bottom:5px;}
+.pi-right{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.pi-stock{font-size:14px;font-weight:700;}
 .pi-stock.ok{color:var(--green);}
 .pi-stock.warn{color:var(--orange);}
 .pi-stock.danger{color:var(--red);}
 .pi-price{font-size:13px;color:var(--primary);font-weight:600;}
+/* 列表编辑按钮 */
+.edit-btn{
+  margin-top:2px;height:28px;padding:0 10px;
+  border:1px solid var(--primary);background:#fff;color:var(--primary);
+  border-radius:8px;font-size:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:3px;
+}
+.edit-btn:active{background:#E8F0FE;}
 .empty{text-align:center;color:var(--text2);font-size:14px;padding:60px 24px;line-height:1.8;}
 .fab{
   position:fixed;right:calc(50% - 320px + 18px);bottom:78px;
@@ -400,10 +408,12 @@ function renderProductList(){
       <div class="pi-right">
         <div class="pi-stock ${cls}">库存 ${p.stock}</div>
         <div class="pi-price">¥${fmtMoney(p.priceOut)}</div>
+        <button class="edit-btn" data-edit="${esc(p.id)}">✏️ 编辑</button>
       </div>
     </div>`;
   }).join('');
 
+  // 整卡点击 → 详情
   el.querySelectorAll('.product-item').forEach(node => {
     const id = node.dataset.id;
     node.addEventListener('click', () => openDetail(id));
@@ -414,6 +424,14 @@ function renderProductList(){
     node.addEventListener('touchend', cancel);
     node.addEventListener('touchmove', cancel, {passive:true});
     node.addEventListener('contextmenu', e => { e.preventDefault(); showQuickMenu(id); });
+  });
+
+  // 编辑按钮点击 → 编辑（阻止冒泡，避免触发详情）
+  el.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openAdd(btn.dataset.edit);
+    });
   });
 }
 
@@ -795,7 +813,6 @@ function parseImportText(text){
   for(let i = startIdx; i < lines.length; i++){
     const cells = lines[i].split(sep).map(c => c.replace(/^\uFEFF/, '').trim());
     if(cells.length < 1 || !cells[0]) continue;
-    // 列顺序：名称,品牌,型号,规格,颜色,条码,进货价,销售价,预警值,库存量,备注
     const [name, brand, model, spec, color, barcode, priceIn, priceOut, warnStock, stock, remark] = cells;
     if(!name){ errors.push({ line: i + 1, msg: '商品名称为空', raw: lines[i] }); continue; }
     const finalBarcode = (barcode && barcode.trim()) ? barcode.trim() : generateInternalBarcode();
@@ -810,7 +827,7 @@ function parseImportText(text){
       priceIn: parseFloat(priceIn) || 0, 
       priceOut: parseFloat(priceOut) || 0, 
       warnStock: parseInt(warnStock) || 2, 
-      stock: parseInt(stock) || 0,   // 新增：库存量
+      stock: parseInt(stock) || 0,
       remark: remark || '', 
       autoBarcode: !(barcode && barcode.trim()) 
     });
@@ -877,13 +894,12 @@ function openBatchImport(){
         priceOut: r.priceOut, 
         warnStock: r.warnStock, 
         remark: r.remark, 
-        stock: 0,          // 先设为 0
+        stock: 0,
         createdAt: now, 
         updatedAt: now 
       };
       products.push(p);
       added++;
-      // 如果有初始库存，通过 changeStock 添加并记录流水
       if (r.stock > 0) {
         changeStock(p.id, r.stock, '批量导入初始库存');
       }
@@ -953,6 +969,16 @@ function printBarcode(p) {
   } catch (e) { toast('二维码格式不支持生成'); }
 }
 
+/* ==================== 配置行 ==================== */
+function buildConfigLine(p){
+  const parts = [];
+  const bm = [p.brand, p.model].filter(Boolean).join(' ');
+  if(bm) parts.push(bm);
+  if(p.spec) parts.push(p.spec);
+  if(p.color) parts.push(p.color);
+  return parts.join(' · ');
+}
+
 /* ==================== 生成标签 Canvas（供预览和打印共用） ==================== */
 // ⚠️ 请根据你的实际标签纸尺寸修改以下参数（1mm ≈ 8px）
 // 40mm × 30mm 标签：w_px = 320, h_px = 240
@@ -967,7 +993,6 @@ function generateLabelCanvas(product) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 文字自适应函数（限制最大字号，防止字体过大）
   function fitTextToBox(text, maxWidth, maxHeight, fontWeight = 'normal', maxFontSize = 100) {
     let fontSize = Math.min(maxHeight, maxFontSize);
     let font = `${fontWeight} ${fontSize}px sans-serif`;
@@ -982,11 +1007,11 @@ function generateLabelCanvas(product) {
     return { font: `${fontWeight} 8px sans-serif`, size: 8 };
   }
 
-  const padding = 8; // 整体边距
+  const padding = 8;
 
-  // ================= 1. 顶部：商品名称 =================
+  // 1. 顶部：商品名称
   const nameText = product.name || '';
-  const nameH = 36; // 名称区域高度
+  const nameH = 36;
   const nameFit = fitTextToBox(nameText, canvas.width - padding * 2, nameH, 'bold', 22);
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'center';
@@ -994,9 +1019,9 @@ function generateLabelCanvas(product) {
   ctx.font = nameFit.font;
   ctx.fillText(nameText, canvas.width / 2, padding + nameH / 2);
 
-  // ================= 2. 底部：条码数字 =================
+  // 2. 底部：条码数字
   const barcodeText = product.barcode || '';
-  const codeH = 24; // 数字区域高度
+  const codeH = 24;
   const codeY = canvas.height - codeH - padding;
   const codeFit = fitTextToBox(barcodeText, canvas.width - padding * 2, codeH, 'normal', 18);
   ctx.font = codeFit.font;
@@ -1005,11 +1030,10 @@ function generateLabelCanvas(product) {
   ctx.textBaseline = 'middle';
   ctx.fillText(barcodeText, canvas.width / 2, codeY + codeH / 2);
 
-  // ================= 3. 中间：左侧二维码 + 右侧文字 =================
+  // 3. 中间：左侧二维码 + 右侧文字
   const midY = padding + nameH;
   const midH = codeY - midY;
 
-  // 构造右侧文字行（优化合并，避免行数过多）
   const infoLines = [];
   const bm = [product.brand, product.model].filter(Boolean).join(' ');
   if (bm) infoLines.push(bm);
@@ -1017,12 +1041,10 @@ function generateLabelCanvas(product) {
   if (sc) infoLines.push(sc);
   if (product.remark) infoLines.push(product.remark);
 
-  // 二维码尺寸和位置（适度缩小，给文字留空间）
   const qrSize = 110;
   const qrX = padding;
   const qrY = midY + (midH - qrSize) / 2;
 
-  // 生成二维码
   try {
     const qr = qrcode(0, 'M');
     qr.addData(barcodeText);
@@ -1052,21 +1074,18 @@ function generateLabelCanvas(product) {
     console.error('二维码生成失败', e);
   }
 
-  // 绘制右侧文字
   if (infoLines.length > 0) {
-    const textX = qrX + qrSize + 8; // 二维码右侧
-    const textW = canvas.width - textX - padding; // 剩余宽度
+    const textX = qrX + qrSize + 8;
+    const textW = canvas.width - textX - padding;
     const lineHeight = midH / infoLines.length;
 
     infoLines.forEach((lineText, index) => {
       const lineY = midY + index * lineHeight;
-      // 限制最大字号为 20px，确保视觉协调
       const textFit = fitTextToBox(lineText, textW, lineHeight * 0.8, 'normal', 20);
       ctx.font = textFit.font;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#000000';
-      // 文字垂直居中于该行，并稍微向上偏移一点保持美观
       ctx.fillText(lineText, textX, lineY + lineHeight / 2);
     });
   }
