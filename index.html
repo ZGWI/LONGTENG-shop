@@ -10,7 +10,6 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/niimbot-web-bluetooth@2.6.0/src/niimbot.js"></script>
 <style>
-/* ==================== iOS 26 Liquid Glass 设计系统 ==================== */
 :root{
   --ios-blue:#007AFF;
   --ios-blue-dark:#0051D5;
@@ -20,6 +19,8 @@
   --ios-purple:#AF52DE;
   --ios-pink:#FF2D55;
   --ios-indigo:#5856D6;
+  --ios-teal:#5AC8FA;
+  --ios-yellow:#FFCC00;
 
   --text:#1C1C1E;
   --text2:rgba(60,60,67,.6);
@@ -34,7 +35,6 @@
   --separator-soft:rgba(60,60,67,.12);
 
   --glass-border:rgba(255,255,255,.6);
-  --glass-highlight:rgba(255,255,255,.9);
 
   --radius-lg:28px;
   --radius:22px;
@@ -56,7 +56,6 @@ body{
   -moz-osx-font-smoothing:grayscale;
   letter-spacing:-.01em;
 }
-/* 背景装饰光斑 */
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background:
@@ -72,8 +71,6 @@ body::before{
   box-shadow:0 0 60px rgba(0,0,0,.1);
   z-index:1;
 }
-
-/* ==================== 顶栏：毛玻璃 ==================== */
 #topbar{
   height:58px;flex:none;display:flex;align-items:center;
   padding:0 8px;
@@ -100,8 +97,6 @@ body::before{
   color:var(--text);
   display:flex;align-items:center;justify-content:center;gap:6px;
 }
-
-/* ==================== 主体 ==================== */
 #main{flex:1;position:relative;overflow:hidden;}
 .view{
   position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -113,8 +108,6 @@ body::before{
   from{opacity:0;transform:translateY(6px);}
   to{opacity:1;transform:translateY(0);}
 }
-
-/* ==================== 底部导航：毛玻璃 ==================== */
 #tabbar{
   flex:none;height:58px;display:flex;
   background:rgba(255,255,255,.72);
@@ -145,8 +138,6 @@ body::before{
   transform:scale(1.08);
   filter:none;opacity:1;
 }
-
-/* ==================== 搜索框 ==================== */
 .search-wrap{padding:12px 16px 8px;position:relative;}
 .search-wrap input{
   width:100%;height:38px;
@@ -176,8 +167,6 @@ body::before{
   background:rgba(60,60,67,.5);transform:rotate(45deg);
   border-radius:2px;pointer-events:none;z-index:1;
 }
-
-/* ==================== 商品列表 ==================== */
 .list{padding:6px 16px 100px;}
 .card{
   background:var(--bg-card);
@@ -192,7 +181,6 @@ body::before{
   transition:all .22s cubic-bezier(.4,0,.2,1);
   position:relative;overflow:hidden;
 }
-/* 边缘高光 */
 .card::after{
   content:"";position:absolute;inset:0;border-radius:inherit;
   pointer-events:none;
@@ -235,15 +223,11 @@ body::before{
   font-size:15px;color:var(--ios-blue);
   font-weight:700;letter-spacing:-.3px;
 }
-
-/* ==================== 空状态 ==================== */
 .empty{
   text-align:center;color:var(--text2);font-size:14px;
   padding:80px 24px;line-height:2;letter-spacing:-.2px;
 }
 .empty b{color:var(--ios-blue);font-weight:600;}
-
-/* ==================== FAB ==================== */
 .fab{
   position:fixed;right:calc(50% - 320px + 20px);bottom:82px;
   width:56px;height:56px;border-radius:50%;border:0;
@@ -253,7 +237,6 @@ body::before{
   cursor:pointer;z-index:9;
   display:flex;align-items:center;justify-content:center;
   transition:all .22s cubic-bezier(.4,0,.2,1);
-  position:fixed;
 }
 @media (max-width:676px){ .fab{right:20px;} }
 .fab:active{transform:scale(.9);box-shadow:0 4px 12px rgba(0,122,255,.24);}
@@ -262,8 +245,6 @@ body::before{
   background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 50%);
   pointer-events:none;
 }
-
-/* ==================== 表单 ==================== */
 .form-body{padding:20px 16px 60px;}
 .field{margin-bottom:18px;flex:1;min-width:0;}
 .field label{
@@ -324,8 +305,6 @@ body::before{
   letter-spacing:-.2px;
 }
 .btn-plain:active{background:rgba(120,120,128,.2);transform:scale(.98);}
-
-/* ==================== 商品详情 ==================== */
 .detail-body{padding:20px 16px 60px;}
 .d-name{
   font-size:26px;font-weight:700;
@@ -425,8 +404,6 @@ body::before{
 }
 .info-box b{color:var(--text2);font-weight:400;display:inline-block;min-width:68px;}
 .info-box > div + div{border-top:.5px solid var(--separator-soft);padding-top:6px;margin-top:6px;}
-
-/* ==================== 出入库记录 ==================== */
 .rec-item{
   display:flex;align-items:center;gap:12px;
   padding:12px 0;
@@ -453,8 +430,6 @@ body::before{
 }
 .rec-qty.in{color:var(--ios-green);}
 .rec-qty.out{color:var(--ios-red);}
-
-/* ==================== 扫码 ==================== */
 .scan-tabs{
   display:flex;gap:6px;padding:14px 16px 12px;
   background:rgba(120,120,128,.08);
@@ -487,8 +462,6 @@ body::before{
   text-align:center;font-size:13.5px;color:var(--text2);
   padding:14px 24px;line-height:1.7;letter-spacing:-.2px;
 }
-
-/* ==================== 弹窗 ==================== */
 .modal-mask{
   position:fixed;inset:0;
   background:rgba(0,0,0,.32);
@@ -553,8 +526,6 @@ body::before{
   box-shadow:0 6px 16px rgba(0,122,255,.28);
 }
 .modal-btns button.primary:active{box-shadow:0 2px 8px rgba(0,122,255,.2);}
-
-/* ==================== Toast ==================== */
 .toast{
   position:fixed;left:50%;bottom:110px;
   transform:translateX(-50%) translateY(16px) scale(.94);
@@ -571,8 +542,6 @@ body::before{
   letter-spacing:-.2px;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
-
-/* ==================== 批量导入 ==================== */
 .import-tip{
   font-size:12.5px;color:var(--text2);
   background:rgba(0,122,255,.08);
@@ -634,8 +603,6 @@ body::before{
   letter-spacing:-.2px;
 }
 .tpl-btn:active{background:rgba(0,122,255,.2);transform:scale(.98);}
-
-/* ==================== 批量打印 ==================== */
 .bp-toolbar{
   display:flex;gap:8px;align-items:center;
   padding:10px 14px;
@@ -691,11 +658,207 @@ body::before{
   border-radius:3px;
 }
 
-/* 小屏幕微调 */
+/* ==================== 数据分析页 ==================== */
+.analysis-body{padding:16px 16px 100px;}
+
+/* 关键指标卡片网格 */
+.stats-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  margin-bottom:14px;
+}
+.stat-card{
+  background:var(--bg-card);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  border:.5px solid var(--glass-border);
+  box-shadow:var(--shadow-2);
+  position:relative;overflow:hidden;
+}
+.stat-card::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 50%);
+  pointer-events:none;opacity:.5;
+}
+.stat-card.full{grid-column:1 / -1;}
+.stat-label{
+  font-size:12px;color:var(--text2);
+  font-weight:500;letter-spacing:-.1px;
+  margin-bottom:6px;position:relative;z-index:1;
+  display:flex;align-items:center;gap:4px;
+}
+.stat-value{
+  font-size:24px;font-weight:700;
+  color:var(--text);letter-spacing:-.5px;
+  position:relative;z-index:1;
+  font-variant-numeric:tabular-nums;
+}
+.stat-value.small{font-size:20px;}
+.stat-value.blue{color:var(--ios-blue);}
+.stat-value.green{color:var(--ios-green);}
+.stat-value.orange{color:var(--ios-orange);}
+.stat-value.red{color:var(--ios-red);}
+.stat-value.purple{color:var(--ios-purple);}
+.stat-unit{
+  font-size:13px;font-weight:500;
+  color:var(--text2);margin-left:4px;
+}
+.stat-sub{
+  font-size:11.5px;color:var(--text2);
+  margin-top:4px;position:relative;z-index:1;
+  letter-spacing:-.1px;
+}
+
+/* 数据块 */
+.analysis-block{
+  background:var(--bg-card);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-radius:var(--radius);
+  padding:16px;
+  border:.5px solid var(--glass-border);
+  box-shadow:var(--shadow-2);
+  margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.analysis-block::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 30%);
+  pointer-events:none;opacity:.5;
+}
+.analysis-title{
+  font-size:14px;font-weight:600;
+  margin:0 0 14px;color:var(--text);
+  letter-spacing:-.2px;position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.analysis-title .tag{
+  font-size:11px;font-weight:500;
+  color:var(--text2);
+  background:rgba(120,120,128,.1);
+  padding:3px 8px;border-radius:8px;
+  letter-spacing:-.1px;
+}
+
+/* 排行榜 */
+.rank-list{position:relative;z-index:1;}
+.rank-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;
+  border-bottom:.5px solid var(--separator-soft);
+}
+.rank-item:last-child{border-bottom:0;}
+.rank-no{
+  flex:none;width:24px;height:24px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+  background:rgba(120,120,128,.1);color:var(--text2);
+  letter-spacing:-.2px;
+}
+.rank-item:nth-child(1) .rank-no{background:rgba(255,204,0,.2);color:#B8860B;}
+.rank-item:nth-child(2) .rank-no{background:rgba(192,192,192,.3);color:#666;}
+.rank-item:nth-child(3) .rank-no{background:rgba(205,127,50,.2);color:#A0522D;}
+.rank-info{flex:1;min-width:0;}
+.rank-name{
+  font-size:14px;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:-.2px;
+}
+.rank-sub{
+  font-size:11.5px;color:var(--text2);
+  margin-top:2px;letter-spacing:-.1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.rank-value{
+  flex:none;font-size:14px;font-weight:700;
+  color:var(--ios-blue);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.3px;
+}
+
+/* 条形图 */
+.chart-bars{
+  display:flex;align-items:flex-end;gap:4px;
+  height:100px;margin-top:8px;
+  position:relative;z-index:1;
+  padding-bottom:20px;
+}
+.chart-bar-wrap{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;gap:4px;position:relative;
+}
+.chart-bar{
+  width:100%;border-radius:4px 4px 0 0;
+  background:linear-gradient(180deg,#3395FF,#007AFF);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  min-height:2px;
+  box-shadow:0 2px 6px rgba(0,122,255,.2);
+  position:relative;
+}
+.chart-bar.out{
+  background:linear-gradient(180deg,#FF6961,#FF3B30);
+  box-shadow:0 2px 6px rgba(255,59,48,.2);
+}
+.chart-bar-label{
+  font-size:9.5px;color:var(--text2);
+  position:absolute;bottom:-18px;
+  white-space:nowrap;letter-spacing:-.1px;
+}
+.chart-legend{
+  display:flex;gap:16px;justify-content:center;
+  margin-top:8px;font-size:12px;
+  color:var(--text2);position:relative;z-index:1;
+}
+.chart-legend span{
+  display:flex;align-items:center;gap:5px;
+}
+.chart-legend .dot{
+  width:8px;height:8px;border-radius:2px;
+}
+.chart-legend .dot.blue{background:#007AFF;}
+.chart-legend .dot.red{background:#FF3B30;}
+
+/* 进度条样式 */
+.progress-line{
+  height:8px;background:rgba(120,120,128,.1);
+  border-radius:4px;overflow:hidden;
+  margin-top:6px;position:relative;z-index:1;
+}
+.progress-line-inner{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,#3395FF,#007AFF);
+  transition:width .4s cubic-bezier(.4,0,.2,1);
+}
+.progress-line-inner.green{background:linear-gradient(90deg,#40D86E,#34C759);}
+.progress-line-inner.orange{background:linear-gradient(90deg,#FFB340,#FF9500);}
+.progress-line-inner.red{background:linear-gradient(90deg,#FF6961,#FF3B30);}
+
+/* 时间筛选 */
+.time-tabs{
+  display:flex;gap:6px;
+  background:rgba(120,120,128,.08);
+  border-radius:10px;padding:3px;
+  margin-bottom:14px;position:relative;z-index:1;
+}
+.time-tabs button{
+  flex:1;height:30px;border:0;background:transparent;
+  border-radius:7px;font-size:12.5px;color:var(--text);
+  cursor:pointer;font-weight:500;letter-spacing:-.2px;
+  transition:all .18s;
+}
+.time-tabs button.active{
+  background:#fff;color:var(--text);
+  font-weight:600;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+
 @media (max-width:480px){
   .d-name{font-size:24px;}
   .field input,.field textarea{font-size:16px;}
   .modal{max-width:100%;}
+  .stat-value{font-size:22px;}
 }
 </style>
 </head>
@@ -761,6 +924,11 @@ body::before{
       <div class="scan-tip" id="scanTip">将条形码 / 二维码放入取景框内</div>
     </section>
 
+    <!-- 数据分析页 -->
+    <section id="view-analysis" class="view">
+      <div class="analysis-body" id="analysisBody"></div>
+    </section>
+
     <section id="view-records" class="view">
       <div style="padding:16px;">
         <div style="display:flex;gap:8px;margin-bottom:8px;">
@@ -787,6 +955,7 @@ body::before{
   <nav id="tabbar">
     <button data-tab="list" class="active"><span class="ic">📦</span>库存</button>
     <button data-tab="scan"><span class="ic">📷</span>扫码</button>
+    <button data-tab="analysis"><span class="ic">📊</span>分析</button>
     <button data-tab="records"><span class="ic">📋</span>记录</button>
   </nav>
   <button class="fab" id="fabAdd">+</button>
@@ -803,6 +972,7 @@ function esc(s){
 }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmtMoney(n){ return (Number(n)||0).toFixed(2); }
+function fmtNum(n){ return (Number(n)||0).toLocaleString('zh-CN'); }
 function fmtTime(ts){
   const d = new Date(ts), p = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
@@ -852,7 +1022,10 @@ let currentView = 'list';
 let editingId = null;
 let currentProductId = null;
 
-const TITLES = { list:'龙腾手机库存', add:'新增商品', detail:'商品详情', scan:'扫码', records:'出入库记录' };
+const TITLES = {
+  list:'龙腾手机库存', add:'新增商品', detail:'商品详情',
+  scan:'扫码', analysis:'数据分析', records:'出入库记录'
+};
 
 function showView(name){
   if(currentView === 'scan' && name !== 'scan') stopScan();
@@ -861,7 +1034,7 @@ function showView(name){
   const el = $('#view-' + name);
   if(el) el.classList.add('active');
   $('#tbTitle').textContent = TITLES[name] || '龙腾手机库存';
-  const isRoot = (name === 'list' || name === 'scan' || name === 'records');
+  const isRoot = (name === 'list' || name === 'scan' || name === 'analysis' || name === 'records');
   $('#btnBack').classList.toggle('hidden', isRoot);
   $('#tabbar').classList.toggle('hidden', !isRoot);
   $('#fabAdd').style.display = (name === 'list') ? 'flex' : 'none';
@@ -869,6 +1042,7 @@ function showView(name){
   if(name === 'list') renderProductList();
   if(name === 'records') renderRecords();
   if(name === 'scan') startScan();
+  if(name === 'analysis') renderAnalysis();
 }
 $('#btnBack').addEventListener('click', ()=> showView('list'));
 
@@ -1206,6 +1380,258 @@ function handleScanResult(code){
   else promptQuantity(p.id, scanMode === 'in' ? 1 : -1);
 }
 
+/* ==================== 数据分析 ==================== */
+let analysisRange = 7; // 天
+
+function renderAnalysis(){
+  const el = $('#analysisBody');
+
+  // ==== 关键指标 ====
+  const totalProducts = products.length;
+  const totalStock = products.reduce((s, p) => s + (p.stock || 0), 0);
+  const costValue = products.reduce((s, p) => s + (p.stock || 0) * (p.priceIn || 0), 0);
+  const saleValue = products.reduce((s, p) => s + (p.stock || 0) * (p.priceOut || 0), 0);
+  const potentialProfit = saleValue - costValue;
+  const lowStockProducts = products.filter(p => p.stock <= p.warnStock);
+  const outOfStockProducts = products.filter(p => p.stock <= 0);
+
+  // 库存价值 TOP 5
+  const topByValue = [...products]
+    .map(p => ({ ...p, value: (p.stock || 0) * (p.priceIn || 0) }))
+    .filter(p => p.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
+  const maxValue = topByValue[0]?.value || 1;
+
+  // 库存数量 TOP 5
+  const topByStock = [...products]
+    .filter(p => p.stock > 0)
+    .sort((a, b) => b.stock - a.stock)
+    .slice(0, 5);
+  const maxStock = topByStock[0]?.stock || 1;
+
+  // 低库存列表
+  const lowList = lowStockProducts.slice(0, 5);
+
+  // 按时间范围筛选出入库
+  const now = Date.now();
+  const rangeMs = analysisRange * 24 * 60 * 60 * 1000;
+  const rangeRecords = records.filter(r => now - r.time <= rangeMs);
+
+  // 出入库汇总
+  const totalIn = rangeRecords.filter(r => r.type > 0).reduce((s, r) => s + r.quantity, 0);
+  const totalOut = rangeRecords.filter(r => r.type < 0).reduce((s, r) => s + r.quantity, 0);
+
+  // 按天聚合（用于柱状图）
+  const dayBuckets = [];
+  const dayLabels = [];
+  for (let i = analysisRange - 1; i >= 0; i--){
+    const dayStart = new Date();
+    dayStart.setHours(0,0,0,0);
+    dayStart.setDate(dayStart.getDate() - i);
+    const start = dayStart.getTime();
+    const end = start + 24*60*60*1000;
+    const dayIn = records.filter(r => r.type > 0 && r.time >= start && r.time < end).reduce((s, r) => s + r.quantity, 0);
+    const dayOut = records.filter(r => r.type < 0 && r.time >= start && r.time < end).reduce((s, r) => s + r.quantity, 0);
+    dayBuckets.push({ in: dayIn, out: dayOut });
+    const d = new Date(start);
+    dayLabels.push(`${d.getMonth()+1}/${d.getDate()}`);
+  }
+  const maxBarValue = Math.max(1, ...dayBuckets.map(b => Math.max(b.in, b.out)));
+
+  // 出库最多的商品 TOP 5
+  const outMap = {};
+  records.filter(r => r.type < 0).forEach(r => {
+    outMap[r.productId] = (outMap[r.productId] || 0) + r.quantity;
+  });
+  const topOut = Object.keys(outMap)
+    .map(pid => {
+      const p = findProduct(pid);
+      return p ? { name: p.name, barcode: p.barcode, qty: outMap[pid] } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 5);
+
+  // ==== 渲染 ====
+  el.innerHTML = `
+    <!-- 关键指标 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">商品种类</div>
+        <div class="stat-value blue">${fmtNum(totalProducts)}<span class="stat-unit">种</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">库存总量</div>
+        <div class="stat-value green">${fmtNum(totalStock)}<span class="stat-unit">台</span></div>
+      </div>
+      <div class="stat-card full">
+        <div class="stat-label">💰 库存成本价值</div>
+        <div class="stat-value orange small">¥${fmtNum(costValue.toFixed(0))}</div>
+        <div class="stat-sub">按进货价计算 · 潜在销售额 ¥${fmtNum(saleValue.toFixed(0))}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">低库存</div>
+        <div class="stat-value ${lowStockProducts.length > 0 ? 'orange' : 'green'}">${lowStockProducts.length}<span class="stat-unit">款</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">缺货</div>
+        <div class="stat-value ${outOfStockProducts.length > 0 ? 'red' : 'green'}">${outOfStockProducts.length}<span class="stat-unit">款</span></div>
+      </div>
+    </div>
+
+    <!-- 时间范围筛选 + 出入库汇总 -->
+    <div class="analysis-block">
+      <div class="analysis-title">
+        出入库汇总
+        <span class="tag">近 ${analysisRange} 天</span>
+      </div>
+      <div class="time-tabs" id="timeTabs">
+        <button data-range="7" class="${analysisRange === 7 ? 'active' : ''}">近 7 天</button>
+        <button data-range="30" class="${analysisRange === 30 ? 'active' : ''}">近 30 天</button>
+        <button data-range="90" class="${analysisRange === 90 ? 'active' : ''}">近 90 天</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;">
+        <div>
+          <div class="stat-label">总入库</div>
+          <div class="stat-value small green">+${fmtNum(totalIn)}<span class="stat-unit">台</span></div>
+        </div>
+        <div>
+          <div class="stat-label">总出库</div>
+          <div class="stat-value small red">-${fmtNum(totalOut)}<span class="stat-unit">台</span></div>
+        </div>
+      </div>
+      <div class="chart-bars" style="margin-top:14px;">
+        ${dayBuckets.map((b, i) => {
+          const h = Math.max(2, Math.round((Math.max(b.in, b.out) / maxBarValue) * 70));
+          const hIn = b.in > 0 ? Math.max(2, Math.round((b.in / maxBarValue) * 70)) : 0;
+          const hOut = b.out > 0 ? Math.max(2, Math.round((b.out / maxBarValue) * 70)) : 0;
+          const showLabel = analysisRange <= 30 || i % Math.ceil(analysisRange / 10) === 0;
+          return `<div class="chart-bar-wrap" title="${dayLabels[i]} 入库${b.in} 出库${b.out}">
+            <div style="display:flex;gap:1px;align-items:flex-end;width:100%;height:70px;">
+              ${b.in > 0 ? `<div class="chart-bar" style="height:${hIn}px;"></div>` : ''}
+              ${b.out > 0 ? `<div class="chart-bar out" style="height:${hOut}px;"></div>` : ''}
+              ${b.in === 0 && b.out === 0 ? `<div class="chart-bar" style="height:2px;opacity:.2;"></div>` : ''}
+            </div>
+            ${showLabel ? `<span class="chart-bar-label">${dayLabels[i]}</span>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="chart-legend">
+        <span><span class="dot blue"></span>入库</span>
+        <span><span class="dot red"></span>出库</span>
+      </div>
+    </div>
+
+    ${lowList.length > 0 ? `
+    <!-- 低库存预警 -->
+    <div class="analysis-block">
+      <div class="analysis-title">
+        ⚠️ 库存预警
+        <span class="tag">${lowList.length} 款需补货</span>
+      </div>
+      <div class="rank-list">
+        ${lowList.map((p, i) => {
+          const danger = p.stock <= 0;
+          return `<div class="rank-item">
+            <div class="rank-no" style="${danger ? 'background:rgba(255,59,48,.15);color:var(--ios-red);' : ''}">${i + 1}</div>
+            <div class="rank-info">
+              <div class="rank-name">${esc(p.name)}</div>
+              <div class="rank-sub">${esc(p.barcode)} · 预警值 ${p.warnStock}</div>
+            </div>
+            <div class="rank-value" style="color:${danger ? 'var(--ios-red)' : 'var(--ios-orange)'};">${p.stock} 台</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 库存价值 TOP 5 -->
+    ${topByValue.length > 0 ? `
+    <div class="analysis-block">
+      <div class="analysis-title">
+        💎 库存价值 TOP 5
+        <span class="tag">按进货价</span>
+      </div>
+      <div class="rank-list">
+        ${topByValue.map((p, i) => {
+          const pct = Math.round((p.value / maxValue) * 100);
+          return `<div class="rank-item" style="display:block;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <div class="rank-no">${i + 1}</div>
+              <div class="rank-info">
+                <div class="rank-name">${esc(p.name)}</div>
+                <div class="rank-sub">库存 ${p.stock} 台 × ¥${fmtMoney(p.priceIn)}</div>
+              </div>
+              <div class="rank-value">¥${fmtNum(p.value.toFixed(0))}</div>
+            </div>
+            <div class="progress-line">
+              <div class="progress-line-inner" style="width:${pct}%;"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 库存数量 TOP 5 -->
+    ${topByStock.length > 0 ? `
+    <div class="analysis-block">
+      <div class="analysis-title">
+        📦 库存数量 TOP 5
+        <span class="tag">按数量</span>
+      </div>
+      <div class="rank-list">
+        ${topByStock.map((p, i) => {
+          const pct = Math.round((p.stock / maxStock) * 100);
+          return `<div class="rank-item" style="display:block;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <div class="rank-no">${i + 1}</div>
+              <div class="rank-info">
+                <div class="rank-name">${esc(p.name)}</div>
+                <div class="rank-sub">${esc(p.barcode)}</div>
+              </div>
+              <div class="rank-value">${p.stock} 台</div>
+            </div>
+            <div class="progress-line">
+              <div class="progress-line-inner green" style="width:${pct}%;"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- 出库最多的商品 -->
+    ${topOut.length > 0 ? `
+    <div class="analysis-block">
+      <div class="analysis-title">
+        🔥 出库最多 TOP 5
+        <span class="tag">历史累计</span>
+      </div>
+      <div class="rank-list">
+        ${topOut.map((p, i) => `
+          <div class="rank-item">
+            <div class="rank-no">${i + 1}</div>
+            <div class="rank-info">
+              <div class="rank-name">${esc(p.name)}</div>
+              <div class="rank-sub">${esc(p.barcode)}</div>
+            </div>
+            <div class="rank-value" style="color:var(--ios-red);">-${p.qty} 台</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>` : ''}
+
+    ${products.length === 0 ? '<div class="empty" style="padding:60px 24px;">还没有数据<br>添加商品后即可查看分析</div>' : ''}
+  `;
+
+  // 绑定时间范围切换
+  el.querySelectorAll('#timeTabs button').forEach(btn => {
+    btn.onclick = () => {
+      analysisRange = parseInt(btn.dataset.range);
+      renderAnalysis();
+    };
+  });
+}
+
 /* ==================== 出入库记录页 ==================== */
 function renderRecords(){
   const el = $('#recordList');
@@ -1430,7 +1856,6 @@ function printBarcode(p) {
   } catch (e) { toast('二维码格式不支持生成'); }
 }
 
-/* ==================== 配置行 ==================== */
 function buildConfigLine(p){
   const parts = [];
   const bm = [p.brand, p.model].filter(Boolean).join(' ');
@@ -1440,7 +1865,6 @@ function buildConfigLine(p){
   return parts.join(' · ');
 }
 
-/* ==================== 生成标签 Canvas ==================== */
 const B1_LABEL_SIZE = { w_px: 320, h_px: 240, offset_y_px: 0 };
 
 function generateLabelCanvas(product) {
@@ -1448,7 +1872,6 @@ function generateLabelCanvas(product) {
   canvas.width = B1_LABEL_SIZE.w_px;
   canvas.height = B1_LABEL_SIZE.h_px;
   const ctx = canvas.getContext('2d');
-
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1467,7 +1890,6 @@ function generateLabelCanvas(product) {
   }
 
   const padding = 8;
-
   const nameText = product.name || '';
   const nameH = 36;
   const nameFit = fitTextToBox(nameText, canvas.width - padding * 2, nameH, 'bold', 22);
@@ -1489,7 +1911,6 @@ function generateLabelCanvas(product) {
 
   const midY = padding + nameH;
   const midH = codeY - midY;
-
   const infoLines = [];
   const bm = [product.brand, product.model].filter(Boolean).join(' ');
   if (bm) infoLines.push(bm);
@@ -1510,7 +1931,6 @@ function generateLabelCanvas(product) {
     const actualQrSize = cellSize * qrCount;
     const offsetX = qrX + (qrSize - actualQrSize) / 2;
     const offsetY = qrY + (qrSize - actualQrSize) / 2;
-
     const qrCanvas = document.createElement('canvas');
     qrCanvas.width = actualQrSize;
     qrCanvas.height = actualQrSize;
@@ -1526,15 +1946,12 @@ function generateLabelCanvas(product) {
       }
     }
     ctx.drawImage(qrCanvas, offsetX, offsetY);
-  } catch (e) {
-    console.error('二维码生成失败', e);
-  }
+  } catch (e) {}
 
   if (infoLines.length > 0) {
     const textX = qrX + qrSize + 8;
     const textW = canvas.width - textX - padding;
     const lineHeight = midH / infoLines.length;
-
     infoLines.forEach((lineText, index) => {
       const lineY = midY + index * lineHeight;
       const textFit = fitTextToBox(lineText, textW, lineHeight * 0.8, 'normal', 20);
@@ -1548,14 +1965,11 @@ function generateLabelCanvas(product) {
   return canvas;
 }
 
-/* ==================== 蓝牙打印 ==================== */
 async function blePrint(product) {
   if (!navigator.bluetooth) { toast('当前浏览器不支持蓝牙，请用安卓 Chrome 或 Edge'); return; }
   if (typeof Niimbot === 'undefined') { toast('蓝牙驱动未加载，请检查网络后刷新页面'); return; }
-
   const canvas = generateLabelCanvas(product);
   const dataUrl = canvas.toDataURL('image/png');
-
   toast('正在连接打印机...');
   try {
     const model = { name_prefixes: ['B1'], task: 'b1', density: 3, label_type: 1, speed: 1 };
@@ -1569,11 +1983,9 @@ async function blePrint(product) {
   }
 }
 
-/* ==================== 打印预览弹窗 ==================== */
 function showPrintPreview(product) {
   const canvas = generateLabelCanvas(product);
   const dataUrl = canvas.toDataURL('image/png');
-
   const { mask, close } = showModal(`
     <div class="modal-title">打印预览</div>
     <div style="text-align:center; padding:14px; background:rgba(120,120,128,.06); border-radius:16px; margin-bottom:16px;">
@@ -1593,7 +2005,6 @@ function showPrintPreview(product) {
   };
 }
 
-/* ==================== 保存单张条码图 ==================== */
 function saveBarcodeImage(p) {
   const canvas = generateLabelCanvas(p);
   canvas.toBlob(blob => {
@@ -1608,7 +2019,6 @@ function saveBarcodeImage(p) {
   }, 'image/png');
 }
 
-/* ==================== 批量下载所有条码（ZIP） ==================== */
 async function batchDownloadBarcodes() {
   if (products.length === 0) { toast('还没有商品，无法下载'); return; }
   if (typeof JSZip === 'undefined') { toast('打包组件未加载，请检查网络后刷新'); return; }
@@ -1647,12 +2057,9 @@ async function batchDownloadBarcodes() {
 }
 $('#btnBatchBarcode').addEventListener('click', batchDownloadBarcodes);
 
-/* ==================== 批量打印标签 ==================== */
 function openBatchPrint(){
   if (products.length === 0) { toast('还没有商品，无法打印'); return; }
-
   const sortedProducts = [...products].sort((a,b) => b.createdAt - a.createdAt);
-
   const { mask, close } = showModal(`
     <div class="modal-title">批量打印标签</div>
     <div class="bp-toolbar">
@@ -1672,12 +2079,10 @@ function openBatchPrint(){
       <button data-act="cancel">取消</button>
       <button class="primary" data-act="print" id="bpStartBtn">开始打印 ${sortedProducts.length} 张</button>
     </div>`);
-
   const checkAll = mask.querySelector('#bpSelectAll');
   const checkboxes = mask.querySelectorAll('.bp-check');
   const countEl = mask.querySelector('#bpCount');
   const startBtn = mask.querySelector('#bpStartBtn');
-
   function updateCount(){
     const checked = [...checkboxes].filter(c => c.checked).length;
     countEl.textContent = checked;
@@ -1686,13 +2091,11 @@ function openBatchPrint(){
     checkAll.checked = checked === checkboxes.length && checked > 0;
     checkAll.indeterminate = checked > 0 && checked < checkboxes.length;
   }
-
   checkAll.onchange = () => {
     checkboxes.forEach(c => { c.checked = checkAll.checked; });
     updateCount();
   };
   checkboxes.forEach(c => { c.onchange = updateCount; });
-
   mask.querySelector('[data-act="cancel"]').onclick = close;
   startBtn.onclick = () => {
     const ids = [...checkboxes].filter(c => c.checked).map(c => c.dataset.id);
@@ -1705,7 +2108,6 @@ function openBatchPrint(){
 async function startBatchPrint(ids){
   if (!navigator.bluetooth) { toast('当前浏览器不支持蓝牙，请用安卓 Chrome 或 Edge'); return; }
   if (typeof Niimbot === 'undefined') { toast('蓝牙驱动未加载，请检查网络后刷新页面'); return; }
-
   const { mask, close } = showModal(`
     <div class="modal-title">正在批量打印</div>
     <div class="bp-progress">
@@ -1713,20 +2115,15 @@ async function startBatchPrint(ids){
       <div class="bp-bar"><div class="bp-bar-inner" id="bpBarInner"></div></div>
       <div style="font-size:12.5px;color:var(--text2);margin-top:12px;">请不要关闭页面，也不要锁屏</div>
     </div>`);
-
   const textEl = mask.querySelector('#bpProgressText');
   const barEl = mask.querySelector('#bpBarInner');
-
   let ok = 0, fail = 0;
   const model = { name_prefixes: ['B1'], task: 'b1', density: 3, label_type: 1, speed: 1 };
-
   for (let i = 0; i < ids.length; i++){
     const p = findProduct(ids[i]);
     if(!p){ fail++; continue; }
-
     textEl.textContent = `正在打印 ${i + 1} / ${ids.length}：${p.name}`;
     barEl.style.width = `${Math.round(((i) / ids.length) * 100)}%`;
-
     try {
       const canvas = generateLabelCanvas(p);
       const dataUrl = canvas.toDataURL('image/png');
@@ -1740,15 +2137,12 @@ async function startBatchPrint(ids){
         break;
       }
     }
-
     await new Promise(r => setTimeout(r, 400));
   }
-
   barEl.style.width = '100%';
   textEl.textContent = '打印完成';
   await new Promise(r => setTimeout(r, 800));
   close();
-
   if (fail === 0) {
     toast(`批量打印完成：共 ${ok} 张`);
   } else {
