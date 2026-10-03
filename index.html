@@ -140,11 +140,10 @@ const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
 /* ==================== 云同步配置 ==================== */
-const PG_KEY = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjRmNmZlMDZmLWQ3MmMtNDU2Ni04NWVhLTQ2NTBjOGNkNjA3MiJ9.eyJpc3MiOiJodHRwczovL3N0b2NrLXByb2QtZDdnNWV5eHh3MGU4ZTRhYTguYXAtc2hhbmdoYWkudGNiLWFwaS50ZW5jZW50Y2xvdWRhcGkuY29tIiwic3ViIjoiYW5vbiIsImF1ZCI6InN0b2NrLXByb2QtZDdnNWV5eHh3MGU4ZTRhYTgiLCJleHAiOjQwOTQ3MTY1MzksImlhdCI6MTc5MTAzMzMzOSwibm9uY2UiOiIxNnpMUkltM1N2MmV6TkhxSUV4M2FRIiwiYXRfaGFzaCI6IjE2ekxSSW0zU3YyZXpOSHFJRXgzYVEiLCJuYW1lIjoiQW5vbnltb3VzIiwic2NvcGUiOiJhbm9ueW1vdXMiLCJwcm9qZWN0X2lkIjoic3RvY2stcHJvZC1kN2c1ZXl4eHcwZThlNGFhOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.gS74iYauE7GJbqVgLKr_2qrDly-LZmpmPZzYDv_yv2J-mbhw5L8oePm9DYO9b4xW9dbi2A4YTpVke3bEGWaf8ZH4ZhvyGjVhr11Mub2Z1ibAnmyE7lss2NL5bhu4wg_5KwvU3U-ZSW6H4QLtUKvCS5fmp1tmwbU2Qbn6LyzRz49ehLFN8vzJRe2Etr-jH3qA9D_76VHGxg3tndEtvB84hHVcLpZEWxM7c6ZkrOF7Co_k475bjQexH6hp7q_PK00J2m2-fOu7LFxYrrmbTGdn8ue_BZ-X5Fx48DLlRGr9UYARLFgNQEvNzj6USkyADP9B74uriDTIicm_EdBptiERIw';
-const ENV_ID = 'stock-prod-d7g5eyxxw0e8e4aa8';
-const PG_URL = `https://${ENV_ID}.ap-shanghai.tcb-api.tencentcloudapi.com/api/v1/rest/stocks`;
-const DOC_ID = 'stock_data';
-const SNAPSHOTS_ID = 'snapshots';
+// 前端不再直接请求腾讯云 API，而是请求你刚刚部署的云函数代理地址
+const PG_URL = 'https://stock-prod-d7g5eyxxw0e8e4aa8-1499961833.ap-shanghai.app.tcloudbase.com/api/proxy';
+// 云函数内部已经包含了 apikey，前端保留一个占位符即可（用于跳过部分逻辑检查）
+const PG_KEY = 'via-proxy';
 
 let syncState = 'idle';
 let lastCloudUpdatedAt = 0;
@@ -161,15 +160,50 @@ function setSyncState(state, msg){
 }
 async function pullFromCloud(){
   if(!PG_KEY) return null;
-  try{ const res=await fetch(`${PG_URL}?id=eq.${DOC_ID}`,{headers:{'apikey':PG_KEY}}); if(!res.ok) return null; const json=await res.json(); if(json&&json.length>0){ lastCloudUpdatedAt=json[0].data.updatedAt||0; return json[0].data; } }catch(e){ console.log('云端暂无数据或拉取失败'); } return null;
+  try{ 
+    // 请求云函数代理
+    const res=await fetch(`${PG_URL}?id=eq.stock_data`); 
+    if(!res.ok) return null; 
+    const json=await res.json(); 
+    if(json&&json.length>0){ lastCloudUpdatedAt=json[0].data.updatedAt||0; return json[0].data; } 
+  }catch(e){ console.log('云端暂无数据或拉取失败', e); } 
+  return null;
 }
 async function pushToCloud(){
   if(!PG_KEY) return; if(isApplyingRemote) return;
-  try{ setSyncState('syncing','正在同步到云端...'); const payload={ id:DOC_ID, data:{ products, records, updatedAt:Date.now() } }; const res=await fetch(PG_URL,{ method:'POST', headers:{'apikey':PG_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'}, body:JSON.stringify(payload) }); if(res.ok){ lastCloudUpdatedAt=payload.data.updatedAt; localStorage.setItem('ss_cloud_time',String(lastCloudUpdatedAt)); setSyncState('ok','已同步到云端'); } else throw new Error('HTTP '+res.status); }catch(e){ console.error('推送云端失败',e); setSyncState('err','云端同步失败，数据已存本地'); }
+  try{ 
+    setSyncState('syncing','正在同步到云端...'); 
+    // 请求云函数代理
+    const payload={ id:'stock_data', data:{ products, records, updatedAt:Date.now() } }; 
+    const res=await fetch(PG_URL,{ 
+      method:'POST', 
+      headers:{'Content-Type':'application/json'}, 
+      body:JSON.stringify(payload) 
+    }); 
+    if(res.ok){ lastCloudUpdatedAt=payload.data.updatedAt; localStorage.setItem('ss_cloud_time',String(lastCloudUpdatedAt)); setSyncState('ok','已同步到云端'); } 
+    else throw new Error('HTTP '+res.status); 
+  }catch(e){ console.error('推送云端失败',e); setSyncState('err','云端同步失败，数据已存本地'); }
 }
 function scheduleCloudSync(){ clearTimeout(pushTimer); pushTimer=setTimeout(pushToCloud,1200); }
 async function pullAndMerge(){
-  try{ const remote=await pullFromCloud(); if(!remote) return; const remoteTime=remote.updatedAt||0; if(remoteTime>lastCloudUpdatedAt){ isApplyingRemote=true; products=remote.products||[]; records=remote.records||[]; lastCloudUpdatedAt=remoteTime; saveLocal(); localStorage.setItem('ss_cloud_time',String(remoteTime)); if(currentView==='list')renderProductList(); if(currentView==='records')renderRecords(); if(currentView==='detail'&&currentProductId){ const p=findProduct(currentProductId); if(p)renderDetail(p); else showView('list'); } if(currentView==='analysis')renderAnalysis(); isApplyingRemote=false; setSyncState('ok','已从云端更新'); } }catch(e){ setSyncState('err','云端连接失败，请检查网络'); }
+  try{ 
+    const remote=await pullFromCloud(); if(!remote) return; 
+    const remoteTime=remote.updatedAt||0; 
+    if(remoteTime>lastCloudUpdatedAt){ 
+      isApplyingRemote=true; 
+      products=remote.products||[]; 
+      records=remote.records||[]; 
+      lastCloudUpdatedAt=remoteTime; 
+      saveLocal(); 
+      localStorage.setItem('ss_cloud_time',String(remoteTime)); 
+      if(currentView==='list')renderProductList(); 
+      if(currentView==='records')renderRecords(); 
+      if(currentView==='detail'&&currentProductId){ const p=findProduct(currentProductId); if(p)renderDetail(p); else showView('list'); } 
+      if(currentView==='analysis')renderAnalysis(); 
+      isApplyingRemote=false; 
+      setSyncState('ok','已从云端更新'); 
+    } 
+  }catch(e){ setSyncState('err','云端连接失败，请检查网络'); }
 }
 function startPolling(){ setInterval(async()=>{ if(document.hidden) return; await pullAndMerge(); },30000); }
 
@@ -218,7 +252,7 @@ function schedulePushSnapshots(){
 async function pullSnapshotsFromCloud(){
   if(!PG_KEY) return [];
   try{
-    const res = await fetch(`${PG_URL}?id=eq.${SNAPSHOTS_ID}`, { headers: { 'apikey': PG_KEY } });
+    const res = await fetch(`${PG_URL}?id=eq.snapshots`);
     if(!res.ok) return [];
     const json = await res.json();
     if(json && json.length > 0){ return json[0].data.snapshots || []; }
@@ -229,10 +263,10 @@ async function pullSnapshotsFromCloud(){
 async function pushSnapshotsToCloud(list){
   if(!PG_KEY) return;
   try{
-    const payload = { id: SNAPSHOTS_ID, data: { snapshots: list, updatedAt: Date.now() } };
+    const payload = { id: 'snapshots', data: { snapshots: list, updatedAt: Date.now() } };
     await fetch(PG_URL, {
       method: 'POST',
-      headers: { 'apikey': PG_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     console.log('快照已同步到云端');
@@ -628,7 +662,7 @@ $('#fabAdd').addEventListener('click',()=>openAdd(null));
   }
   setSyncState('syncing','正在连接云端...');
 
-  // ⭐ 从云端拉取并合并历史快照
+  // 从云端拉取并合并历史快照
   try{ await mergeSnapshotsWithCloud(); }catch(e){ console.error('快照同步失败', e); }
 
   const remote = await pullFromCloud();
