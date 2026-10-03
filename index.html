@@ -135,6 +135,10 @@
 </div>
 
 <script>
+/* ==================== 工具（必须最先定义） ==================== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
 /* ==================== 云同步配置 ==================== */
 const PG_KEY = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjRmNmZlMDZmLWQ3MmMtNDU2Ni04NWVhLTQ2NTBjOGNkNjA3MiJ9.eyJpc3MiOiJodHRwczovL3N0b2NrLXByb2QtZDdnNWV5eHh3MGU4ZTRhYTguYXAtc2hhbmdoYWkudGNiLWFwaS50ZW5jZW50Y2xvdWRhcGkuY29tIiwic3ViIjoiYW5vbiIsImF1ZCI6InN0b2NrLXByb2QtZDdnNWV5eHh3MGU4ZTRhYTgiLCJleHAiOjQwOTQ3MTY1MzksImlhdCI6MTc5MTAzMzMzOSwibm9uY2UiOiIxNnpMUkltM1N2MmV6TkhxSUV4M2FRIiwiYXRfaGFzaCI6IjE2ekxSSW0zU3YyZXpOSHFJRXgzYVEiLCJuYW1lIjoiQW5vbnltb3VzIiwic2NvcGUiOiJhbm9ueW1vdXMiLCJwcm9qZWN0X2lkIjoic3RvY2stcHJvZC1kN2c1ZXl4eHcwZThlNGFhOCIsIm1ldGEiOnsicGxhdGZvcm0iOiJQdWJsaXNoYWJsZUtleSJ9LCJyb2xlIjoiYW5vbiIsImlzX2Fub255bW91cyI6dHJ1ZSwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiYW5vbnltb3VzIiwicHJvdmlkZXJzIjpbImFub255bW91cyJdfSwidXNlcl9tZXRhZGF0YSI6eyJuYW1lIjoiQW5vbnltb3VzIn0sInVzZXJfdHlwZSI6IiIsImNsaWVudF90eXBlIjoiY2xpZW50X3VzZXIiLCJpc19zeXN0ZW1fYWRtaW4iOmZhbHNlfQ.gS74iYauE7GJbqVgLKr_2qrDly-LZmpmPZzYDv_yv2J-mbhw5L8oePm9DYO9b4xW9dbi2A4YTpVke3bEGWaf8ZH4ZhvyGjVhr11Mub2Z1ibAnmyE7lss2NL5bhu4wg_5KwvU3U-ZSW6H4QLtUKvCS5fmp1tmwbU2Qbn6LyzRz49ehLFN8vzJRe2Etr-jH3qA9D_76VHGxg3tndEtvB84hHVcLpZEWxM7c6ZkrOF7Co_k475bjQexH6hp7q_PK00J2m2-fOu7LFxYrrmbTGdn8ue_BZ-X5Fx48DLlRGr9UYARLFgNQEvNzj6USkyADP9B74uriDTIicm_EdBptiERIw';
 const ENV_ID = 'stock-prod-d7g5eyxxw0e8e4aa8';
@@ -336,9 +340,7 @@ async function openHistoryDialog(){
 }
 $('#btnHistory').addEventListener('click', openHistoryDialog);
 
-/* ==================== 工具 ==================== */
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
+/* ==================== 工具函数 ==================== */
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function fmtMoney(n){return(Number(n)||0).toFixed(2);}
