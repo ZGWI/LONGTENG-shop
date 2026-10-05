@@ -42,7 +42,7 @@
 .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(16px) scale(.94);background:rgba(30,30,32,.92);backdrop-filter:blur(20px);color:#fff;font-size:14px;font-weight:500;padding:12px 22px;border-radius:100px;z-index:200;opacity:0;transition:all .3s;pointer-events:none;max-width:80vw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.32);letter-spacing:-.2px;}.toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
 .import-tip{font-size:12.5px;color:var(--text2);background:rgba(0,122,255,.08);border-radius:12px;padding:12px 14px;line-height:1.7;margin-bottom:12px;letter-spacing:-.1px;}.import-tip code{background:rgba(255,255,255,.9);color:var(--ios-blue);padding:2px 6px;border-radius:5px;font-size:11px;font-family:monospace;}.import-area{width:100%;min-height:140px;max-height:280px;border:0;border-radius:12px;padding:12px;font-size:12.5px;font-family:monospace;background:var(--bg-input);outline:none;resize:vertical;transition:all .2s;letter-spacing:-.1px;line-height:1.6;}.import-area:focus{background:rgba(120,120,128,.16);box-shadow:0 0 0 4px rgba(0,122,255,.12);}.import-preview{max-height:220px;overflow-y:auto;border:0;border-radius:12px;margin-top:12px;font-size:12.5px;background:rgba(120,120,128,.06);}.import-preview .row{display:flex;gap:8px;padding:8px 12px;border-bottom:.5px solid var(--separator-soft);align-items:center;}.import-preview .row:last-child{border-bottom:0;}.import-preview .row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;letter-spacing:-.1px;}.import-preview .row .c{color:var(--text2);font-family:monospace;font-size:11px;}.import-preview .row.err{background:rgba(255,59,48,.08);color:var(--ios-red);}.tpl-btn{width:100%;height:44px;border:0;border-radius:12px;background:rgba(0,122,255,.1);color:var(--ios-blue);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:all .18s;letter-spacing:-.2px;}.tpl-btn:active{background:rgba(0,122,255,.2);transform:scale(.98);}
 .bp-toolbar{display:flex;gap:8px;align-items:center;padding:10px 14px;background:rgba(120,120,128,.08);border-radius:12px;margin-bottom:10px;font-size:13.5px;}.bp-toolbar label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-weight:500;letter-spacing:-.2px;}.bp-list{max-height:320px;overflow-y:auto;border-radius:12px;background:rgba(120,120,128,.06);}.bp-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:.5px solid var(--separator-soft);font-size:14px;transition:background .15s;letter-spacing:-.2px;cursor:pointer;}.bp-item:hover{background:rgba(120,120,128,.06);}.bp-item:last-child{border-bottom:0;}.bp-item input[type="checkbox"]{width:20px;height:20px;flex:none;cursor:pointer;accent-color:var(--ios-blue);border-radius:50%;}.bp-item .bp-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}.bp-item .bp-code{font-family:monospace;font-size:11px;color:var(--text2);flex:none;}.bp-progress{text-align:center;padding:20px 0;font-size:14.5px;color:var(--text);line-height:1.8;letter-spacing:-.2px;font-weight:500;}.bp-progress .bp-bar{height:6px;background:rgba(120,120,128,.16);border-radius:3px;overflow:hidden;margin-top:14px;}.bp-progress .bp-bar-inner{height:100%;background:linear-gradient(90deg,#3395FF,#007AFF);width:0;transition:width .4s;border-radius:3px;}
-.analysis-body{padding:16px 16px 100px;}.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}.stat-card{background:rgba(255,255,255,.78);backdrop-filter:blur(20px);border-radius:var(--radius);padding:14px 16px;border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);position:relative;overflow:hidden;}.stat-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 50%);pointer-events:none;opacity:.5;}.stat-card.full{grid-column:1/-1;}.stat-label{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:-.1px;margin-bottom:6px;position:relative;z-index:1;display:flex;align-items:center;gap:4px;}.stat-value{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.5px;position:relative;z-index:1;font-variant-numeric:tabular-nums;}.stat-value.small{font-size:20px;}.stat-value.blue{color:var(--ios-blue);}.stat-value.green{color:var(--ios-green);}.stat-value.orange{color:var(--ios-orange);}.stat-value.red{color:var(--ios-red);}.stat-unit{font-size:13px;font-weight:500;color:var(--text2);margin-left:4px;}.stat-sub{font-size:11.5px;color:var(--text2);margin-top:4px;position:relative;z-index:1;letter-spacing:-.1px;}
+.analysis-body{padding:16px 16px 100px;}.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}.stat-card{background:rgba(255,255,255,.78);backdrop-filter:blur(20px);border-radius:var(--radius);padding:14px 16px;border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);position:relative;overflow:hidden;}.stat-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.6),transparent 50%);pointer-events:none;opacity:.5;}.stat-card.full{grid-column:1/-1;}.stat-label{font-size:12px;color:var(--text2);font-weight:500;letter-spacing:-.1px;margin-bottom:6px;position:relative;z-index:1;display:flex;align-items:center;gap:4px;}.stat-value{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.5px;position:relative;z-index:1;font-variant-numeric:tabular-nums;}.stat-value.small{font-size:20px;}.stat-value.blue{color:var(--ios-blue);}.stat-value.green{color:var(--ios-green);}.stat-value.orange{color:var(--ios-orange);}.stat-value.red{color:var(--ios-red);}.stat-value.gray{color:var(--text2);}.stat-unit{font-size:13px;font-weight:500;color:var(--text2);margin-left:4px;}.stat-sub{font-size:11.5px;color:var(--text2);margin-top:4px;position:relative;z-index:1;letter-spacing:-.1px;}
 .analysis-block{background:rgba(255,255,255,.78);backdrop-filter:blur(20px);border-radius:var(--radius);padding:16px;border:.5px solid var(--glass-border);box-shadow:var(--shadow-2);margin-bottom:14px;position:relative;overflow:hidden;}.analysis-block::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 30%);pointer-events:none;opacity:.5;}.analysis-title{font-size:14px;font-weight:600;margin:0 0 14px;color:var(--text);letter-spacing:-.2px;position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;}.analysis-title .tag{font-size:11px;font-weight:500;color:var(--text2);background:rgba(120,120,128,.1);padding:3px 8px;border-radius:8px;letter-spacing:-.1px;}.rank-list{position:relative;z-index:1;}.rank-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--separator-soft);}.rank-item:last-child{border-bottom:0;}.rank-no{flex:none;width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:rgba(120,120,128,.1);color:var(--text2);letter-spacing:-.2px;}.rank-info{flex:1;min-width:0;}.rank-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;}.rank-sub{font-size:11.5px;color:var(--text2);margin-top:2px;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.rank-value{flex:none;font-size:14px;font-weight:700;color:var(--ios-blue);font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
 .chart-bars{display:flex;align-items:flex-end;gap:4px;height:100px;margin-top:8px;position:relative;z-index:1;padding-bottom:20px;}.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;}.chart-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#3395FF,#007AFF);transition:all .3s;min-height:2px;box-shadow:0 2px 6px rgba(0,122,255,.2);position:relative;}.chart-bar.out{background:linear-gradient(180deg,#FF6961,#FF3B30);box-shadow:0 2px 6px rgba(255,59,48,.2);}.chart-bar-label{font-size:9.5px;color:var(--text2);position:absolute;bottom:-18px;white-space:nowrap;letter-spacing:-.1px;}.chart-legend{display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:12px;color:var(--text2);position:relative;z-index:1;}.chart-legend span{display:flex;align-items:center;gap:5px;}.chart-legend .dot{width:8px;height:8px;border-radius:2px;}.chart-legend .dot.blue{background:#007AFF;}.chart-legend .dot.red{background:#FF3B30;}
 .progress-line{height:8px;background:rgba(120,120,128,.1);border-radius:4px;overflow:hidden;margin-top:6px;position:relative;z-index:1;}.progress-line-inner{height:100%;border-radius:4px;background:linear-gradient(90deg,#3395FF,#007AFF);transition:width .4s;}.progress-line-inner.green{background:linear-gradient(90deg,#40D86E,#34C759);}
@@ -165,8 +165,9 @@ let snapshotScheduled=false;
 function scheduleSnapshot(){if(snapshotScheduled)return;snapshotScheduled=true;setTimeout(()=>{snapshotScheduled=false;try{pushSnapshot('auto');}catch(e){}},2000);}
 function findProduct(id){return products.find(p=>p.id===id);}
 function findByBarcode(code){return products.find(p=>p.barcode===code);}
+function isSoldOut(p){return !p || (p.stock||0) <= 0;}
 
-/* 二手机出库为 0 自动从库存移除：changeStock 返回 removed 标记 */
+/* 二手机出库归零：保留数据，仅标记售罄；列表层过滤 */
 function changeStock(productId,delta,remark='',actualPrice=null){
   if(!delta)return{ok:false,msg:'数量不能为 0'};
   const p=findProduct(productId);if(!p)return{ok:false,msg:'商品不存在'};
@@ -174,16 +175,14 @@ function changeStock(productId,delta,remark='',actualPrice=null){
   p.stock=newStock;p.updatedAt=Date.now();
   const rec={id:uid(),productId:p.id,productName:p.name,barcode:p.barcode,type:delta>0?1:-1,quantity:Math.abs(delta),remark:remark||'',time:Date.now()};
   if(delta<0&&actualPrice!=null&&!isNaN(actualPrice)){rec.actualPrice=actualPrice;rec.priceIn=p.priceIn||0;}
-  let removed=false;
+  let justSoldOut=false;
   if(delta<0&&newStock===0){
-    // 保留商品快照，撤销该笔出库时可完整恢复
-    rec.removedProduct={id:p.id,name:p.name,brand:p.brand||'',model:p.model||'',spec:p.spec||'',color:p.color||'',barcode:p.barcode,priceIn:p.priceIn||0,priceOut:p.priceOut||0,warnStock:p.warnStock??2,remark:p.remark||'',createdAt:p.createdAt||Date.now()};
-    products=products.filter(x=>x.id!==p.id);
-    removed=true;
+    justSoldOut=true;
+    rec.justSoldOut=true;
   }
-  records.unshift(rec);saveLocal();scheduleSnapshot();return{ok:true,stock:newStock,removed};
+  records.unshift(rec);saveLocal();scheduleSnapshot();
+  return{ok:true,stock:newStock,justSoldOut};
 }
-
 function undoRecord(recId){
   const idx=records.findIndex(r=>r.id===recId);if(idx===-1)return{ok:false,msg:'记录不存在'};
   const rec=records[idx];
@@ -194,7 +193,6 @@ function undoRecord(recId){
     if(newStock<0)return{ok:false,msg:`无法撤销：库存将变为负数（当前 ${p.stock} 台）`};
     p.stock=newStock;p.updatedAt=Date.now();
   }else if(rec.type<0&&rec.removedProduct){
-    // 出库归零被自动移除的商品，撤销时恢复
     if(findByBarcode(rec.removedProduct.barcode))return{ok:false,msg:'该条码已被其他商品占用，无法恢复'};
     p={...rec.removedProduct,stock:rec.quantity,updatedAt:Date.now()};
     products.push(p);newStock=p.stock;
@@ -281,7 +279,19 @@ function openSortMenu(){
   mask.querySelector('[data-act="cancel"]').onclick=close;
   mask.querySelectorAll('.sort-option').forEach(el=>{el.onclick=()=>{currentSort=el.dataset.key;localStorage.setItem('ss_sort_mode',currentSort);updateSortBtnUI();close();renderProductList();const label=options.find(o=>o.key===currentSort)?.label||'';toast('已按「'+label.split('（')[0]+'」排序');};});
 }
-function updateCategoryCounts(){let apple=0,android=0,other=0;products.forEach(p=>{const cat=getProductCategory(p);if(cat==='apple')apple++;else if(cat==='android')android++;else other++;});$('#catCountAll').textContent=products.length;$('#catCountApple').textContent=apple;$('#catCountAndroid').textContent=android;$('#catCountOther').textContent=other;}
+/* 分类计数：只统计在售商品（库存 > 0） */
+function updateCategoryCounts(){
+  let apple=0,android=0,other=0;
+  products.forEach(p=>{
+    if((p.stock||0)<=0)return;
+    const cat=getProductCategory(p);
+    if(cat==='apple')apple++;else if(cat==='android')android++;else other++;
+  });
+  $('#catCountAll').textContent=apple+android+other;
+  $('#catCountApple').textContent=apple;
+  $('#catCountAndroid').textContent=android;
+  $('#catCountOther').textContent=other;
+}
 function shouldShowIndex(){return currentView==='list'&&!searchKeyword.trim()&&(currentSort==='name_asc'||currentSort==='name_desc');}
 let indexBarBound=false;
 function updateIndexBarVisibility(){
@@ -311,10 +321,12 @@ function updateIndexHighlight(){
   for(const h of headers){if(h.getBoundingClientRect().top<=80)activeIdx=h.dataset.idx;else break;}
   bar.querySelectorAll('.idx').forEach(el=>el.classList.toggle('active',el.dataset.idx===activeIdx));
 }
+/* 商品列表：过滤掉库存为 0 的已售罄二手机，但数据仍保留 */
 function renderProductList(){
   updateCategoryCounts();
   const rawKw=searchKeyword.trim(),kw=rawKw.toLowerCase();
   let list=products.filter(p=>{
+    if((p.stock||0)<=0)return false; // 已售罄，不在列表显示
     if(currentCategory!=='all'&&getProductCategory(p)!==currentCategory)return false;
     return !kw||getMatchScore(p,kw)>0;
   });
@@ -330,13 +342,14 @@ function renderProductList(){
   }}
   const el=$('#productList');
   if(!list.length){
+    const soldOutCount = products.filter(p => (p.stock||0) <= 0).length;
     let emptyMsg='';
     if(!products.length)emptyMsg='还没有商品<br>点击右下角 <b>+</b> 添加第一件商品';
     else if(rawKw)emptyMsg=`没有找到「${esc(rawKw)}」相关的商品<br>试试搜索名称、品牌或型号`;
-    else if(currentCategory==='apple')emptyMsg='苹果区暂无商品<br>添加 Apple/iPhone 相关商品后会自动归入';
-    else if(currentCategory==='android')emptyMsg='安卓区暂无商品<br>添加华为、小米等品牌后会自动归入';
-    else if(currentCategory==='other')emptyMsg='其他区暂无商品<br>非苹果/安卓设备会归入此区';
-    else emptyMsg='没有找到匹配的商品';
+    else if(currentCategory==='apple')emptyMsg='苹果区暂无在售商品<br>添加 Apple/iPhone 相关商品后会自动归入';
+    else if(currentCategory==='android')emptyMsg='安卓区暂无在售商品<br>添加华为、小米等品牌后会自动归入';
+    else if(currentCategory==='other')emptyMsg='其他区暂无在售商品<br>非苹果/安卓设备会归入此区';
+    else emptyMsg=`没有在售商品${soldOutCount?`<br><span style="color:var(--text3);font-size:13px;">（有 ${soldOutCount} 件已售罄商品已自动隐藏）</span>`:''}`;
     el.innerHTML=`<div class="empty">${emptyMsg}</div>`;updateIndexBarVisibility();return;
   }
   const grouped=!kw&&(currentSort==='name_asc'||currentSort==='name_desc');
@@ -369,7 +382,8 @@ function renderProductCard(p,kw){
 function showQuickMenu(id){
   const p=findProduct(id);if(!p)return;
   const catLabel=getCategoryLabel(getProductCategory(p));
-  const{mask,close}=showModal(`<div class="modal-title">${esc(p.name)}</div><div class="modal-body">当前库存：${p.stock} · ${catLabel.text}区</div><div class="modal-btns" style="flex-direction:column;gap:8px;"><button class="primary" data-act="in">入库</button><button data-act="out">出库</button><button data-act="ble" style="background:linear-gradient(180deg,#3395FF,#007AFF);color:#fff;font-weight:600;">蓝牙打印</button><button data-act="preview">打印预览</button><button data-act="print">打印条码</button><button data-act="saveImg">保存条码图</button><button data-act="detail">查看详情</button><button data-act="edit">编辑商品</button></div>`);
+  const soldOutTip = (p.stock||0)<=0 ? '<div style="font-size:12.5px;color:var(--ios-orange);text-align:center;margin-bottom:8px;">已售罄（不在库存列表显示）</div>' : '';
+  const{mask,close}=showModal(`<div class="modal-title">${esc(p.name)}</div><div class="modal-body">当前库存：${p.stock} · ${catLabel.text}区</div>${soldOutTip}<div class="modal-btns" style="flex-direction:column;gap:8px;"><button class="primary" data-act="in">入库</button><button data-act="out">出库</button><button data-act="ble" style="background:linear-gradient(180deg,#3395FF,#007AFF);color:#fff;font-weight:600;">蓝牙打印</button><button data-act="preview">打印预览</button><button data-act="print">打印条码</button><button data-act="saveImg">保存条码图</button><button data-act="detail">查看详情</button><button data-act="edit">编辑商品</button></div>`);
   mask.querySelectorAll('[data-act]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const act=btn.dataset.act;close();
@@ -409,8 +423,9 @@ function renderDetail(p){
   const cls=p.stock<=0?'danger':(p.stock<=p.warnStock?'warn':'ok');
   const recs=records.filter(r=>r.productId===p.id).slice(0,100);
   const catLabel=getCategoryLabel(getProductCategory(p));
+  const soldOutBanner = (p.stock||0)<=0 ? `<div style="background:rgba(255,149,0,.12);color:var(--ios-orange);padding:12px 14px;border-radius:12px;font-size:13px;margin-bottom:14px;line-height:1.6;letter-spacing:-.2px;">⚠️ 此商品已售罄（库存为 0），不在库存列表中显示。<br>如需重新上架，请点击下方「入库」。</div>` : '';
   const recsHtml=recs.length?recs.map(r=>{const priceInfo=(r.type<0&&r.actualPrice!=null)?` · <span class="price-tag">¥${fmtMoney(r.actualPrice)} × ${r.quantity} = ¥${fmtMoney(r.actualPrice*r.quantity)}</span>`:'';return`<div class="rec-item clickable" data-rec-id="${esc(r.id)}"><div class="rec-type ${r.type>0?'in':'out'}">${r.type>0?'入库':'出库'}</div><div class="rec-main"><div class="rec-name">${r.type>0?'入库':'出库'} ${r.quantity} 台</div><div class="rec-time">${fmtTime(r.time)}${r.remark?' · '+esc(r.remark):''}${priceInfo}</div></div><div class="rec-qty ${r.type>0?'in':'out'}">${r.type>0?'+':'-'}${r.quantity}</div><span class="rec-arrow">›</span></div>`;}).join(''):'<div class="empty" style="padding:24px;">暂无记录</div>';
-  $('#detailBody').innerHTML=`<div class="d-name">${esc(p.name)}</div><div class="d-sub">${esc([p.brand,p.model].filter(Boolean).join(' ')||'—')}</div><div class="d-badge ${cls}">库存 ${p.stock}</div><div class="barcode-box"><svg id="barcodeSvg"></svg><div class="barcode-text">${esc(p.barcode)}</div></div><div class="d-actions"><button class="btn-in" id="dIn">入库</button><button class="btn-out" id="dOut">出库</button></div><div class="d-mini"><button id="dBlePrint" class="btn-ble">蓝牙打印</button><button id="dPreview">打印预览</button><button id="dCopy">复制条码</button><button id="dPrint">打印条码</button><button id="dSaveImg">保存条码图</button><button id="dEdit">编辑</button><button id="dDel" style="color:var(--ios-red);">删除</button></div><div class="section-title">商品信息</div><div class="info-box"><div><b>分类</b><span class="cat-badge ${catLabel.cls}" style="margin-right:6px;">${catLabel.text}</span>（自动识别）</div><div><b>规格</b>${esc(p.spec||'—')}</div><div><b>颜色</b>${esc(p.color||'—')}</div><div><b>进货价</b>¥${fmtMoney(p.priceIn)}</div><div><b>销售价</b>¥${fmtMoney(p.priceOut)}</div><div><b>预警值</b>${p.warnStock}</div><div><b>创建时间</b>${fmtTime(p.createdAt)}</div>${p.remark?`<div><b>备注</b>${esc(p.remark)}</div>`:''}</div><div class="section-title">出入库记录（${recs.length}）</div><div class="card" style="padding:6px 16px;cursor:default;position:relative;z-index:1;">${recsHtml}</div>`;
+  $('#detailBody').innerHTML=`<div class="d-name">${esc(p.name)}</div><div class="d-sub">${esc([p.brand,p.model].filter(Boolean).join(' ')||'—')}</div><div class="d-badge ${cls}">库存 ${p.stock}</div>${soldOutBanner}<div class="barcode-box"><svg id="barcodeSvg"></svg><div class="barcode-text">${esc(p.barcode)}</div></div><div class="d-actions"><button class="btn-in" id="dIn">入库</button><button class="btn-out" id="dOut">出库</button></div><div class="d-mini"><button id="dBlePrint" class="btn-ble">蓝牙打印</button><button id="dPreview">打印预览</button><button id="dCopy">复制条码</button><button id="dPrint">打印条码</button><button id="dSaveImg">保存条码图</button><button id="dEdit">编辑</button><button id="dDel" style="color:var(--ios-red);">删除</button></div><div class="section-title">商品信息</div><div class="info-box"><div><b>分类</b><span class="cat-badge ${catLabel.cls}" style="margin-right:6px;">${catLabel.text}</span>（自动识别）</div><div><b>规格</b>${esc(p.spec||'—')}</div><div><b>颜色</b>${esc(p.color||'—')}</div><div><b>进货价</b>¥${fmtMoney(p.priceIn)}</div><div><b>销售价</b>¥${fmtMoney(p.priceOut)}</div><div><b>预警值</b>${p.warnStock}</div><div><b>创建时间</b>${fmtTime(p.createdAt)}</div>${p.remark?`<div><b>备注</b>${esc(p.remark)}</div>`:''}</div><div class="section-title">出入库记录（${recs.length}）</div><div class="card" style="padding:6px 16px;cursor:default;position:relative;z-index:1;">${recsHtml}</div>`;
   try{const qr=qrcode(0,'M');qr.addData(p.barcode);qr.make();$('#barcodeSvg').outerHTML=qr.createImgTag(3,0);}catch(e){$('#barcodeSvg').outerHTML='<div class="empty">二维码格式不支持生成</div>';}
   $('#dIn').onclick=()=>promptQuantity(p.id,1);$('#dOut').onclick=()=>promptQuantity(p.id,-1);$('#dEdit').onclick=()=>openAdd(p.id);$('#dDel').onclick=()=>confirmDelete(p);$('#dCopy').onclick=()=>copyText(p.barcode,'条码已复制');$('#dPrint').onclick=()=>printBarcode(p);$('#dSaveImg').onclick=()=>saveBarcodeImage(p);$('#dBlePrint').onclick=()=>blePrint(p);$('#dPreview').onclick=()=>showPrintPreview(p);
   $('#detailBody').querySelectorAll('.rec-item[data-rec-id]').forEach(node=>{node.onclick=()=>showRecordDetail(node.dataset.recId);});
@@ -426,7 +441,7 @@ function promptQuantity(productId,sign){
   const p=findProduct(productId);if(!p)return;
   const isIn=sign>0;
   const priceField=isIn?'':`<input class="modal-input" id="mqPrice" type="number" inputmode="decimal" value="${p.priceOut||0}" placeholder="实际销售价"><div class="modal-input-label">标价 ¥${fmtMoney(p.priceOut)} <span class="tag">可修改为成交价</span></div>`;
-  const warnTip=(!isIn&&p.stock<=1)?`\n⚠️ 出库后库存为 0，该商品将自动从库存列表移除`:'';
+  const warnTip=(!isIn&&p.stock<=1)?`\n⚠️ 出库后库存为 0，该商品将自动从库存列表隐藏`:'';
   const{mask,close}=showModal(`<div class="modal-title">${isIn?'商品入库':'商品出库'}</div><div class="modal-body">${esc(p.name)}\n当前库存：${p.stock}${warnTip}</div><input class="modal-input" id="mqQty" type="number" inputmode="numeric" value="1" placeholder="数量">${priceField}<input class="modal-input" id="mqRemark" type="text" placeholder="备注（可选）"><div class="modal-btns"><button data-act="cancel">取消</button><button class="primary" data-act="ok">确定</button></div>`);
   const qtyEl=mask.querySelector('#mqQty'),rmkEl=mask.querySelector('#mqRemark'),priceEl=mask.querySelector('#mqPrice');
   setTimeout(()=>{qtyEl.focus();qtyEl.select();},200);
@@ -442,7 +457,7 @@ function promptQuantity(productId,sign){
     close();
     const total=actualPrice!=null?`，销售 ¥${fmtMoney(actualPrice*qty)}`:'';
     if(isIn)toast(`入库成功，当前库存 ${res.stock}`);
-    else if(res.removed)toast(`出库成功${total}，库存已为 0，已从列表移除`);
+    else if(res.justSoldOut)toast(`出库成功${total}，库存已为 0，已从列表隐藏`);
     else toast(`出库成功，当前库存 ${res.stock}${total}`);
     refreshCurrentView();
   };
@@ -454,8 +469,8 @@ function showRecordDetail(recId){
   const isIn=rec.type>0,p=findProduct(rec.productId);
   const totalPrice=rec.actualPrice!=null?rec.actualPrice*rec.quantity:null;
   const profit=(rec.actualPrice!=null&&rec.priceIn!=null)?(rec.actualPrice-rec.priceIn)*rec.quantity:null;
-  const stateTip=p?'':(rec.removedProduct?'该商品已售罄并从列表移除':'该商品已被删除');
-  const{mask,close}=showModal(`<div class="modal-title">${isIn?'入库':'出库'}记录详情</div><div class="detail-info-box"><div class="di-row"><span class="di-label">类型</span><span class="di-value"><span class="detail-tag ${isIn?'in':'out'}">${isIn?'入库':'出库'}</span></span></div><div class="di-row"><span class="di-label">商品名称</span><span class="di-value">${esc(rec.productName)}</span></div><div class="di-row"><span class="di-label">条码</span><span class="di-value mono">${esc(rec.barcode)}</span></div><div class="di-row"><span class="di-label">数量</span><span class="di-value ${isIn?'green':'red'}">${isIn?'+':'-'}${rec.quantity} 台</span></div>${rec.actualPrice!=null?`<div class="di-row"><span class="di-label">实际售价</span><span class="di-value">¥${fmtMoney(rec.actualPrice)}</span></div>`:''}${rec.priceIn!=null&&!isIn?`<div class="di-row"><span class="di-label">进货成本</span><span class="di-value">¥${fmtMoney(rec.priceIn)}</span></div>`:''}${totalPrice!=null?`<div class="di-row"><span class="di-label">销售总额</span><span class="di-value green big">¥${fmtMoney(totalPrice)}</span></div>`:''}${profit!=null?`<div class="di-row"><span class="di-label">毛利</span><span class="di-value ${profit>=0?'green':'red'} big">¥${fmtMoney(profit)}</span></div>`:''}${rec.remark?`<div class="di-row"><span class="di-label">备注</span><span class="di-value">${esc(rec.remark)}</span></div>`:''}<div class="di-row"><span class="di-label">操作时间</span><span class="di-value mono">${fmtTimeFull(rec.time)}</span></div>${p?`<div class="di-row"><span class="di-label">当前库存</span><span class="di-value">${p.stock} 台</span></div>`:`<div class="di-row"><span class="di-label">提示</span><span class="di-value" style="color:var(--ios-orange);">${stateTip}</span></div>`}</div><div class="modal-btns" style="flex-direction:column;gap:8px;"><button class="danger" data-act="undo">撤销此记录</button><button data-act="cancel">关闭</button></div>`);
+  const stateTip=p?((p.stock||0)<=0?'该商品当前库存为 0（已售罄，不在列表显示）':''):(rec.removedProduct?'该商品已从数据中移除':'该商品已被删除');
+  const{mask,close}=showModal(`<div class="modal-title">${isIn?'入库':'出库'}记录详情</div><div class="detail-info-box"><div class="di-row"><span class="di-label">类型</span><span class="di-value"><span class="detail-tag ${isIn?'in':'out'}">${isIn?'入库':'出库'}</span></span></div><div class="di-row"><span class="di-label">商品名称</span><span class="di-value">${esc(rec.productName)}</span></div><div class="di-row"><span class="di-label">条码</span><span class="di-value mono">${esc(rec.barcode)}</span></div><div class="di-row"><span class="di-label">数量</span><span class="di-value ${isIn?'green':'red'}">${isIn?'+':'-'}${rec.quantity} 台</span></div>${rec.actualPrice!=null?`<div class="di-row"><span class="di-label">实际售价</span><span class="di-value">¥${fmtMoney(rec.actualPrice)}</span></div>`:''}${rec.priceIn!=null&&!isIn?`<div class="di-row"><span class="di-label">进货成本</span><span class="di-value">¥${fmtMoney(rec.priceIn)}</span></div>`:''}${totalPrice!=null?`<div class="di-row"><span class="di-label">销售总额</span><span class="di-value green big">¥${fmtMoney(totalPrice)}</span></div>`:''}${profit!=null?`<div class="di-row"><span class="di-label">毛利</span><span class="di-value ${profit>=0?'green':'red'} big">¥${fmtMoney(profit)}</span></div>`:''}${rec.remark?`<div class="di-row"><span class="di-label">备注</span><span class="di-value">${esc(rec.remark)}</span></div>`:''}<div class="di-row"><span class="di-label">操作时间</span><span class="di-value mono">${fmtTimeFull(rec.time)}</span></div>${p?`<div class="di-row"><span class="di-label">当前库存</span><span class="di-value">${p.stock} 台</span></div>`:''}${stateTip?`<div class="di-row"><span class="di-label">提示</span><span class="di-value" style="color:var(--ios-orange);font-size:13px;">${stateTip}</span></div>`:''}</div><div class="modal-btns" style="flex-direction:column;gap:8px;"><button class="danger" data-act="undo">撤销此记录</button><button data-act="cancel">关闭</button></div>`);
   mask.querySelector('[data-act="cancel"]').onclick=close;
   mask.querySelector('[data-act="undo"]').onclick=()=>{close();setTimeout(()=>confirmUndoRecord(recId),240);};
 }
@@ -463,18 +478,18 @@ function confirmUndoRecord(recId){
   const rec=records.find(r=>r.id===recId);if(!rec){toast('记录不存在');return;}
   const isIn=rec.type>0,p=findProduct(rec.productId);
   const actionText=isIn?'撤销入库':'撤销出库';
-  const canRestore=!p&&!isIn&&rec.removedProduct;
+  const willRestore = !isIn && p && (p.stock||0)===0;
   if(isIn&&p&&p.stock-rec.quantity<0){
     const{mask,close}=showModal(`<div class="modal-title">无法撤销</div><div class="modal-body">撤销该入库记录会导致库存变为 ${p.stock-rec.quantity} 台（负数）。\n\n说明该批货物已部分或全部售出，请先处理相关的出库记录。</div><div class="modal-btns"><button class="primary" data-act="ok">知道了</button></div>`);
     mask.querySelector('[data-act="ok"]').onclick=close;return;
   }
-  if(!p&&!canRestore){
+  if(!p){
     const{mask,close}=showModal(`<div class="modal-title">${actionText}</div><div class="modal-body">该商品已被删除，撤销操作只会删除这条记录，不会影响库存。</div><div class="modal-btns"><button data-act="cancel">取消</button><button class="danger" data-act="ok">确认删除记录</button></div>`);
     mask.querySelector('[data-act="cancel"]').onclick=close;
     mask.querySelector('[data-act="ok"]').onclick=()=>{const r=undoRecord(recId);close();if(r.ok){toast(`已${actionText}`);refreshCurrentView();}else toast(r.msg||'撤销失败');};
     return;
   }
-  const effectText=canRestore?`商品「${esc(rec.removedProduct.name)}」将恢复到库存列表\n库存恢复到 ${rec.quantity} 台`:(isIn?`库存将减少 ${rec.quantity} 台`:`库存将增加 ${rec.quantity} 台`);
+  const effectText=willRestore?`库存将恢复到 ${rec.quantity} 台，商品将重新出现在库存列表`:(isIn?`库存将减少 ${rec.quantity} 台`:`库存将增加 ${rec.quantity} 台`);
   const{mask,close}=showModal(`<div class="modal-title">${actionText}</div><div class="modal-body">商品：${esc(rec.productName)}\n数量：${rec.quantity} 台\n${effectText}\n\n撤销后该记录将被删除，无法恢复。</div><div class="modal-btns"><button data-act="cancel">取消</button><button class="danger" data-act="ok">确认撤销</button></div>`);
   mask.querySelector('[data-act="cancel"]').onclick=close;
   mask.querySelector('[data-act="ok"]').onclick=()=>{const r=undoRecord(recId);close();if(r.ok){toast(`已${actionText}，当前库存 ${r.stock} 台`);refreshCurrentView();}else toast(r.msg||'撤销失败');};
@@ -515,20 +530,43 @@ function handleScanResult(code){
 document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#reader'))triggerRefocus();});
 bindRefocusBtn();
 
-/* ==================== 数据分析 ==================== */
+/* ==================== 数据分析（优化版） ==================== */
 let analysisRange=7;
 function renderAnalysis(){
   const el=$('#analysisBody');
+
+  /* ----- 在售 vs 已售罄 分组 ----- */
+  const activeProducts = products.filter(p => (p.stock||0) > 0);
+  const soldOutProducts = products.filter(p => (p.stock||0) <= 0);
+
+  /* 分类统计：只统计在售 */
   let appleCount=0,androidCount=0,otherCount=0,appleStock=0,androidStock=0,otherStock=0;
-  products.forEach(p=>{const cat=getProductCategory(p);if(cat==='apple'){appleCount++;appleStock+=p.stock||0;}else if(cat==='android'){androidCount++;androidStock+=p.stock||0;}else{otherCount++;otherStock+=p.stock||0;}});
-  const totalProducts=products.length,totalStock=products.reduce((s,p)=>s+(p.stock||0),0);
-  const costValue=products.reduce((s,p)=>s+(p.stock||0)*(p.priceIn||0),0),saleValue=products.reduce((s,p)=>s+(p.stock||0)*(p.priceOut||0),0);
-  const lowStockProducts=products.filter(p=>p.stock<=p.warnStock),outOfStockProducts=products.filter(p=>p.stock<=0);
-  const topByValue=[...products].map(p=>({...p,value:(p.stock||0)*(p.priceIn||0)})).filter(p=>p.value>0).sort((a,b)=>b.value-a.value).slice(0,5);
+  activeProducts.forEach(p=>{
+    const cat=getProductCategory(p);
+    if(cat==='apple'){appleCount++;appleStock+=p.stock||0;}
+    else if(cat==='android'){androidCount++;androidStock+=p.stock||0;}
+    else{otherCount++;otherStock+=p.stock||0;}
+  });
+
+  const activeCount = activeProducts.length;
+  const soldOutCount = soldOutProducts.length;
+  const totalStock = activeProducts.reduce((s,p)=>s+(p.stock||0),0);
+  const costValue = activeProducts.reduce((s,p)=>s+(p.stock||0)*(p.priceIn||0),0);
+  const saleValue = activeProducts.reduce((s,p)=>s+(p.stock||0)*(p.priceOut||0),0);
+
+  /* 低库存：有库存但低于/等于预警值（不含已售罄） */
+  const lowStockProducts = activeProducts.filter(p => p.stock <= p.warnStock);
+  const lowList = lowStockProducts.slice(0,5);
+
+  /* 库存价值 TOP5：只在售 */
+  const topByValue=[...activeProducts].map(p=>({...p,value:(p.stock||0)*(p.priceIn||0)})).filter(p=>p.value>0).sort((a,b)=>b.value-a.value).slice(0,5);
   const maxValue=topByValue[0]?.value||1;
-  const topByStock=[...products].filter(p=>p.stock>0).sort((a,b)=>b.stock-a.stock).slice(0,5);
+
+  /* 库存数量 TOP5：只在售 */
+  const topByStock=[...activeProducts].filter(p=>p.stock>0).sort((a,b)=>b.stock-a.stock).slice(0,5);
   const maxStock=topByStock[0]?.stock||1;
-  const lowList=lowStockProducts.slice(0,5);
+
+  /* 时间范围内流水统计（不变） */
   const now=Date.now(),rangeMs=analysisRange*24*60*60*1000;
   const rangeRecords=records.filter(r=>now-r.time<=rangeMs);
   const totalIn=rangeRecords.filter(r=>r.type>0).reduce((s,r)=>s+r.quantity,0);
@@ -537,6 +575,7 @@ function renderAnalysis(){
   const totalRevenue=saleRecords.reduce((s,r)=>s+(r.actualPrice||0)*r.quantity,0);
   const totalCost=saleRecords.reduce((s,r)=>s+(r.priceIn||0)*r.quantity,0);
   const grossProfit=totalRevenue-totalCost;
+
   const dayBuckets=[],dayLabels=[];
   for(let i=analysisRange-1;i>=0;i--){
     const dayStart=new Date();dayStart.setHours(0,0,0,0);dayStart.setDate(dayStart.getDate()-i);
@@ -545,30 +584,244 @@ function renderAnalysis(){
     dayLabels.push(`${dayStart.getMonth()+1}/${dayStart.getDate()}`);
   }
   const maxBarValue=Math.max(1,...dayBuckets.map(b=>Math.max(b.in,b.out)));
-  const outMap={};records.filter(r=>r.type<0).forEach(r=>{outMap[r.productId]=(outMap[r.productId]||0)+r.quantity;});
-  const topOut=Object.keys(outMap).map(pid=>{const p=findProduct(pid);const name=p?p.name:(records.find(r=>r.productId===pid)?.productName||'');const code=p?p.barcode:(records.find(r=>r.productId===pid)?.barcode||'');return name?{name,barcode:code,qty:outMap[pid]}:null;}).filter(Boolean).sort((a,b)=>b.qty-a.qty).slice(0,5);
+
+  /* 出库最多 TOP5：从 records 累计，即使商品已售罄也能查到 */
+  const outMap={};
+  records.filter(r=>r.type<0).forEach(r=>{outMap[r.productId]=(outMap[r.productId]||0)+r.quantity;});
+  const topOut=Object.keys(outMap).map(pid=>{
+    const p=findProduct(pid);
+    const name=p?p.name:(records.find(r=>r.productId===pid)?.productName||'');
+    const code=p?p.barcode:(records.find(r=>r.productId===pid)?.barcode||'');
+    return name?{name,barcode:code,qty:outMap[pid]}:null;
+  }).filter(Boolean).sort((a,b)=>b.qty-a.qty).slice(0,5);
+
+  /* 毛利 TOP5：从 records 累计 */
   const profitMap={};
-  saleRecords.forEach(r=>{if(!profitMap[r.productId])profitMap[r.productId]={name:r.productName,barcode:r.barcode,revenue:0,profit:0,qty:0};profitMap[r.productId].revenue+=(r.actualPrice||0)*r.quantity;profitMap[r.productId].profit+=((r.actualPrice||0)-(r.priceIn||0))*r.quantity;profitMap[r.productId].qty+=r.quantity;});
+  saleRecords.forEach(r=>{
+    if(!profitMap[r.productId])profitMap[r.productId]={name:r.productName,barcode:r.barcode,revenue:0,profit:0,qty:0};
+    profitMap[r.productId].revenue+=(r.actualPrice||0)*r.quantity;
+    profitMap[r.productId].profit+=((r.actualPrice||0)-(r.priceIn||0))*r.quantity;
+    profitMap[r.productId].qty+=r.quantity;
+  });
   const topProfit=Object.values(profitMap).sort((a,b)=>b.profit-a.profit).slice(0,5);
 
-  el.innerHTML=`<div class="stats-grid"><div class="stat-card"><div class="stat-label">商品种类</div><div class="stat-value blue">${fmtNum(totalProducts)}<span class="stat-unit">种</span></div></div><div class="stat-card"><div class="stat-label">库存总量</div><div class="stat-value green">${fmtNum(totalStock)}<span class="stat-unit">台</span></div></div><div class="stat-card full"><div class="stat-label">💰 库存成本价值</div><div class="stat-value orange small">¥${fmtNum(costValue.toFixed(0))}</div><div class="stat-sub">按进货价计算 · 潜在销售额 ¥${fmtNum(saleValue.toFixed(0))}</div></div><div class="stat-card"><div class="stat-label">低库存</div><div class="stat-value ${lowStockProducts.length>0?'orange':'green'}">${lowStockProducts.length}<span class="stat-unit">款</span></div></div><div class="stat-card"><div class="stat-label">缺货</div><div class="stat-value ${outOfStockProducts.length>0?'red':'green'}">${outOfStockProducts.length}<span class="stat-unit">款</span></div></div></div>
-  <div class="analysis-block"><div class="analysis-title">分类库存<span class="tag">苹果 / 安卓 / 其他</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1;"><div style="text-align:center;"><div class="stat-label" style="justify-content:center;"><span class="cat-badge apple">苹果</span></div><div class="stat-value small blue">${fmtNum(appleStock)}<span class="stat-unit">台</span></div><div class="stat-sub">${appleCount} 款</div></div><div style="text-align:center;"><div class="stat-label" style="justify-content:center;"><span class="cat-badge android">安卓</span></div><div class="stat-value small green">${fmtNum(androidStock)}<span class="stat-unit">台</span></div><div class="stat-sub">${androidCount} 款</div></div><div style="text-align:center;"><div class="stat-label" style="justify-content:center;"><span class="cat-badge other">其他</span></div><div class="stat-value small">${fmtNum(otherStock)}<span class="stat-unit">台</span></div><div class="stat-sub">${otherCount} 款</div></div></div></div>
-  <div class="analysis-block"><div class="analysis-title">销售收入<span class="tag">近 ${analysisRange} 天</span></div><div class="time-tabs" id="timeTabs"><button data-range="7" class="${analysisRange===7?'active':''}">近 7 天</button><button data-range="30" class="${analysisRange===30?'active':''}">近 30 天</button><button data-range="90" class="${analysisRange===90?'active':''}">近 90 天</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;"><div><div class="stat-label">销售总额</div><div class="stat-value small green">¥${fmtNum(totalRevenue.toFixed(0))}</div></div><div><div class="stat-label">毛利</div><div class="stat-value small ${grossProfit>=0?'blue':'red'}">¥${fmtNum(grossProfit.toFixed(0))}</div></div></div><div class="stat-sub" style="margin-top:8px;text-align:center;position:relative;z-index:1;">共售出 ${fmtNum(saleRecords.reduce((s,r)=>s+r.quantity,0))} 台 · 成本 ¥${fmtNum(totalCost.toFixed(0))}</div></div>
-  <div class="analysis-block"><div class="analysis-title">出入库汇总<span class="tag">近 ${analysisRange} 天</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;"><div><div class="stat-label">总入库</div><div class="stat-value small green">+${fmtNum(totalIn)}<span class="stat-unit">台</span></div></div><div><div class="stat-label">总出库</div><div class="stat-value small red">-${fmtNum(totalOut)}<span class="stat-unit">台</span></div></div></div><div class="chart-bars" style="margin-top:14px;">${dayBuckets.map((b,i)=>{const hIn=b.in>0?Math.max(2,Math.round((b.in/maxBarValue)*70)):0;const hOut=b.out>0?Math.max(2,Math.round((b.out/maxBarValue)*70)):0;const showLabel=analysisRange<=30||i%Math.ceil(analysisRange/10)===0;return`<div class="chart-bar-wrap" title="${dayLabels[i]} 入库${b.in} 出库${b.out}"><div style="display:flex;gap:1px;align-items:flex-end;width:100%;height:70px;">${b.in>0?`<div class="chart-bar" style="height:${hIn}px;"></div>`:''}${b.out>0?`<div class="chart-bar out" style="height:${hOut}px;"></div>`:''}${b.in===0&&b.out===0?`<div class="chart-bar" style="height:2px;opacity:.2;"></div>`:''}</div>${showLabel?`<span class="chart-bar-label">${dayLabels[i]}</span>`:''}</div>`;}).join('')}</div><div class="chart-legend"><span><span class="dot blue"></span>入库</span><span><span class="dot red"></span>出库</span></div></div>
-  ${topProfit.length>0?`<div class="analysis-block"><div class="analysis-title">💰 销售毛利 TOP 5<span class="tag">近 ${analysisRange} 天</span></div><div class="rank-list">${topProfit.map((p,i)=>`<div class="rank-item"><div class="rank-no">${i+1}</div><div class="rank-info"><div class="rank-name">${esc(p.name)}</div><div class="rank-sub">售出 ${p.qty} 台 · 收入 ¥${fmtNum(p.revenue.toFixed(0))}</div></div><div class="rank-value" style="color:var(--ios-green);">¥${fmtNum(p.profit.toFixed(0))}</div></div>`).join('')}</div></div>`:''}
-  ${lowList.length>0?`<div class="analysis-block"><div class="analysis-title">⚠️ 库存预警<span class="tag">${lowList.length} 款需补货</span></div><div class="rank-list">${lowList.map((p,i)=>{const danger=p.stock<=0;const catLabel=getCategoryLabel(getProductCategory(p));return`<div class="rank-item"><div class="rank-no" style="${danger?'background:rgba(255,59,48,.15);color:var(--ios-red);':''}">${i+1}</div><div class="rank-info"><div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div><div class="rank-sub">${esc(p.barcode)} · 预警值 ${p.warnStock}</div></div><div class="rank-value" style="color:${danger?'var(--ios-red)':'var(--ios-orange)'};">${p.stock} 台</div></div>`;}).join('')}</div></div>`:''}
-  ${topByValue.length>0?`<div class="analysis-block"><div class="analysis-title">💎 库存价值 TOP 5<span class="tag">按进货价</span></div><div class="rank-list">${topByValue.map((p,i)=>{const pct=Math.round((p.value/maxValue)*100);const catLabel=getCategoryLabel(getProductCategory(p));return`<div class="rank-item" style="display:block;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><div class="rank-no">${i+1}</div><div class="rank-info"><div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div><div class="rank-sub">库存 ${p.stock} 台 × ¥${fmtMoney(p.priceIn)}</div></div><div class="rank-value">¥${fmtNum(p.value.toFixed(0))}</div></div><div class="progress-line"><div class="progress-line-inner" style="width:${pct}%;"></div></div></div>`;}).join('')}</div></div>`:''}
-  ${topByStock.length>0?`<div class="analysis-block"><div class="analysis-title">📦 库存数量 TOP 5<span class="tag">按数量</span></div><div class="rank-list">${topByStock.map((p,i)=>{const pct=Math.round((p.stock/maxStock)*100);const catLabel=getCategoryLabel(getProductCategory(p));return`<div class="rank-item" style="display:block;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><div class="rank-no">${i+1}</div><div class="rank-info"><div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div><div class="rank-sub">${esc(p.barcode)}</div></div><div class="rank-value">${p.stock} 台</div></div><div class="progress-line"><div class="progress-line-inner green" style="width:${pct}%;"></div></div></div>`;}).join('')}</div></div>`:''}
-  ${topOut.length>0?`<div class="analysis-block"><div class="analysis-title">🔥 出库最多 TOP 5<span class="tag">历史累计</span></div><div class="rank-list">${topOut.map((p,i)=>`<div class="rank-item"><div class="rank-no">${i+1}</div><div class="rank-info"><div class="rank-name">${esc(p.name)}</div><div class="rank-sub">${esc(p.barcode)}</div></div><div class="rank-value" style="color:var(--ios-red);">-${p.qty} 台</div></div>`).join('')}</div></div>`:''}
+  /* 历史累计售出款数（含已售罄） */
+  const soldOutTotalCount = soldOutProducts.length;
+
+  el.innerHTML = `
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">在售商品</div>
+      <div class="stat-value blue">${fmtNum(activeCount)}<span class="stat-unit">种</span></div>
+      <div class="stat-sub">库存总量 ${fmtNum(totalStock)} 台</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">已售罄</div>
+      <div class="stat-value ${soldOutCount>0?'gray':'green'}">${fmtNum(soldOutCount)}<span class="stat-unit">种</span></div>
+      <div class="stat-sub">${soldOutTotalCount>0?'历史累计售出':'暂无售罄'}</div>
+    </div>
+    <div class="stat-card full">
+      <div class="stat-label">💰 在售库存成本价值</div>
+      <div class="stat-value orange small">¥${fmtNum(costValue.toFixed(0))}</div>
+      <div class="stat-sub">按进货价计算 · 潜在销售额 ¥${fmtNum(saleValue.toFixed(0))}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">低库存预警</div>
+      <div class="stat-value ${lowStockProducts.length>0?'orange':'green'}">${lowStockProducts.length}<span class="stat-unit">款</span></div>
+      <div class="stat-sub">0 &lt; 库存 ≤ 预警值</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">售罄占比</div>
+      <div class="stat-value small">${products.length>0?Math.round((soldOutCount/products.length)*100):0}<span class="stat-unit">%</span></div>
+      <div class="stat-sub">共 ${products.length} 款（含历史）</div>
+    </div>
+  </div>
+
+  <div class="analysis-block">
+    <div class="analysis-title">分类库存<span class="tag">仅统计在售</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;position:relative;z-index:1;">
+      <div style="text-align:center;">
+        <div class="stat-label" style="justify-content:center;"><span class="cat-badge apple">苹果</span></div>
+        <div class="stat-value small blue">${fmtNum(appleStock)}<span class="stat-unit">台</span></div>
+        <div class="stat-sub">${appleCount} 款在售</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="stat-label" style="justify-content:center;"><span class="cat-badge android">安卓</span></div>
+        <div class="stat-value small green">${fmtNum(androidStock)}<span class="stat-unit">台</span></div>
+        <div class="stat-sub">${androidCount} 款在售</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="stat-label" style="justify-content:center;"><span class="cat-badge other">其他</span></div>
+        <div class="stat-value small">${fmtNum(otherStock)}<span class="stat-unit">台</span></div>
+        <div class="stat-sub">${otherCount} 款在售</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="analysis-block">
+    <div class="analysis-title">销售收入<span class="tag">近 ${analysisRange} 天</span></div>
+    <div class="time-tabs" id="timeTabs">
+      <button data-range="7" class="${analysisRange===7?'active':''}">近 7 天</button>
+      <button data-range="30" class="${analysisRange===30?'active':''}">近 30 天</button>
+      <button data-range="90" class="${analysisRange===90?'active':''}">近 90 天</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;">
+      <div><div class="stat-label">销售总额</div><div class="stat-value small green">¥${fmtNum(totalRevenue.toFixed(0))}</div></div>
+      <div><div class="stat-label">毛利</div><div class="stat-value small ${grossProfit>=0?'blue':'red'}">¥${fmtNum(grossProfit.toFixed(0))}</div></div>
+    </div>
+    <div class="stat-sub" style="margin-top:8px;text-align:center;position:relative;z-index:1;">共售出 ${fmtNum(saleRecords.reduce((s,r)=>s+r.quantity,0))} 台 · 成本 ¥${fmtNum(totalCost.toFixed(0))}</div>
+  </div>
+
+  <div class="analysis-block">
+    <div class="analysis-title">出入库汇总<span class="tag">近 ${analysisRange} 天</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1;">
+      <div><div class="stat-label">总入库</div><div class="stat-value small green">+${fmtNum(totalIn)}<span class="stat-unit">台</span></div></div>
+      <div><div class="stat-label">总出库</div><div class="stat-value small red">-${fmtNum(totalOut)}<span class="stat-unit">台</span></div></div>
+    </div>
+    <div class="chart-bars" style="margin-top:14px;">
+      ${dayBuckets.map((b,i)=>{
+        const hIn=b.in>0?Math.max(2,Math.round((b.in/maxBarValue)*70)):0;
+        const hOut=b.out>0?Math.max(2,Math.round((b.out/maxBarValue)*70)):0;
+        const showLabel=analysisRange<=30||i%Math.ceil(analysisRange/10)===0;
+        return `<div class="chart-bar-wrap" title="${dayLabels[i]} 入库${b.in} 出库${b.out}">
+          <div style="display:flex;gap:1px;align-items:flex-end;width:100%;height:70px;">
+            ${b.in>0?`<div class="chart-bar" style="height:${hIn}px;"></div>`:''}
+            ${b.out>0?`<div class="chart-bar out" style="height:${hOut}px;"></div>`:''}
+            ${b.in===0&&b.out===0?`<div class="chart-bar" style="height:2px;opacity:.2;"></div>`:''}
+          </div>
+          ${showLabel?`<span class="chart-bar-label">${dayLabels[i]}</span>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="chart-legend"><span><span class="dot blue"></span>入库</span><span><span class="dot red"></span>出库</span></div>
+  </div>
+
+  ${topProfit.length>0?`<div class="analysis-block">
+    <div class="analysis-title">💰 销售毛利 TOP 5<span class="tag">近 ${analysisRange} 天</span></div>
+    <div class="rank-list">${topProfit.map((p,i)=>`
+      <div class="rank-item">
+        <div class="rank-no">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name">${esc(p.name)}</div>
+          <div class="rank-sub">售出 ${p.qty} 台 · 收入 ¥${fmtNum(p.revenue.toFixed(0))}</div>
+        </div>
+        <div class="rank-value" style="color:var(--ios-green);">¥${fmtNum(p.profit.toFixed(0))}</div>
+      </div>`).join('')}
+    </div>
+  </div>`:''}
+
+  ${lowList.length>0?`<div class="analysis-block">
+    <div class="analysis-title">⚠️ 低库存预警<span class="tag">${lowList.length} 款需关注</span></div>
+    <div class="rank-list">${lowList.map((p,i)=>{
+      const catLabel=getCategoryLabel(getProductCategory(p));
+      return `<div class="rank-item">
+        <div class="rank-no" style="background:rgba(255,149,0,.15);color:var(--ios-orange);">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div>
+          <div class="rank-sub">${esc(p.barcode)} · 预警值 ${p.warnStock}</div>
+        </div>
+        <div class="rank-value" style="color:var(--ios-orange);">${p.stock} 台</div>
+      </div>`;
+    }).join('')}
+    </div>
+  </div>`:''}
+
+  ${soldOutCount>0?`<div class="analysis-block">
+    <div class="analysis-title">✅ 已售罄二手机<span class="tag">${soldOutCount} 款（不在库存列表）</span></div>
+    <div class="rank-list">${soldOutProducts.slice(0,8).map((p,i)=>{
+      const catLabel=getCategoryLabel(getProductCategory(p));
+      const lastOut = records.find(r=>r.productId===p.id&&r.type<0);
+      return `<div class="rank-item">
+        <div class="rank-no" style="background:rgba(120,120,128,.15);color:var(--text2);">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div>
+          <div class="rank-sub">${esc(p.barcode)}${lastOut?` · 最近售出 ${fmtTime(lastOut.time)}`:''}</div>
+        </div>
+        <div class="rank-value" style="color:var(--text2);">已售罄</div>
+      </div>`;
+    }).join('')}${soldOutCount>8?`<div style="text-align:center;padding:10px 0;font-size:12px;color:var(--text3);">... 还有 ${soldOutCount-8} 款未显示</div>`:''}
+    </div>
+  </div>`:''}
+
+  ${topByValue.length>0?`<div class="analysis-block">
+    <div class="analysis-title">💎 在售库存价值 TOP 5<span class="tag">按进货价</span></div>
+    <div class="rank-list">${topByValue.map((p,i)=>{
+      const pct=Math.round((p.value/maxValue)*100);
+      const catLabel=getCategoryLabel(getProductCategory(p));
+      return `<div class="rank-item" style="display:block;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div class="rank-no">${i+1}</div>
+          <div class="rank-info">
+            <div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div>
+            <div class="rank-sub">库存 ${p.stock} 台 × ¥${fmtMoney(p.priceIn)}</div>
+          </div>
+          <div class="rank-value">¥${fmtNum(p.value.toFixed(0))}</div>
+        </div>
+        <div class="progress-line"><div class="progress-line-inner" style="width:${pct}%;"></div></div>
+      </div>`;
+    }).join('')}
+    </div>
+  </div>`:''}
+
+  ${topByStock.length>0?`<div class="analysis-block">
+    <div class="analysis-title">📦 在售数量 TOP 5<span class="tag">按数量</span></div>
+    <div class="rank-list">${topByStock.map((p,i)=>{
+      const pct=Math.round((p.stock/maxStock)*100);
+      const catLabel=getCategoryLabel(getProductCategory(p));
+      return `<div class="rank-item" style="display:block;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div class="rank-no">${i+1}</div>
+          <div class="rank-info">
+            <div class="rank-name"><span class="cat-badge ${catLabel.cls}" style="margin-right:5px;">${catLabel.text}</span>${esc(p.name)}</div>
+            <div class="rank-sub">${esc(p.barcode)}</div>
+          </div>
+          <div class="rank-value">${p.stock} 台</div>
+        </div>
+        <div class="progress-line"><div class="progress-line-inner green" style="width:${pct}%;"></div></div>
+      </div>`;
+    }).join('')}
+    </div>
+  </div>`:''}
+
+  ${topOut.length>0?`<div class="analysis-block">
+    <div class="analysis-title">🔥 出库最多 TOP 5<span class="tag">历史累计</span></div>
+    <div class="rank-list">${topOut.map((p,i)=>`
+      <div class="rank-item">
+        <div class="rank-no">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name">${esc(p.name)}</div>
+          <div class="rank-sub">${esc(p.barcode)}</div>
+        </div>
+        <div class="rank-value" style="color:var(--ios-red);">-${p.qty} 台</div>
+      </div>`).join('')}
+    </div>
+  </div>`:''}
+
   ${products.length===0?'<div class="empty" style="padding:60px 24px;">还没有数据<br>添加商品后即可查看分析</div>':''}`;
-  el.querySelectorAll('#timeTabs button').forEach(btn=>{btn.onclick=()=>{analysisRange=parseInt(btn.dataset.range);renderAnalysis();};});
+
+  el.querySelectorAll('#timeTabs button').forEach(btn=>{
+    btn.onclick=()=>{analysisRange=parseInt(btn.dataset.range);renderAnalysis();};
+  });
 }
 
 /* ==================== 出入库记录页 ==================== */
 function renderRecords(){
   const el=$('#recordList');
   if(!records.length){el.innerHTML='<div class="empty" style="padding:30px;">暂无出入库记录</div>';return;}
-  el.innerHTML=records.slice(0,500).map(r=>{const priceInfo=(r.type<0&&r.actualPrice!=null)?` · <span class="price-tag">¥${fmtMoney(r.actualPrice)} × ${r.quantity} = ¥${fmtMoney(r.actualPrice*r.quantity)}</span>`:'';const removedTag=(r.type<0&&r.removedProduct)?' · <span style="color:var(--ios-orange);">已售罄移除</span>':'';return`<div class="rec-item clickable" data-rec-id="${esc(r.id)}"><div class="rec-type ${r.type>0?'in':'out'}">${r.type>0?'入库':'出库'}</div><div class="rec-main"><div class="rec-name">${esc(r.productName)}</div><div class="rec-time">${fmtTime(r.time)}${r.remark?' · '+esc(r.remark):''}${priceInfo}${removedTag}</div></div><div class="rec-qty ${r.type>0?'in':'out'}">${r.type>0?'+':'-'}${r.quantity}</div><span class="rec-arrow">›</span></div>`;}).join('');
+  el.innerHTML=records.slice(0,500).map(r=>{
+    const priceInfo=(r.type<0&&r.actualPrice!=null)?` · <span class="price-tag">¥${fmtMoney(r.actualPrice)} × ${r.quantity} = ¥${fmtMoney(r.actualPrice*r.quantity)}</span>`:'';
+    const soldOutTag=(r.type<0&&r.justSoldOut)?' · <span style="color:var(--ios-orange);">已售罄隐藏</span>':'';
+    const removedTag=(r.type<0&&r.removedProduct&&!r.justSoldOut)?' · <span style="color:var(--ios-orange);">已移除</span>':'';
+    return `<div class="rec-item clickable" data-rec-id="${esc(r.id)}">
+      <div class="rec-type ${r.type>0?'in':'out'}">${r.type>0?'入库':'出库'}</div>
+      <div class="rec-main">
+        <div class="rec-name">${esc(r.productName)}</div>
+        <div class="rec-time">${fmtTime(r.time)}${r.remark?' · '+esc(r.remark):''}${priceInfo}${soldOutTag}${removedTag}</div>
+      </div>
+      <div class="rec-qty ${r.type>0?'in':'out'}">${r.type>0?'+':'-'}${r.quantity}</div>
+      <span class="rec-arrow">›</span>
+    </div>`;
+  }).join('');
   el.querySelectorAll('.rec-item[data-rec-id]').forEach(node=>{node.onclick=()=>showRecordDetail(node.dataset.recId);});
 }
 
@@ -626,7 +879,7 @@ function openBatchImport(){
     parsedRows=previewRows.filter(r=>!r.conflict);
     const okBtn=mask.querySelector('#btnConfirmImport');
     okBtn.disabled=!parsedRows.length;
-    okBtn.textContent=`确认导入 ${parsedRows.length} 件`+(conflictCount?` (跳过 ${conflictCount} 件)`:''); 
+    okBtn.textContent=`确认导入 ${parsedRows.length} 件`+(conflictCount?` (跳过 ${conflictCount} 件)`:'');
   };
   mask.querySelector('#btnConfirmImport').onclick=()=>{
     if(!parsedRows.length)return;
