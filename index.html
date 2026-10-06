@@ -120,8 +120,9 @@
           <button class="mini-btn" id="btnBatchImport" style="flex:1;height:42px;background:rgba(52,199,89,.12);color:var(--ios-green);">批量导入商品</button>
           <button class="mini-btn" id="btnBatchBarcode" style="flex:1;height:42px;">批量下载条码</button>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <button class="mini-btn" id="btnBatchPrint" style="flex:1;height:42px;background:rgba(175,82,222,.12);color:var(--ios-purple);font-weight:600;">🖨 批量打印标签</button>
+       <div style="display:flex;gap:8px;margin-bottom:8px;">
+  <button class="mini-btn" id="btnBatchPrint" style="flex:1;height:42px;background:rgba(175,82,222,.12);color:var(--ios-purple);font-weight:600;">🖨 批量打印标签</button>
+  <button class="mini-btn" id="btnBackfillParams" style="flex:1;height:42px;background:rgba(255,149,0,.12);color:var(--ios-orange);font-weight:600;">🔧 补全历史参数</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:14px;">
           <button class="mini-btn" id="btnHistory" style="flex:1;height:42px;background:rgba(0,122,255,.12);color:var(--ios-blue);font-weight:600;">🕐 历史快照</button>
@@ -970,7 +971,91 @@ function openBatchImport(){
   };
 }
 $('#btnBatchImport').addEventListener('click',openBatchImport);
+  
+/* ==================== 一键补全历史商品参数 ==================== */
+async function backfillParams(){
+  if(!phoneDbLoaded){
+    toast('正在加载参数库...');
+    await loadPhoneDB();
+  }
+  if(!PHONE_DB.length){
+    toast('参数库加载失败，请检查网络');
+    return;
+  }
 
+  // 找出所有还没有 params 字段的商品（含在售和已售罄）
+  const targets = products.filter(p => !p.params);
+  if(!targets.length){
+    toast('所有商品已有参数，无需补全');
+    return;
+  }
+
+  const { mask, close } = showModal(
+    `<div class="modal-title">补全历史参数</div>
+     <div class="modal-body">检测到 ${targets.length} 件商品还没有参数。\n系统会按商品名称自动匹配机型并写入参数。\n\n匹配不到的商品会保持原样，不会出错。\n\n是否继续？</div>
+     <div class="modal-btns">
+       <button data-act="cancel">取消</button>
+       <button class="primary" data-act="ok">开始补全</button>
+     </div>`);
+
+  mask.querySelector('[data-act="cancel"]').onclick = close;
+  mask.querySelector('[data-act="ok"]').onclick = async () => {
+    close();
+    // 先保存快照，出问题可恢复
+    pushSnapshot('manual');
+
+    const { mask: m2, close: c2 } = showModal(
+      `<div class="modal-title">正在补全参数</div>
+       <div class="bp-progress">
+         <div id="bfText">准备中...</div>
+         <div class="bp-bar"><div class="bp-bar-inner" id="bfBar"></div></div>
+         <div style="font-size:12.5px;color:var(--text2);margin-top:12px;">共 ${targets.length} 件，请勿关闭页面</div>
+       </div>`);
+    const textEl = m2.querySelector('#bfText');
+    const barEl = m2.querySelector('#bfBar');
+
+    let matched = 0, unmatched = 0;
+    for(let i = 0; i < targets.length; i++){
+      const p = targets[i];
+      textEl.textContent = `正在处理 ${i+1} / ${targets.length}：${p.name}`;
+      barEl.style.width = `${Math.round((i / targets.length) * 100)}%`;
+
+      const matches = matchPhones(p.name, 1);
+      if(matches.length){
+        p.params = { ...matches[0] };
+        matched++;
+      } else {
+        unmatched++;
+      }
+
+      if(i % 10 === 0) await new Promise(r => setTimeout(r, 0));
+    }
+
+    saveLocal();
+    scheduleSnapshot();
+    barEl.style.width = '100%';
+    textEl.textContent = '补全完成';
+    await new Promise(r => setTimeout(r, 700));
+    c2();
+
+    const { mask: m3, close: c3 } = showModal(
+      `<div class="modal-title">补全完成</div>
+       <div class="detail-info-box">
+         <div class="di-row"><span class="di-label">成功匹配</span><span class="di-value green big">${matched} 件</span></div>
+         <div class="di-row"><span class="di-label">未匹配</span><span class="di-value ${unmatched > 0 ? 'red' : ''}">${unmatched} 件</span></div>
+         <div class="di-row"><span class="di-label">总计处理</span><span class="di-value">${targets.length} 件</span></div>
+       </div>
+       ${unmatched > 0 ? `<div style="font-size:12.5px;color:var(--text2);text-align:center;margin-bottom:12px;line-height:1.7;">未匹配的商品可手动打开编辑页点「🔍 匹配参数」，<br>或者把机型加入 phones.json 后再点一次本按钮。</div>` : ''}
+       <div class="modal-btns">
+         <button class="primary" data-act="ok">知道了</button>
+       </div>`);
+    m3.querySelector('[data-act="ok"]').onclick = c3;
+
+    if(currentView === 'list') renderProductList();
+  };
+}
+$('#btnBackfillParams').addEventListener('click', backfillParams);
+  
 /* ==================== 单次扫码 ==================== */
 async function scanOnce(onResult){
   const{mask,close}=showModal(`<div class="modal-title">扫描条码</div><div id="scanOnceReader" style="width:100%;min-height:260px;background:#000;border-radius:16px;overflow:hidden;"></div><div style="height:12px;"></div><button class="btn-plain" id="scanOnceCancel">取消</button>`);
