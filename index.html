@@ -88,21 +88,7 @@
             <button type="button" class="mini-btn" id="btnMatchPhone">🔍 匹配参数</button>
           </div>
         </div>
-        <div class="row2"><div class="field"><label>品牌</label><input id="fBrand" list="brandOptions" placeholder="Apple" autocomplete="off"></div><datalist id="brandOptions"></datalist>
-<datalist id="regionOptions">
-  <option value="国行"></option>
-  <option value="港版"></option>
-  <option value="美版"></option>
-  <option value="日版"></option>
-  <option value="韩版"></option>
-  <option value="欧版"></option>
-  <option value="澳版"></option>
-  <option value="新加坡版"></option>
-  <option value="印度版"></option>
-  <option value="其他"></option>
-</datalist>
-<datalist id="specOptions"></datalist>
-<datalist id="colorOptions"></datalist></div>
+        <div class="row2"><div class="field"><label>品牌</label><input id="fBrand" list="brandOptions" placeholder="Apple" autocomplete="off"></div><div class="field"><label>版本</label><input id="fModel" list="regionOptions" placeholder="国行" autocomplete="off"></div></div>
 <div class="row2"><div class="field"><label>规格</label><input id="fSpec" list="specOptions" placeholder="8G+256G" autocomplete="off"></div><div class="field"><label>颜色</label><input id="fColor" list="colorOptions" placeholder="黑色" autocomplete="off"></div></div>
         <div class="field"><label>商品条码 <span class="req">*</span></label><div class="input-with-actions"><input id="fBarcode" placeholder="扫描 / 输入 / 生成"><button type="button" class="mini-btn" id="btnScanBarcode">扫描</button><button type="button" class="mini-btn" id="btnGenBarcode">生成</button></div></div>
         <div class="row2"><div class="field"><label>进货价</label><input id="fPriceIn" type="number" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>销售价</label><input id="fPriceOut" type="number" inputmode="decimal" placeholder="0.00"></div></div>
@@ -266,6 +252,11 @@ function uniqueSorted(arr){
 
 function buildPhoneDatalists(){
   if(!PHONE_DB || !PHONE_DB.length) return;
+  
+  // 0) 商品名称（机型名）
+  const names = uniqueSorted(PHONE_DB.map(p => p.name));
+  const nameList = document.getElementById('nameOptions');
+  if(nameList) nameList.innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
 
   // 1) 品牌
   const brands = uniqueSorted(PHONE_DB.map(p => p.brand));
@@ -633,7 +624,7 @@ function openAdd(id=null,presetBarcode=''){
   $('#tbTitle').innerHTML='<span class="sync-dot"></span>'+(id?'编辑商品':'新增商品');
   const p=id?findProduct(id):null;
   if(id&&!p){toast('商品不存在');showView('list');return;}
-  $('#fName').value=p?p.name:'';$('#fBrand').value=p?p.brand:'';$('#fModel').value=p?p.model:'';$('#fSpec').value=p?p.spec:'';$('#fColor').value=p?p.color:'';$('#fBarcode').value=p?p.barcode:(presetBarcode||'');$('#fPriceIn').value=p&&p.priceIn?p.priceIn:'';$('#fPriceOut').value=p&&p.priceOut?p.priceOut:'';$('#fStock').value=p?p.stock:0;$('#fWarn').value=p?p.warnStock:0;$('#fRemark').value=p?p.remark:'';
+  $('#fName').value=p?p.name:'';$('#fBrand').value=p?p.brand:'';$('#fModel').value=p?p.model:'';$('#fSpec').value=p?p.spec:'';$('#fColor').value=p?p.color:'';$('#fBarcode').value=p?p.barcode:(presetBarcode||'');$('#fPriceIn').value=p&&p.priceIn?p.priceIn:'';$('#fPriceOut').value=p&&p.priceOut?p.priceOut:'';$('#fStock').value=p?p.stock:1;$('#fWarn').value=p?p.warnStock:0;$('#fRemark').value=p?p.remark:'';
   $('#lbStock').textContent=p?'当前库存（通过出入库变更）':'初始库存';
   $('#fStock').disabled=!!p;$('#btnSaveProduct').disabled=false;$('#btnSaveProduct').textContent=p?'保存修改':'保存';
     matchedPhoneParams = (p && p.params) ? { ...p.params } : null;
@@ -657,7 +648,7 @@ $('#btnSaveProduct').addEventListener('click',()=>{
   if(!barcode){toast('请扫码、输入或生成商品条码');return;}
   const exist=findByBarcode(barcode);
   if(exist&&exist.id!==editingId){toast(`条码已被「${exist.name}」占用`);return;}
-  const data={name,brand:$('#fBrand').value.trim(),model:$('#fModel').value.trim(),spec:$('#fSpec').value.trim(),color:$('#fColor').value.trim(),barcode,priceIn:parseFloat($('#fPriceIn').value)||0,priceOut:parseFloat($('#fPriceOut').value)||0,warnStock:parseInt($('#fWarn').value)||2,remark:$('#fRemark').value.trim(),params: matchedPhoneParams ? { ...matchedPhoneParams } : null};
+  const data={name,brand:$('#fBrand').value.trim(),model:$('#fModel').value.trim(),spec:$('#fSpec').value.trim(),color:$('#fColor').value.trim(),barcode,priceIn:parseFloat($('#fPriceIn').value)||0,priceOut:parseFloat($('#fPriceOut').value)||0,warnStock:parseInt($('#fWarn').value)||0,remark:$('#fRemark').value.trim(),params: matchedPhoneParams ? { ...matchedPhoneParams } : null};
   if(editingId){const p=findProduct(editingId);if(!p){toast('商品不存在');return;}Object.assign(p,data,{updatedAt:Date.now()});saveLocal();scheduleSnapshot();toast('已保存');}
   else{const stock=parseInt($('#fStock').value)||0;const p={id:uid(),...data,stock:0,createdAt:Date.now(),updatedAt:Date.now()};products.push(p);saveLocal();if(stock>0)changeStock(p.id,stock,'新建商品初始入库');else scheduleSnapshot();toast('已添加');}
   showView('list');
@@ -1296,8 +1287,19 @@ if(!getHistory().length&&(products.length||records.length))pushSnapshot('manual'
     });
   }
 </script>
+<datalist id="nameOptions"></datalist>
 <datalist id="brandOptions"></datalist>
-<datalist id="modelOptions"></datalist>
+<datalist id="regionOptions">
+  <option value="国行"></option>
+  <option value="港版"></option>
+  <option value="美版"></option>
+  <option value="日版"></option>
+  <option value="韩版"></option>
+  <option value="欧版"></option>
+  <option value="亚太版"></option>
+  <option value="台版"></option>
+  <option value="其他"></option>
+</datalist>
 <datalist id="specOptions"></datalist>
 <datalist id="colorOptions"></datalist>
 </body>
