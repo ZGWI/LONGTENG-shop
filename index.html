@@ -84,15 +84,29 @@
         <div class="field">
           <label>商品名称 <span class="req">*</span></label>
           <div class="input-with-actions">
-            <input id="fName" type="text" placeholder="如 iPhone 15 Pro Max">
+            <input id="fName" type="text" list="nameOptions" placeholder="如 iPhone 15 Pro Max" autocomplete="off">
             <button type="button" class="mini-btn" id="btnMatchPhone">🔍 匹配参数</button>
           </div>
         </div>
-        <div class="row2"><div class="field"><label>品牌</label><input id="fBrand" list="brandOptions" placeholder="Apple" autocomplete="off"></div><div class="field"><label>型号</label><input id="fModel" list="modelOptions" placeholder="A3108" autocomplete="off"></div></div>
+        <div class="row2"><div class="field"><label>品牌</label><input id="fBrand" list="brandOptions" placeholder="Apple" autocomplete="off"></div><datalist id="brandOptions"></datalist>
+<datalist id="regionOptions">
+  <option value="国行"></option>
+  <option value="港版"></option>
+  <option value="美版"></option>
+  <option value="日版"></option>
+  <option value="韩版"></option>
+  <option value="欧版"></option>
+  <option value="澳版"></option>
+  <option value="新加坡版"></option>
+  <option value="印度版"></option>
+  <option value="其他"></option>
+</datalist>
+<datalist id="specOptions"></datalist>
+<datalist id="colorOptions"></datalist></div>
 <div class="row2"><div class="field"><label>规格</label><input id="fSpec" list="specOptions" placeholder="8G+256G" autocomplete="off"></div><div class="field"><label>颜色</label><input id="fColor" list="colorOptions" placeholder="黑色" autocomplete="off"></div></div>
         <div class="field"><label>商品条码 <span class="req">*</span></label><div class="input-with-actions"><input id="fBarcode" placeholder="扫描 / 输入 / 生成"><button type="button" class="mini-btn" id="btnScanBarcode">扫描</button><button type="button" class="mini-btn" id="btnGenBarcode">生成</button></div></div>
         <div class="row2"><div class="field"><label>进货价</label><input id="fPriceIn" type="number" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>销售价</label><input id="fPriceOut" type="number" inputmode="decimal" placeholder="0.00"></div></div>
-        <div class="row2"><div class="field"><label id="lbStock">初始库存</label><input id="fStock" type="number" inputmode="numeric" value="0"></div><div class="field"><label>预警值</label><input id="fWarn" type="number" inputmode="numeric" value="2"></div></div>
+        <div class="row2"><div class="field"><label id="lbStock">初始库存</label><input id="fStock" type="number" inputmode="numeric" value="1"></div><div class="field"><label>预警值</label><input id="fWarn" type="number" inputmode="numeric" value="0"></div></div>
         <div class="field"><label>备注</label><textarea id="fRemark" rows="2" placeholder="可选"></textarea></div>
         <div class="field" id="phoneParamField" style="display:none;">
           <label>二手机参数（自动匹配）</label>
@@ -258,11 +272,6 @@ function buildPhoneDatalists(){
   const brandList = document.getElementById('brandOptions');
   if(brandList) brandList.innerHTML = brands.map(b => `<option value="${esc(b)}">`).join('');
 
-  // 2) 全部型号
-  const models = uniqueSorted(PHONE_DB.map(p => p.name));
-  const modelList = document.getElementById('modelOptions');
-  if(modelList) modelList.innerHTML = models.map(m => `<option value="${esc(m)}">`).join('');
-
   // 3) 规格：内存 + 存储 组合
   const specs = new Set();
   PHONE_DB.forEach(p => {
@@ -282,21 +291,9 @@ function buildPhoneDatalists(){
   if(colorList) colorList.innerHTML = COMMON_COLORS.map(c => `<option value="${esc(c)}">`).join('');
 }
 
-/* 品牌输入时动态过滤型号 */
+/* 品牌输入时不再过滤型号（型号已改为版本字段） */
 function bindBrandModelFilter(){
-  const brandInput = document.getElementById('fBrand');
-  const modelInput = document.getElementById('fModel');
-  if(!brandInput || !modelInput) return;
-
-  brandInput.addEventListener('input', () => {
-    const brand = brandInput.value.trim();
-    let pool = PHONE_DB;
-    if(brand){
-      pool = PHONE_DB.filter(p => (p.brand||'').toLowerCase().includes(brand.toLowerCase()));
-    }
-    const list = uniqueSorted(pool.map(p => p.name));
-    document.getElementById('modelOptions').innerHTML = list.map(m => `<option value="${esc(m)}">`).join('');
-  });
+  // 无需处理
 }
   
 /* ==================== 分类 & 首字母 ==================== */
@@ -597,7 +594,6 @@ function applyPhoneParams(p){
   matchedPhoneParams = { ...p };
   $('#fName').value = p.name;
   $('#fBrand').value = p.brand;
-  if(!$('#fModel').value) $('#fModel').value = p.model;
   const ram = (p.ram || '').split('/')[0];
   const storage = (p.storage || '').split('/')[0];
   if(!$('#fSpec').value && (ram || storage)) {
@@ -637,7 +633,7 @@ function openAdd(id=null,presetBarcode=''){
   $('#tbTitle').innerHTML='<span class="sync-dot"></span>'+(id?'编辑商品':'新增商品');
   const p=id?findProduct(id):null;
   if(id&&!p){toast('商品不存在');showView('list');return;}
-  $('#fName').value=p?p.name:'';$('#fBrand').value=p?p.brand:'';$('#fModel').value=p?p.model:'';$('#fSpec').value=p?p.spec:'';$('#fColor').value=p?p.color:'';$('#fBarcode').value=p?p.barcode:(presetBarcode||'');$('#fPriceIn').value=p&&p.priceIn?p.priceIn:'';$('#fPriceOut').value=p&&p.priceOut?p.priceOut:'';$('#fStock').value=p?p.stock:0;$('#fWarn').value=p?p.warnStock:2;$('#fRemark').value=p?p.remark:'';
+  $('#fName').value=p?p.name:'';$('#fBrand').value=p?p.brand:'';$('#fModel').value=p?p.model:'';$('#fSpec').value=p?p.spec:'';$('#fColor').value=p?p.color:'';$('#fBarcode').value=p?p.barcode:(presetBarcode||'');$('#fPriceIn').value=p&&p.priceIn?p.priceIn:'';$('#fPriceOut').value=p&&p.priceOut?p.priceOut:'';$('#fStock').value=p?p.stock:0;$('#fWarn').value=p?p.warnStock:0;$('#fRemark').value=p?p.remark:'';
   $('#lbStock').textContent=p?'当前库存（通过出入库变更）':'初始库存';
   $('#fStock').disabled=!!p;$('#btnSaveProduct').disabled=false;$('#btnSaveProduct').textContent=p?'保存修改':'保存';
     matchedPhoneParams = (p && p.params) ? { ...p.params } : null;
