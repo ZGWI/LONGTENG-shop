@@ -88,8 +88,8 @@
             <button type="button" class="mini-btn" id="btnMatchPhone">🔍 匹配参数</button>
           </div>
         </div>
-        <div class="row2"><div class="field"><label>品牌</label><input id="fBrand" placeholder="Apple"></div><div class="field"><label>型号</label><input id="fModel" placeholder="A3108"></div></div>
-        <div class="row2"><div class="field"><label>规格</label><input id="fSpec" placeholder="8G+256G"></div><div class="field"><label>颜色</label><input id="fColor" placeholder="原色钛金属"></div></div>
+        <div class="row2"><div class="field"><label>品牌</label><input id="fBrand" list="brandOptions" placeholder="Apple" autocomplete="off"></div><div class="field"><label>型号</label><input id="fModel" list="modelOptions" placeholder="A3108" autocomplete="off"></div></div>
+<div class="row2"><div class="field"><label>规格</label><input id="fSpec" list="specOptions" placeholder="8G+256G" autocomplete="off"></div><div class="field"><label>颜色</label><input id="fColor" list="colorOptions" placeholder="黑色" autocomplete="off"></div></div>
         <div class="field"><label>商品条码 <span class="req">*</span></label><div class="input-with-actions"><input id="fBarcode" placeholder="扫描 / 输入 / 生成"><button type="button" class="mini-btn" id="btnScanBarcode">扫描</button><button type="button" class="mini-btn" id="btnGenBarcode">生成</button></div></div>
         <div class="row2"><div class="field"><label>进货价</label><input id="fPriceIn" type="number" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>销售价</label><input id="fPriceOut" type="number" inputmode="decimal" placeholder="0.00"></div></div>
         <div class="row2"><div class="field"><label id="lbStock">初始库存</label><input id="fStock" type="number" inputmode="numeric" value="0"></div><div class="field"><label>预警值</label><input id="fWarn" type="number" inputmode="numeric" value="2"></div></div>
@@ -173,11 +173,14 @@ async function loadPhoneDB(){
       const resp = await fetch('./phones.json?t=' + Date.now(), { cache: 'no-cache' });
       if(!resp.ok) throw new Error('HTTP ' + resp.status);
       const data = await resp.json();
-      if(Array.isArray(data)){
+            if(Array.isArray(data)){
         PHONE_DB = data;
         phoneDbLoaded = true;
         phoneFuse = null;
         console.log('参数库已加载：' + PHONE_DB.length + ' 款机型');
+        // 初始化下拉选项
+        buildPhoneDatalists();
+        bindBrandModelFilter();
       }
       return PHONE_DB;
     }catch(e){
@@ -235,7 +238,67 @@ function matchPhones(keyword, limit = 5){
   if(!kw) return [];
   return fuse.search(kw, { limit }).map(r => r.item);
 }
+  
+/* ==================== 下拉选项生成 ==================== */
+const COMMON_COLORS = [
+  '黑色','白色','银色','灰色','金色',
+  '红色','蓝色','绿色','紫色','粉色',
+  '黄色','橙色','深空灰','午夜黑'
+];
 
+function uniqueSorted(arr){
+  return Array.from(new Set(arr.filter(Boolean))).sort((a,b)=>a.localeCompare(b,'zh-Hans-CN'));
+}
+
+function buildPhoneDatalists(){
+  if(!PHONE_DB || !PHONE_DB.length) return;
+
+  // 1) 品牌
+  const brands = uniqueSorted(PHONE_DB.map(p => p.brand));
+  const brandList = document.getElementById('brandOptions');
+  if(brandList) brandList.innerHTML = brands.map(b => `<option value="${esc(b)}">`).join('');
+
+  // 2) 全部型号
+  const models = uniqueSorted(PHONE_DB.map(p => p.name));
+  const modelList = document.getElementById('modelOptions');
+  if(modelList) modelList.innerHTML = models.map(m => `<option value="${esc(m)}">`).join('');
+
+  // 3) 规格：内存 + 存储 组合
+  const specs = new Set();
+  PHONE_DB.forEach(p => {
+    if(p.ram && p.storage){
+      const rams = String(p.ram).split('/');
+      const storages = String(p.storage).split('/');
+      rams.forEach(r => storages.forEach(s => specs.add(`${r.trim()}+${s.trim()}`)));
+    }
+  });
+  ['4+64G','4+128G','6+128G','6+256G','8+128G','8+256G','8+512G',
+   '12+256G','12+512G','12+1T','16+512G','16+1T','24+1T'].forEach(s => specs.add(s));
+  const specList = document.getElementById('specOptions');
+  if(specList) specList.innerHTML = uniqueSorted([...specs]).map(s => `<option value="${esc(s)}">`).join('');
+
+  // 4) 颜色（简化版）
+  const colorList = document.getElementById('colorOptions');
+  if(colorList) colorList.innerHTML = COMMON_COLORS.map(c => `<option value="${esc(c)}">`).join('');
+}
+
+/* 品牌输入时动态过滤型号 */
+function bindBrandModelFilter(){
+  const brandInput = document.getElementById('fBrand');
+  const modelInput = document.getElementById('fModel');
+  if(!brandInput || !modelInput) return;
+
+  brandInput.addEventListener('input', () => {
+    const brand = brandInput.value.trim();
+    let pool = PHONE_DB;
+    if(brand){
+      pool = PHONE_DB.filter(p => (p.brand||'').toLowerCase().includes(brand.toLowerCase()));
+    }
+    const list = uniqueSorted(pool.map(p => p.name));
+    document.getElementById('modelOptions').innerHTML = list.map(m => `<option value="${esc(m)}">`).join('');
+  });
+}
+  
 /* ==================== 分类 & 首字母 ==================== */
 const APPLE_KEYS=['apple','苹果','iphone','ipad','macbook','airpods','apple watch','imac','mac mini','mac pro','mac studio'];
 const ANDROID_KEYS=['华为','huawei','小米','xiaomi','红米','redmi','oppo','vivo','荣耀','honor','三星','samsung','galaxy','一加','oneplus','realme','真我','魅族','meizu','努比亚','nubia','联想','lenovo','摩托罗拉','motorola','诺基亚','nokia','索尼','sony','谷歌','google pixel','pixel','中兴','zte','传音','tecno','infinix','金立','gionee','美图','meitu','锤子','smartisan','坚果','乐视','letv','酷派','coolpad','天语','k-touch','波导','bird','夏新','amoi','朵唯','doov','小辣椒','8848','青橙','大可乐','ivvi','尼采','卓普','黑鲨','black shark','红魔','red magic','rog','玩家国度','iqoo','拯救者','legion','htc','lg','黑莓','blackberry','阿尔卡特','alcatel','夏普','sharp','富士通','fujitsu','京瓷','kyocera','tcl','海信','hisense','长虹','康佳','飞利浦','philips','微软','lumia','索尼爱立信','步步高','华硕','asus','小天才','科大讯飞','大疆','dji','360手机'];
@@ -577,9 +640,18 @@ function openAdd(id=null,presetBarcode=''){
   $('#fName').value=p?p.name:'';$('#fBrand').value=p?p.brand:'';$('#fModel').value=p?p.model:'';$('#fSpec').value=p?p.spec:'';$('#fColor').value=p?p.color:'';$('#fBarcode').value=p?p.barcode:(presetBarcode||'');$('#fPriceIn').value=p&&p.priceIn?p.priceIn:'';$('#fPriceOut').value=p&&p.priceOut?p.priceOut:'';$('#fStock').value=p?p.stock:0;$('#fWarn').value=p?p.warnStock:2;$('#fRemark').value=p?p.remark:'';
   $('#lbStock').textContent=p?'当前库存（通过出入库变更）':'初始库存';
   $('#fStock').disabled=!!p;$('#btnSaveProduct').disabled=false;$('#btnSaveProduct').textContent=p?'保存修改':'保存';
-  matchedPhoneParams = (p && p.params) ? { ...p.params } : null;
+    matchedPhoneParams = (p && p.params) ? { ...p.params } : null;
   if(matchedPhoneParams){ renderPhoneParamBox(matchedPhoneParams); }
   else { $('#phoneParamField').style.display = 'none'; $('#phoneParamBox').innerHTML = ''; }
+
+  // 编辑时如果已有品牌，触发一次 input 事件让型号列表刷新
+  if(p && p.brand){
+    setTimeout(() => {
+      const evt = new Event('input', { bubbles: true });
+      const brandEl = document.getElementById('fBrand');
+      if(brandEl) brandEl.dispatchEvent(evt);
+    }, 100);
+  }
 }
 $('#btnGenBarcode').addEventListener('click',()=>{const ts=String(Date.now()).slice(-11);$('#fBarcode').value='2'+ts+Math.floor(Math.random()*10);toast('已生成店内码');});
 $('#btnScanBarcode').addEventListener('click',()=>scanOnce(code=>{$('#fBarcode').value=code;}));
@@ -1228,5 +1300,9 @@ if(!getHistory().length&&(products.length||records.length))pushSnapshot('manual'
     });
   }
 </script>
+<datalist id="brandOptions"></datalist>
+<datalist id="modelOptions"></datalist>
+<datalist id="specOptions"></datalist>
+<datalist id="colorOptions"></datalist>
 </body>
 </html>
